@@ -1,0 +1,8 @@
+make: Entering directory '/home/fedora/dev/firstly-api'
+ 
+rm -rf /home/fedora/dev/firstly-api/.docker_build
+ 
+mkdir -p /home/fedora/dev/firstly-api/.docker_build
+CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -v -o /home/fedora/dev/firstly-api/.docker_build/fistly-api .
+make: Leaving directory '/home/fedora/dev/firstly-api'
+ 

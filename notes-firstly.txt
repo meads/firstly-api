@@ -1,0 +1,8 @@
+android app that takes a picture jpeg format
+
+converts the image bitmap to binary string representation
+
+http posts the image data to hosted api
+
+api has a dashboard to view image data
+
