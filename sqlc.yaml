@@ -1,0 +1,8 @@
+version: 1
+packages:
+  - path: "firstly"
+    name: "firstly"
+    engine: "postgresql"
+    schema: "schema.sql"
+    queries: "query.sql"
+ 
