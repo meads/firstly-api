@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"net/http"
@@ -36,7 +37,7 @@ func main() {
 	// ######## Routes------------------------------------------------
 	router.GET("/app/image/", func(c *gin.Context) {
 		q := api.Queries{}
-		photos, err := q.ListImages(c.Request.Context())
+		photos, err := q.ListImages(context.Background())
 		if err != nil {
 			fmt.Printf("Error calling ListImages: %s", err)
 			return
@@ -62,7 +63,7 @@ func main() {
 
 		// insert the new image record
 		q := api.Queries{}
-		image, err := q.CreateImage(c.Request.Context(), params)
+		image, err := q.CreateImage(context.Background(), params)
 		if err != nil {
 			fmt.Printf("Error calling CreateImage: %s", err)
 			return
