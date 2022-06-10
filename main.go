@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"database/sql"
-	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"time"
@@ -39,7 +39,7 @@ func main() {
 		q := api.Queries{}
 		photos, err := q.ListImages(context.Background())
 		if err != nil {
-			fmt.Printf("Error calling ListImages: %s", err)
+			log.Fatalf("Error calling ListImages: %s", err)
 			return
 		}
 
@@ -52,7 +52,7 @@ func main() {
 		// bind the json to the struct
 		err := c.BindJSON(&photo)
 		if err != nil {
-			fmt.Printf("error binding json to photo struct: %s", err)
+			log.Fatalf("error binding json to photo struct: %s", err)
 			return
 		}
 
@@ -65,7 +65,7 @@ func main() {
 		q := api.Queries{}
 		image, err := q.CreateImage(context.Background(), params)
 		if err != nil {
-			fmt.Printf("Error calling CreateImage: %s", err)
+			log.Fatalf("Error calling CreateImage: %s", err)
 			return
 		}
 
