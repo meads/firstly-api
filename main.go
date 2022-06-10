@@ -15,7 +15,7 @@ import (
 )
 
 func main() {
-	type Photo struct {
+	type Image struct {
 		Data string `json:"data"`
 	}
 
@@ -37,39 +37,39 @@ func main() {
 	// ######## Routes------------------------------------------------
 	router.GET("/app/image/", func(c *gin.Context) {
 		q := api.Queries{}
-		photos, err := q.ListImages(context.Background())
+		images, err := q.ListImages(context.Background())
 		if err != nil {
 			log.Fatalf("Error calling ListImages: %s", err)
 			return
 		}
 
-		c.JSON(http.StatusOK, photos)
+		c.JSON(http.StatusOK, images)
 	})
 
 	router.POST("/app/image/", func(c *gin.Context) {
-		var photo Photo
+		var image Image
 
 		// bind the json to the struct
-		err := c.BindJSON(&photo)
+		err := c.BindJSON(&image)
 		if err != nil {
-			log.Fatalf("error binding json to photo struct: %s", err)
+			log.Fatalf("error binding json to image struct: %s", err)
 			return
 		}
 
 		// create the db operation params
 		params := api.CreateImageParams{}
-		params.Data = photo.Data
+		params.Data = image.Data
 		params.Name = "test-name"
 
 		// insert the new image record
 		q := api.Queries{}
-		image, err := q.CreateImage(context.Background(), params)
+		apiImage, err := q.CreateImage(context.Background(), params)
 		if err != nil {
 			log.Fatalf("Error calling CreateImage: %s", err)
 			return
 		}
 
-		c.IndentedJSON(http.StatusCreated, image)
+		c.IndentedJSON(http.StatusCreated, apiImage)
 	})
 
 	router.Run(":" + os.Getenv("PORT"))
