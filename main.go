@@ -25,25 +25,25 @@ func main() {
 	// ####### DB Connection related----------------------------------
 	db, err := sql.Open("postgres", os.Getenv("DATABASE_URL"))
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 	defer db.Close()
 	time.Sleep(5 * time.Second)
 	err = db.Ping()
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 
 	// ######## Routes------------------------------------------------
 	router.GET("/app/image/", func(c *gin.Context) {
-		q := api.Queries{}
-		images, err := q.ListImages(context.Background())
-		if err != nil {
-			log.Fatalf("Error calling ListImages: %s", err)
-			return
-		}
+		// q := api.Queries{}
+		// images, err := q.ListImages(context.Background())
+		// if err != nil {
+		// 	log.Fatalf("Error calling ListImages: %s", err)
+		// 	return
+		// }
 
-		c.JSON(http.StatusOK, images)
+		c.JSON(http.StatusOK, "{\"data\":\"foo\"}")
 	})
 
 	router.POST("/app/image/", func(c *gin.Context) {
