@@ -10,7 +10,7 @@ ORDER BY name;
 INSERT INTO images (
   name, data, created
 ) VALUES (
-  $1, $2, $3
+  $1, $2, NOW()
 )
 RETURNING *;
 

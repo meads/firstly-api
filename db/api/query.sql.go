@@ -13,19 +13,18 @@ const createImage = `-- name: CreateImage :one
 INSERT INTO images (
   name, data, created
 ) VALUES (
-  $1, $2, $3
+  $1, $2, NOW()
 )
 RETURNING id, name, data, created, deleted
 `
 
 type CreateImageParams struct {
-	Name    string
-	Data    string
-	Created interface{}
+	Name string
+	Data string
 }
 
 func (q *Queries) CreateImage(ctx context.Context, arg CreateImageParams) (Image, error) {
-	row := q.db.QueryRowContext(ctx, createImage, arg.Name, arg.Data, arg.Created)
+	row := q.db.QueryRowContext(ctx, createImage, arg.Name, arg.Data)
 	var i Image
 	err := row.Scan(
 		&i.ID,
