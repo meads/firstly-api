@@ -11,20 +11,15 @@ import (
 
 const createImage = `-- name: CreateImage :one
 INSERT INTO images (
-  name, data, created
+  data, created
 ) VALUES (
-  $1, $2, NOW()
+  $1, NOW()
 )
 RETURNING id, name, data, created, deleted
 `
 
-type CreateImageParams struct {
-	Name string
-	Data string
-}
-
-func (q *Queries) CreateImage(ctx context.Context, arg CreateImageParams) (Image, error) {
-	row := q.db.QueryRowContext(ctx, createImage, arg.Name, arg.Data)
+func (q *Queries) CreateImage(ctx context.Context, data string) (Image, error) {
+	row := q.db.QueryRowContext(ctx, createImage, data)
 	var i Image
 	err := row.Scan(
 		&i.ID,

@@ -8,9 +8,9 @@ ORDER BY name;
 
 -- name: CreateImage :one
 INSERT INTO images (
-  name, data, created
+  data, created
 ) VALUES (
-  $1, $2, NOW()
+  $1, NOW()
 )
 RETURNING *;
 

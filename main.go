@@ -22,7 +22,6 @@ func main() {
 	router := gin.New()
 	router.Use(gin.Logger())
 
-	// ####### DB Connection related----------------------------------
 	db, err := sql.Open("postgres", os.Getenv("DATABASE_URL"))
 	if err != nil {
 		log.Fatal(err)
@@ -34,16 +33,15 @@ func main() {
 		log.Fatal(err)
 	}
 
-	// ######## Routes------------------------------------------------
 	router.GET("/app/image/", func(c *gin.Context) {
-		// q := api.Queries{}
-		// images, err := q.ListImages(context.Background())
-		// if err != nil {
-		// 	log.Fatalf("Error calling ListImages: %s", err)
-		// 	return
-		// }
+		q := api.Queries{}
+		images, err := q.ListImages(context.Background())
+		if err != nil {
+			log.Fatalf("Error calling ListImages: %s", err)
+			return
+		}
 
-		c.JSON(http.StatusOK, "{\"data\":\"foo\"}")
+		c.JSON(http.StatusOK, images)
 	})
 
 	router.POST("/app/image/", func(c *gin.Context) {
@@ -56,14 +54,9 @@ func main() {
 			return
 		}
 
-		// create the db operation params
-		params := api.CreateImageParams{}
-		params.Data = image.Data
-		params.Name = "test-name"
-
 		// insert the new image record
 		q := api.Queries{}
-		apiImage, err := q.CreateImage(context.Background(), params)
+		apiImage, err := q.CreateImage(context.Background(), image.Data)
 		if err != nil {
 			log.Fatalf("Error calling CreateImage: %s", err)
 			return

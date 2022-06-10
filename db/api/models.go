@@ -10,7 +10,7 @@ import (
 
 type Image struct {
 	ID      int64
-	Name    string
+	Name    sql.NullString
 	Data    string
 	Created interface{}
 	Deleted sql.NullBool
