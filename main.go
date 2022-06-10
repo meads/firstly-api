@@ -3,7 +3,6 @@ package main
 import (
 	"database/sql"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"time"
@@ -14,20 +13,7 @@ import (
 	_ "github.com/lib/pq"
 )
 
-const (
-	host     = "ec2-52-204-195-41.compute-1.amazonaws.com"
-	port     = 5432
-	user     = "irdanpwkdvbzxg"
-	password = "c29b40a6619957f7b572795b81f7805414be54ccd3675c07761f4cc61894d83e"
-	dbname   = "d89dudhb3lei05"
-)
-
 func main() {
-	port := os.Getenv("PORT")
-	if port == "" {
-		log.Fatal("$PORT must be set")
-	}
-
 	type Photo struct {
 		Data string `json:"data"`
 	}
@@ -35,26 +21,19 @@ func main() {
 	router := gin.New()
 	router.Use(gin.Logger())
 
-	psqlInfo := fmt.Sprintf(
-		"host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
-		host, port, user, password, dbname)
-
-	db, err := sql.Open("postgres", psqlInfo)
+	// ####### DB Connection related----------------------------------
+	db, err := sql.Open("postgres", os.Getenv("DATABASE_URL"))
 	if err != nil {
 		panic(err)
 	}
 	defer db.Close()
-
 	time.Sleep(5 * time.Second)
-
 	err = db.Ping()
 	if err != nil {
 		panic(err)
 	}
 
-	fmt.Println("Successfully connected!")
-
-	// list route for photos
+	// ######## Routes------------------------------------------------
 	router.GET("/app/image/", func(c *gin.Context) {
 		q := api.Queries{}
 		photos, err := q.ListImages(c.Request.Context())
@@ -92,5 +71,5 @@ func main() {
 		c.IndentedJSON(http.StatusCreated, image)
 	})
 
-	router.Run(":" + port)
+	router.Run(":" + os.Getenv("PORT"))
 }
