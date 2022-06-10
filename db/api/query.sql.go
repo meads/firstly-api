@@ -3,36 +3,42 @@
 //   sqlc v1.13.0
 // source: query.sql
 
-package firstly
+package api
 
 import (
 	"context"
-	"database/sql"
 )
 
 const createImage = `-- name: CreateImage :one
-INSERT INTO image (
-  name, data
+INSERT INTO images (
+  name, data, created
 ) VALUES (
-  $1, $2
+  $1, $2, $3
 )
-RETURNING id, name, data
+RETURNING id, name, data, created, deleted
 `
 
 type CreateImageParams struct {
-	Name string
-	Data sql.NullString
+	Name    string
+	Data    string
+	Created interface{}
 }
 
 func (q *Queries) CreateImage(ctx context.Context, arg CreateImageParams) (Image, error) {
-	row := q.db.QueryRowContext(ctx, createImage, arg.Name, arg.Data)
+	row := q.db.QueryRowContext(ctx, createImage, arg.Name, arg.Data, arg.Created)
 	var i Image
-	err := row.Scan(&i.ID, &i.Name, &i.Data)
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Data,
+		&i.Created,
+		&i.Deleted,
+	)
 	return i, err
 }
 
 const deleteImage = `-- name: DeleteImage :exec
-DELETE FROM image
+DELETE FROM images
 WHERE id = $1
 `
 
@@ -42,19 +48,25 @@ func (q *Queries) DeleteImage(ctx context.Context, id int64) error {
 }
 
 const getImage = `-- name: GetImage :one
-SELECT id, name, data FROM image
+SELECT id, name, data, created, deleted FROM images
 WHERE id = $1 LIMIT 1
 `
 
 func (q *Queries) GetImage(ctx context.Context, id int64) (Image, error) {
 	row := q.db.QueryRowContext(ctx, getImage, id)
 	var i Image
-	err := row.Scan(&i.ID, &i.Name, &i.Data)
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Data,
+		&i.Created,
+		&i.Deleted,
+	)
 	return i, err
 }
 
 const listImages = `-- name: ListImages :many
-SELECT id, name, data FROM image
+SELECT id, name, data, created, deleted FROM images
 ORDER BY name
 `
 
@@ -67,7 +79,13 @@ func (q *Queries) ListImages(ctx context.Context) ([]Image, error) {
 	var items []Image
 	for rows.Next() {
 		var i Image
-		if err := rows.Scan(&i.ID, &i.Name, &i.Data); err != nil {
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Data,
+			&i.Created,
+			&i.Deleted,
+		); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -79,4 +97,15 @@ func (q *Queries) ListImages(ctx context.Context) ([]Image, error) {
 		return nil, err
 	}
 	return items, nil
+}
+
+const softDeleteImage = `-- name: SoftDeleteImage :exec
+UPDATE images
+SET deleted = TRUE
+WHERE id = $1
+`
+
+func (q *Queries) SoftDeleteImage(ctx context.Context, id int64) error {
+	_, err := q.db.ExecContext(ctx, softDeleteImage, id)
+	return err
 }

@@ -2,14 +2,16 @@
 // versions:
 //   sqlc v1.13.0
 
-package firstly
+package api
 
 import (
 	"database/sql"
 )
 
 type Image struct {
-	ID   int64
-	Name string
-	Data sql.NullString
+	ID      int64
+	Name    string
+	Data    string
+	Created interface{}
+	Deleted sql.NullBool
 }

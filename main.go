@@ -2,7 +2,6 @@ package main
 
 import (
 	"database/sql"
-	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -10,6 +9,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/heroku/firstly-api/db/api"
 	_ "github.com/heroku/x/hmetrics/onload"
 	_ "github.com/lib/pq"
 )
@@ -34,10 +34,9 @@ func main() {
 
 	router := gin.New()
 	router.Use(gin.Logger())
-	photos := []Photo{}
 
 	psqlInfo := fmt.Sprintf(
-		"host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
+		"host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
 		host, port, user, password, dbname)
 
 	db, err := sql.Open("postgres", psqlInfo)
@@ -56,32 +55,41 @@ func main() {
 	fmt.Println("Successfully connected!")
 
 	// list route for photos
-	router.GET("/app/photo/", func(c *gin.Context) {
-		b, err := json.Marshal(photos)
+	router.GET("/app/image/", func(c *gin.Context) {
+		q := api.Queries{}
+		photos, err := q.ListImages(c.Request.Context())
 		if err != nil {
-			fmt.Printf("Error: %s", err)
+			fmt.Printf("Error calling ListImages: %s", err)
 			return
 		}
-		c.String(http.StatusOK, string(b))
+
+		c.JSON(http.StatusOK, photos)
 	})
 
-	router.POST("/app/photo/", func(c *gin.Context) {
+	router.POST("/app/image/", func(c *gin.Context) {
 		var photo Photo
 
-		if err := c.BindJSON(&photo); err != nil {
-			return
-		}
-
-		tx, err := db.Begin()
+		// bind the json to the struct
+		err := c.BindJSON(&photo)
 		if err != nil {
-			fmt.Errorf("error starting tx %s", err)
+			fmt.Printf("error binding json to photo struct: %s", err)
 			return
 		}
-		tx.Exec("")
 
-		// Add the new album to the slice.
-		photos = append(photos, photo)
-		c.IndentedJSON(http.StatusCreated, photo)
+		// create the db operation params
+		params := api.CreateImageParams{}
+		params.Data = photo.Data
+		params.Name = "test-name"
+
+		// insert the new image record
+		q := api.Queries{}
+		image, err := q.CreateImage(c.Request.Context(), params)
+		if err != nil {
+			fmt.Printf("Error calling CreateImage: %s", err)
+			return
+		}
+
+		c.IndentedJSON(http.StatusCreated, image)
 	})
 
 	router.Run(":" + port)
