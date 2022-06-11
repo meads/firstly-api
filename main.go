@@ -27,7 +27,6 @@ func main() {
 	router.Use(gin.Logger())
 
 	dbURL := os.Getenv("DATABASE_URL")
-	log.Println(dbURL)
 
 	db, err := sql.Open("postgres", dbURL)
 	if err != nil {
@@ -42,12 +41,13 @@ func main() {
 
 	n, err := migrate.Exec(db, "postgres", migrations, migrate.Up)
 	if err != nil {
-		// Handle errors!
+		log.Fatalf("migration execution failed: %s", err)
+		return
 	}
 	fmt.Printf("Applied %d migrations!\n", n)
 
 	router.GET("/app/image/", func(c *gin.Context) {
-		q := api.Queries{}
+		q := api.New(db)
 		images, err := q.ListImages(context.Background())
 		if err != nil {
 			log.Fatalf("Error calling ListImages: %s", err)
