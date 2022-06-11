@@ -10,8 +10,6 @@ import (
 	"github.com/gin-gonic/gin"
 	_ "github.com/heroku/x/hmetrics/onload"
 
-	migrate "github.com/golang-migrate/migrate/v4"
-	postgres "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/lib/pq"
 
 	api "github.com/heroku/firstly-api/db/api"
@@ -27,29 +25,31 @@ func main() {
 	router.Use(gin.Logger())
 
 	dbURL := os.Getenv("DATABASE_URL")
+	log.Println(dbURL)
+
 	db, err := sql.Open("postgres", dbURL)
 	if err != nil {
 		log.Fatalf("error opening postgres driver using url '%s', '%s'", dbURL, err)
 	}
 	defer db.Close()
 
-	// Run migrations
-	driver, err := postgres.WithInstance(db, &postgres.Config{})
-	if err != nil {
-		log.Fatalf("error initializing postgres migration tool with db handle: %s", err)
-		return
-	}
+	// // Run migrations
+	// driver, err := postgres.WithInstance(db, &postgres.Config{})
+	// if err != nil {
+	// 	log.Fatalf("error initializing postgres migration tool with db handle: %s", err)
+	// 	return
+	// }
 
-	m, err := migrate.NewWithDatabaseInstance(
-		"file:///db/sql/migrations",
-		"postgres",
-		driver)
-	if err != nil {
-		log.Fatalf("error running migration: %s", err)
-		return
-	}
+	// m, err := migrate.NewWithInstance(
+	// 	"file:///db/sql/migrations",
+	// 	"postgres",
+	// 	driver)
+	// if err != nil {
+	// 	log.Fatalf("error running migration: %s", err)
+	// 	return
+	// }
 
-	m.Up() // or m.Step(2) if you want to explicitly set the number of migrations to run
+	// m.Up() // or m.Step(2) if you want to explicitly set the number of migrations to run
 
 	router.GET("/app/image/", func(c *gin.Context) {
 		q := api.Queries{}
