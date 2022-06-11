@@ -9,13 +9,28 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-migrate/migrate/v4"
-	"github.com/golang-migrate/migrate/v4/database/postgres"
 	"github.com/heroku/firstly-api/db/api"
 	_ "github.com/heroku/x/hmetrics/onload"
 	_ "github.com/lib/pq"
 )
 
 func main() {
+	// Run migrations
+
+	m, err := migrate.New("file:///db/sql/migrations", os.Getenv("DATABASE_URL"))
+	if err != nil {
+		log.Fatalf("error initializing postgres migration tool: %s", err)
+		return
+	}
+
+	err = m.Up()
+	if err != nil {
+		log.Fatalf("error running migration: %s", err)
+		return
+	}
+
+	m.Up() // or m.Step(2) if you want to explicitly set the number of migrations to run
+
 	type Image struct {
 		Data string `json:"data"`
 	}
@@ -30,23 +45,6 @@ func main() {
 		log.Fatal(err)
 	}
 	defer db.Close()
-
-	// Run migrations
-	driver, err := postgres.WithInstance(db, &postgres.Config{})
-	if err != nil {
-		log.Fatalf("error initializing postgres migration tool with db handle: %s", err)
-		return
-	}
-
-	m, err := migrate.NewWithDatabaseInstance(
-		"file:///db/sql/migrations",
-		"postgres", driver)
-	if err != nil {
-		log.Fatalf("error running migration: %s", err)
-		return
-	}
-
-	m.Up() // or m.Step(2) if you want to explicitly set the number of migrations to run
 
 	router.GET("/app/image/", func(c *gin.Context) {
 		q := api.Queries{}
