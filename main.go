@@ -6,7 +6,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-migrate/migrate/v4"
@@ -24,21 +23,29 @@ func main() {
 	router := gin.New()
 	router.Use(gin.Logger())
 
-	db, err := sql.Open("postgres", os.Getenv("DATABASE_URL"))
+	dbURL := os.Getenv("DATABASE_URL")
+	db, err := sql.Open("postgres", dbURL)
 	if err != nil {
+		log.Fatal(dbURL)
 		log.Fatal(err)
 	}
 	defer db.Close()
-	time.Sleep(5 * time.Second)
-	err = db.Ping()
+
+	// Run migrations
+	driver, err := postgres.WithInstance(db, &postgres.Config{})
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("error initializing postgres migration tool with db handle: %s", err)
+		return
 	}
 
-	driver, err := postgres.WithInstance(db, &postgres.Config{})
 	m, err := migrate.NewWithDatabaseInstance(
 		"file:///db/sql/migrations",
 		"postgres", driver)
+	if err != nil {
+		log.Fatalf("error running migration: %s", err)
+		return
+	}
+
 	m.Up() // or m.Step(2) if you want to explicitly set the number of migrations to run
 
 	router.GET("/app/image/", func(c *gin.Context) {

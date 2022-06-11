@@ -1,4 +1,4 @@
-CREATE TABLE images (
+CREATE TABLE "images" (
   "id"   BIGSERIAL PRIMARY KEY,
   "name" TEXT NULL,
   "data" TEXT      NOT NULL,
