@@ -9,6 +9,8 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/golang-migrate/migrate/v4"
+	"github.com/golang-migrate/migrate/v4/database/postgres"
 	"github.com/heroku/firstly-api/db/api"
 	_ "github.com/heroku/x/hmetrics/onload"
 	_ "github.com/lib/pq"
@@ -32,6 +34,12 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	driver, err := postgres.WithInstance(db, &postgres.Config{})
+	m, err := migrate.NewWithDatabaseInstance(
+		"file:///db/sql/migrations",
+		"postgres", driver)
+	m.Up() // or m.Step(2) if you want to explicitly set the number of migrations to run
 
 	router.GET("/app/image/", func(c *gin.Context) {
 		q := api.Queries{}
