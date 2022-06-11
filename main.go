@@ -46,10 +46,8 @@ func main() {
 	}
 	fmt.Printf("Applied %d migrations!\n", n)
 
-	q := api.New(db)
-
 	router.GET("/app/image/", func(c *gin.Context) {
-
+		q := api.New(db)
 		images, err := q.ListImages(context.Background())
 		if err != nil {
 			log.Fatalf("Error calling ListImages: %s", err)
@@ -70,6 +68,7 @@ func main() {
 		}
 
 		// insert the new image record
+		q := api.New(db)
 		apiImage, err := q.CreateImage(context.Background(), image.Data)
 		if err != nil {
 			log.Fatalf("Error calling CreateImage: %s", err)
