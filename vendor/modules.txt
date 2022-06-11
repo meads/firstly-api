@@ -18,23 +18,9 @@ github.com/go-playground/universal-translator
 # github.com/go-playground/validator/v10 v10.4.1
 ## explicit; go 1.13
 github.com/go-playground/validator/v10
-# github.com/golang-migrate/migrate/v4 v4.15.2
-## explicit; go 1.16
-github.com/golang-migrate/migrate/v4
-github.com/golang-migrate/migrate/v4/database
-github.com/golang-migrate/migrate/v4/database/multistmt
-github.com/golang-migrate/migrate/v4/database/postgres
-github.com/golang-migrate/migrate/v4/internal/url
-github.com/golang-migrate/migrate/v4/source
 # github.com/golang/protobuf v1.5.2
 ## explicit; go 1.9
 github.com/golang/protobuf/proto
-# github.com/hashicorp/errwrap v1.1.0
-## explicit
-github.com/hashicorp/errwrap
-# github.com/hashicorp/go-multierror v1.1.1
-## explicit; go 1.13
-github.com/hashicorp/go-multierror
 # github.com/heroku/x v0.0.33
 ## explicit; go 1.12
 github.com/heroku/x/hmetrics
@@ -42,6 +28,8 @@ github.com/heroku/x/hmetrics/onload
 # github.com/json-iterator/go v1.1.12
 ## explicit; go 1.12
 github.com/json-iterator/go
+# github.com/kr/text v0.2.0
+## explicit
 # github.com/leodido/go-urn v1.2.0
 ## explicit; go 1.13
 github.com/leodido/go-urn
@@ -62,9 +50,6 @@ github.com/modern-go/reflect2
 # github.com/ugorji/go/codec v1.1.7
 ## explicit
 github.com/ugorji/go/codec
-# go.uber.org/atomic v1.7.0
-## explicit; go 1.13
-go.uber.org/atomic
 # golang.org/x/crypto v0.0.0-20210921155107-089bfa567519
 ## explicit; go 1.17
 golang.org/x/crypto/sha3
@@ -102,6 +87,10 @@ google.golang.org/protobuf/reflect/protoregistry
 google.golang.org/protobuf/runtime/protoiface
 google.golang.org/protobuf/runtime/protoimpl
 google.golang.org/protobuf/types/descriptorpb
+# gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c
+## explicit; go 1.11
 # gopkg.in/yaml.v2 v2.4.0
 ## explicit; go 1.15
 gopkg.in/yaml.v2
+# gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
+## explicit

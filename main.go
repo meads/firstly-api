@@ -33,24 +33,6 @@ func main() {
 	}
 	defer db.Close()
 
-	// // Run migrations
-	// driver, err := postgres.WithInstance(db, &postgres.Config{})
-	// if err != nil {
-	// 	log.Fatalf("error initializing postgres migration tool with db handle: %s", err)
-	// 	return
-	// }
-
-	// m, err := migrate.NewWithInstance(
-	// 	"file:///db/sql/migrations",
-	// 	"postgres",
-	// 	driver)
-	// if err != nil {
-	// 	log.Fatalf("error running migration: %s", err)
-	// 	return
-	// }
-
-	// m.Up() // or m.Step(2) if you want to explicitly set the number of migrations to run
-
 	router.GET("/app/image/", func(c *gin.Context) {
 		q := api.Queries{}
 		images, err := q.ListImages(context.Background())
