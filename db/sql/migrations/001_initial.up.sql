@@ -1,3 +1,5 @@
+
+-- +migrate Up
 CREATE TABLE "images" (
   "id"   BIGSERIAL PRIMARY KEY,
   "name" TEXT NULL,
