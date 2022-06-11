@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -13,6 +14,7 @@ import (
 	_ "github.com/lib/pq"
 
 	api "github.com/heroku/firstly-api/db/api"
+	migrate "github.com/rubenv/sql-migrate"
 )
 
 type Image struct {
@@ -32,6 +34,17 @@ func main() {
 		log.Fatalf("error opening postgres driver using url '%s', '%s'", dbURL, err)
 	}
 	defer db.Close()
+
+	// OR: Read migrations from a folder:
+	migrations := &migrate.FileMigrationSource{
+		Dir: "db/sql/migrations",
+	}
+
+	n, err := migrate.Exec(db, "postgres", migrations, migrate.Up)
+	if err != nil {
+		// Handle errors!
+	}
+	fmt.Printf("Applied %d migrations!\n", n)
 
 	router.GET("/app/image/", func(c *gin.Context) {
 		q := api.Queries{}
