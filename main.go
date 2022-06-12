@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -58,24 +59,33 @@ func main() {
 	})
 
 	router.POST("/app/image/", func(c *gin.Context) {
-		var image Image
-
-		// bind the json to the struct
-		err := c.BindJSON(&image)
+		jsonData, err := ioutil.ReadAll(c.Request.Body)
 		if err != nil {
-			log.Fatalf("error binding json to image struct: %s", err)
+			log.Fatalf("errror reading request body: %s", err)
 			return
 		}
 
-		// insert the new image record
-		q := api.New(db)
-		apiImage, err := q.CreateImage(context.Background(), image.Data)
-		if err != nil {
-			log.Fatalf("Error calling CreateImage: %s", err)
-			return
-		}
+		c.JSON(http.StatusOK, jsonData)
+		// return
 
-		c.IndentedJSON(http.StatusCreated, apiImage)
+		// var image Image
+
+		// // bind the json to the struct
+		// err := c.BindJSON(&image)
+		// if err != nil {
+		// 	log.Fatalf("error binding json to image struct: %s", err)
+		// 	return
+		// }
+
+		// // insert the new image record
+		// q := api.New(db)
+		// apiImage, err := q.CreateImage(context.Background(), image.Data)
+		// if err != nil {
+		// 	log.Fatalf("Error calling CreateImage: %s", err)
+		// 	return
+		// }
+
+		// c.IndentedJSON(http.StatusCreated, apiImage)
 	})
 
 	router.Run(":" + os.Getenv("PORT"))
