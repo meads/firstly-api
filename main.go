@@ -65,7 +65,7 @@ func main() {
 			return
 		}
 
-		c.JSON(http.StatusOK, jsonData)
+		c.JSON(http.StatusOK, string(jsonData))
 		// return
 
 		// var image Image
