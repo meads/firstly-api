@@ -3,11 +3,13 @@ package main
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	_ "github.com/heroku/x/hmetrics/onload"
@@ -64,8 +66,14 @@ func main() {
 			log.Fatalf("errror reading request body: %s", err)
 			return
 		}
-
-		c.JSON(http.StatusOK, string(jsonData))
+		log.Println(string(jsonData))
+		jsonHeaders, err := json.Marshal(c.Request.Header)
+		if err != nil {
+			log.Fatalf("error marshalling the request headers: %s", err)
+			return
+		}
+		log.Println(string(jsonHeaders))
+		c.JSON(http.StatusOK, strings.Join([]string{string(jsonHeaders), string(jsonData)}, ""))
 		// return
 
 		// var image Image
