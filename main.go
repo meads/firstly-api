@@ -3,13 +3,10 @@ package main
 import (
 	"context"
 	"database/sql"
-	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 	_ "github.com/heroku/x/hmetrics/onload"
@@ -61,39 +58,20 @@ func main() {
 	})
 
 	router.POST("/app/image/", func(c *gin.Context) {
-		jsonData, err := ioutil.ReadAll(c.Request.Body)
-		if err != nil {
-			log.Fatalf("errror reading request body: %s", err)
+		var image Image
+		if err := c.BindJSON(&image); err != nil {
+			c.AbortWithError(http.StatusBadRequest, err)
 			return
 		}
-		log.Println(string(jsonData))
-		jsonHeaders, err := json.Marshal(c.Request.Header)
+
+		q := api.New(db)
+		apiImage, err := q.CreateImage(context.Background(), image.Data)
 		if err != nil {
-			log.Fatalf("error marshalling the request headers: %s", err)
+			log.Fatalf("Error calling CreateImage: %s", err)
 			return
 		}
-		log.Println(string(jsonHeaders))
-		c.JSON(http.StatusOK, strings.Join([]string{string(jsonHeaders), string(jsonData)}, ""))
-		// return
 
-		// var image Image
-
-		// // bind the json to the struct
-		// err := c.BindJSON(&image)
-		// if err != nil {
-		// 	log.Fatalf("error binding json to image struct: %s", err)
-		// 	return
-		// }
-
-		// // insert the new image record
-		// q := api.New(db)
-		// apiImage, err := q.CreateImage(context.Background(), image.Data)
-		// if err != nil {
-		// 	log.Fatalf("Error calling CreateImage: %s", err)
-		// 	return
-		// }
-
-		// c.IndentedJSON(http.StatusCreated, apiImage)
+		c.IndentedJSON(http.StatusCreated, apiImage)
 	})
 
 	router.Run(":" + os.Getenv("PORT"))
