@@ -18,7 +18,7 @@ import (
 )
 
 // TODO:
-// Create go types for nullable columns and create overrides for json encoding to handle db values in dtos
+// - Create go types for nullable columns and create overrides for json encoding to handle db values in dtos
 // Reconcile the differences between environments local/production. Favor working locally.
 // Setup unit tests and integration tests.
 // Fix authorization issues with android app POST request.
