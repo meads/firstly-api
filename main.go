@@ -24,10 +24,28 @@ import (
 // Fix authorization issues with android app POST request.
 
 type Image struct {
-	ID      int          `json:"id"`
-	Created string       `json:"created"`
-	Data    string       `json:"data"`
-	Deleted sql.NullBool `json:"deleted"`
+	ID      int64  `json:"id"`
+	Created string `json:"created"`
+	Data    string `json:"data"`
+	Deleted bool   `json:"deleted"`
+}
+
+func (to Image) fromDbAPIType(from *api.Image) *Image {
+	if from == nil {
+		return &Image{}
+	}
+
+	deleted := false
+	if from.Deleted.Valid && from.Deleted.Int32 == 1 {
+		deleted = true
+	}
+
+	return &Image{
+		ID:      from.ID,
+		Created: from.Created,
+		Data:    from.Data,
+		Deleted: deleted,
+	}
 }
 
 func main() {
@@ -80,7 +98,7 @@ func main() {
 			return
 		}
 
-		c.IndentedJSON(http.StatusCreated, apiImage)
+		c.JSON(http.StatusCreated, Image{}.fromDbAPIType(&apiImage))
 	})
 
 	router.Run(":" + os.Getenv("PORT"))
