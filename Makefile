@@ -12,6 +12,9 @@ clean:
 heroku: $(DOCKER_CMD)
 	heroku container:push web
 
+sqlc:
+	@sqlc generate
+
 
 
 

@@ -3,8 +3,7 @@ SELECT * FROM images
 WHERE id = $1 LIMIT 1;
 
 -- name: ListImages :many
-SELECT * FROM images
-ORDER BY name;
+SELECT * FROM images;
 
 -- name: CreateImage :one
 INSERT INTO images (
@@ -16,7 +15,7 @@ RETURNING *;
 
 -- name: SoftDeleteImage :exec
 UPDATE images
-SET deleted = TRUE
+SET deleted = 1
 WHERE id = $1;
 
 -- name: DeleteImage :exec

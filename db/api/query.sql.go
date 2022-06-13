@@ -15,7 +15,7 @@ INSERT INTO images (
 ) VALUES (
   $1, NOW()
 )
-RETURNING id, name, data, created, deleted
+RETURNING id, data, created, deleted
 `
 
 func (q *Queries) CreateImage(ctx context.Context, data string) (Image, error) {
@@ -23,7 +23,6 @@ func (q *Queries) CreateImage(ctx context.Context, data string) (Image, error) {
 	var i Image
 	err := row.Scan(
 		&i.ID,
-		&i.Name,
 		&i.Data,
 		&i.Created,
 		&i.Deleted,
@@ -42,7 +41,7 @@ func (q *Queries) DeleteImage(ctx context.Context, id int64) error {
 }
 
 const getImage = `-- name: GetImage :one
-SELECT id, name, data, created, deleted FROM images
+SELECT id, data, created, deleted FROM images
 WHERE id = $1 LIMIT 1
 `
 
@@ -51,7 +50,6 @@ func (q *Queries) GetImage(ctx context.Context, id int64) (Image, error) {
 	var i Image
 	err := row.Scan(
 		&i.ID,
-		&i.Name,
 		&i.Data,
 		&i.Created,
 		&i.Deleted,
@@ -60,8 +58,7 @@ func (q *Queries) GetImage(ctx context.Context, id int64) (Image, error) {
 }
 
 const listImages = `-- name: ListImages :many
-SELECT id, name, data, created, deleted FROM images
-ORDER BY name
+SELECT id, data, created, deleted FROM images
 `
 
 func (q *Queries) ListImages(ctx context.Context) ([]Image, error) {
@@ -75,7 +72,6 @@ func (q *Queries) ListImages(ctx context.Context) ([]Image, error) {
 		var i Image
 		if err := rows.Scan(
 			&i.ID,
-			&i.Name,
 			&i.Data,
 			&i.Created,
 			&i.Deleted,
@@ -95,7 +91,7 @@ func (q *Queries) ListImages(ctx context.Context) ([]Image, error) {
 
 const softDeleteImage = `-- name: SoftDeleteImage :exec
 UPDATE images
-SET deleted = TRUE
+SET deleted = 1
 WHERE id = $1
 `
 

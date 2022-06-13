@@ -10,9 +10,7 @@ import (
 
 type Image struct {
 	ID      int64
-	Name    sql.NullString
 	Data    string
-	Created interface{}
-	Deleted sql.NullBool
+	Created string
+	Deleted sql.NullInt32
 }
- 
