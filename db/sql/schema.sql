@@ -3,5 +3,5 @@ CREATE TABLE "images" (
   "name" TEXT NULL,
   "data" TEXT      NOT NULL,
   "created" VARCHAR(8) NOT NULL,
-  "deleted" BOOLEAN DEFAULT FALSE
+  "deleted" INT DEFAULT 0
 );

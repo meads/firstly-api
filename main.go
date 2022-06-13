@@ -17,9 +17,31 @@ import (
 	migrate "github.com/rubenv/sql-migrate"
 )
 
+// {
+//     "ID": 13,
+//     "Name": {
+//         "String": "",
+//         "Valid": false
+//     },
+//     "Data": "another-seven",
+//     "Created": "2022-06-13 01:13:15.313122+00",
+//     "Deleted": {
+//         "Bool": false,
+//         "Valid": true
+//     }
+// }
+
 type Image struct {
-	Data string `json:"data"`
+	ID      int    `json:"id"`
+	Data    string `json:"data"`
+	Name    string `json:"name"`
+	Created string `json:"created"`
+	Deleted bool   `json:"deleted"`
 }
+
+// func (*Image) Unmarshal(b []byte, img *Image) error {
+// 	err := json.Unmarshal(b, img)
+// }
 
 func main() {
 
