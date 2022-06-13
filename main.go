@@ -80,8 +80,11 @@ func main() {
 			log.Fatalf("Error calling ListImages: %s", err)
 			return
 		}
-
-		c.JSON(http.StatusOK, images)
+		dtoImages := []Image{}
+		for _, img := range images {
+			dtoImages = append(dtoImages, *Image{}.fromDbAPIType(&img))
+		}
+		c.JSON(http.StatusOK, dtoImages)
 	})
 
 	router.POST("/app/image/", func(c *gin.Context) {
