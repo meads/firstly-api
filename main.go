@@ -11,9 +11,8 @@ import (
 	"github.com/gin-gonic/gin"
 	_ "github.com/heroku/x/hmetrics/onload"
 
-	_ "github.com/lib/pq"
-
 	api "github.com/heroku/firstly-api/db/api"
+	_ "github.com/lib/pq"
 	migrate "github.com/rubenv/sql-migrate"
 )
 
@@ -61,7 +60,6 @@ func main() {
 	}
 	defer db.Close()
 
-	// OR: Read migrations from a folder:
 	migrations := &migrate.FileMigrationSource{
 		Dir: "db/sql/migrations",
 	}
