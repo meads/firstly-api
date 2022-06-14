@@ -2,18 +2,21 @@ package main
 
 import (
 	"context"
-	"database/sql"
-	"fmt"
+
 	"log"
 	"net/http"
 	"os"
 
+	"database/sql"
+
 	"github.com/gin-gonic/gin"
+	"github.com/golang-migrate/migrate/v4"
+	"github.com/golang-migrate/migrate/v4/database/postgres"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
 	_ "github.com/heroku/x/hmetrics/onload"
+	_ "github.com/lib/pq"
 
 	api "github.com/heroku/firstly-api/db/api"
-	_ "github.com/lib/pq"
-	migrate "github.com/rubenv/sql-migrate"
 )
 
 // TODO:
@@ -60,16 +63,20 @@ func main() {
 	}
 	defer db.Close()
 
-	migrations := &migrate.FileMigrationSource{
-		Dir: "db/sql/migrations",
-	}
-
-	n, err := migrate.Exec(db, "postgres", migrations, migrate.Up)
+	driver, err := postgres.WithInstance(db, &postgres.Config{})
 	if err != nil {
-		log.Fatalf("migration execution failed: %s", err)
+		log.Fatalf("error calling WithInstance: %s", err)
 		return
 	}
-	fmt.Printf("Applied %d migrations!\n", n)
+
+	m, err := migrate.NewWithDatabaseInstance("file://db/sql/migrations", "postgres", driver)
+
+	if err != nil {
+		log.Fatalf("error calling NewWithDatabaseInstance: %s", err)
+		return
+	}
+
+	m.Up() // or m.Step(2) if you want to explicitly set the number of migrations to run
 
 	router.GET("/app/image/", func(c *gin.Context) {
 		q := api.New(db)
