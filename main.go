@@ -62,7 +62,7 @@ func main() {
 	}
 	defer db.Close()
 
-	m, err := migrate.New("db/sql/migrations", dbURL)
+	m, err := migrate.New("file://db/sql/migrations", dbURL)
 
 	if err != nil {
 		log.Fatalf("error calling New with sql-migration tool: %s", err)
