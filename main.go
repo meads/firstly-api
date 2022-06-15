@@ -11,8 +11,11 @@ import (
 	"os"
 
 	"github.com/gin-gonic/gin"
+
 	"github.com/golang-migrate/migrate/v4"
+	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
+
 	_ "github.com/heroku/x/hmetrics/onload"
 
 	api "github.com/heroku/firstly-api/db/api"
