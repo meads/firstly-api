@@ -59,17 +59,17 @@ func main() {
 	db, err := sql.Open("postgres", dbURL)
 	if err != nil {
 		log.Fatalf("error opening postgres driver using url '%s', '%s'", dbURL, err)
+		return
 	}
 	defer db.Close()
 
-	m, err := migrate.New("file://db/sql/migrations", dbURL)
+	m, err := migrate.New("file://./db/sql/migrations", dbURL)
 
 	if err != nil {
 		log.Fatalf("error calling New with sql-migration tool: %s", err)
 		return
 	}
-
-	m.Up() // or m.Step(2) if you want to explicitly set the number of migrations to run
+	m.Up()
 
 	router.GET("/app/image/", func(c *gin.Context) {
 		q := api.New(db)
