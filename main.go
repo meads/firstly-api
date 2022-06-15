@@ -2,19 +2,16 @@ package main
 
 import (
 	"context"
+	"database/sql"
 
 	"log"
 	"net/http"
 	"os"
 
-	"database/sql"
-
 	"github.com/gin-gonic/gin"
 	"github.com/golang-migrate/migrate/v4"
-	"github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	_ "github.com/heroku/x/hmetrics/onload"
-	_ "github.com/lib/pq"
 
 	api "github.com/heroku/firstly-api/db/api"
 )
@@ -63,16 +60,10 @@ func main() {
 	}
 	defer db.Close()
 
-	driver, err := postgres.WithInstance(db, &postgres.Config{})
-	if err != nil {
-		log.Fatalf("error calling WithInstance: %s", err)
-		return
-	}
-
-	m, err := migrate.NewWithDatabaseInstance("file://db/sql/migrations", "postgres", driver)
+	m, err := migrate.New("file://db/sql/migrations", dbURL)
 
 	if err != nil {
-		log.Fatalf("error calling NewWithDatabaseInstance: %s", err)
+		log.Fatalf("error calling New with sql-migration tool: %s", err)
 		return
 	}
 
