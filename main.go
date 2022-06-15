@@ -21,12 +21,6 @@ import (
 	api "github.com/heroku/firstly-api/db/api"
 )
 
-// TODO:
-// - Create go types for nullable columns and create overrides for json encoding to handle db values in dtos
-// Reconcile the differences between environments local/production. Favor working locally.
-// Setup unit tests and integration tests.
-// Fix authorization issues with android app POST request.
-
 type Image struct {
 	ID      int64  `json:"id"`
 	Created string `json:"created"`
@@ -53,8 +47,13 @@ func (to Image) fromDbAPIType(from *api.Image) *Image {
 }
 
 func main() {
-
+	handleTemporaryRedirect := func(ctx *gin.Context) {
+		if ctx.Request.Header.Get("x-forwarded-proto") != "https" {
+			ctx.Redirect(http.StatusTemporaryRedirect, "https://morning-eyrie-29265.herokuapp.com/image")
+		}
+	}
 	router := gin.New()
+	router.Use(handleTemporaryRedirect)
 	router.Use(gin.Logger())
 
 	dbURL := os.Getenv("DATABASE_URL")
@@ -89,6 +88,7 @@ func main() {
 	})
 
 	router.POST("/app/image/", func(c *gin.Context) {
+
 		var image Image
 		if err := c.BindJSON(&image); err != nil {
 			c.AbortWithError(http.StatusBadRequest, err)

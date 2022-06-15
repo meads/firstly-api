@@ -50,6 +50,13 @@ $ heroku addons
 ```
 [![Addons](heroku-addons-output.png)](heroku-addons-output.png)
 
+## Managing Environment variables
+
+```shell
+$ heroku config
+```
+[![Addons](heroku-config.png)](heroku-config.png)
+
 
 ## Documentation
 
