@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"database/sql"
+	"io/ioutil"
 
 	_ "github.com/lib/pq"
 
@@ -88,8 +89,9 @@ func main() {
 	router.POST("/app/image/", func(c *gin.Context) {
 		var image Image
 		if err := c.BindJSON(&image); err != nil {
+			body, _ := ioutil.ReadAll(c.Request.Body)
+			log.Println(string(body))
 			c.AbortWithError(http.StatusBadRequest, err)
-			c.AbortWithStatusJSON(400, c.Request.Body)
 			return
 		}
 
