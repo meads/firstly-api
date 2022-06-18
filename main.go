@@ -47,16 +47,12 @@ func (to Image) fromDbAPIType(from *api.Image) *Image {
 }
 
 func main() {
-	handleTemporaryRedirect := func(ctx *gin.Context) {
-		// if ctx.Request.Header.Get("x-forwarded-proto") != "https" {
+	headersLogger := func(ctx *gin.Context) {
 		log.Println(ctx.Request.Header)
 		log.Println("-------------------------------------------------------")
-		// ctx.Redirect(http.StatusTemporaryRedirect, "https://morning-eyrie-29265.herokuapp.com")
-		// ctx.Next()
-		// }
 	}
 	router := gin.New()
-	router.Use(handleTemporaryRedirect, gin.Logger())
+	router.Use(headersLogger, gin.Logger())
 
 	dbURL := os.Getenv("DATABASE_URL")
 
@@ -90,10 +86,10 @@ func main() {
 	})
 
 	router.POST("/app/image/", func(c *gin.Context) {
-
 		var image Image
 		if err := c.BindJSON(&image); err != nil {
 			c.AbortWithError(http.StatusBadRequest, err)
+			c.AbortWithStatusJSON(400, c.Request.Body)
 			return
 		}
 
