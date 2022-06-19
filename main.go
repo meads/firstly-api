@@ -50,7 +50,7 @@ func (to Image) fromDbAPIType(from *api.Image) *Image {
 
 func main() {
 	requestLogger := func(ctx *gin.Context) {
-		dump, err := httputil.DumpRequestOut(c.Request, true)
+		dump, err := httputil.DumpRequestOut(ctx.Request, true)
 		if err != nil {
 			log.Fatal(err)
 		}
