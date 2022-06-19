@@ -83,6 +83,8 @@ func main() {
 		for _, img := range images {
 			dtoImages = append(dtoImages, *Image{}.fromDbAPIType(&img))
 		}
+
+		c.Header("Content-Type", "text/plain")
 		c.JSON(http.StatusOK, dtoImages)
 	})
 
