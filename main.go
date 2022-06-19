@@ -55,7 +55,7 @@ func main() {
 			log.Fatal(err)
 		}
 
-		fmt.Printf("%q", dump)
+		fmt.Printf("%s", string(dump))
 		log.Println("-------------------------------------------------------")
 	}
 
