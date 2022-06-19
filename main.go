@@ -49,12 +49,18 @@ func (to Image) fromDbAPIType(from *api.Image) *Image {
 }
 
 func main() {
-	headersLogger := func(ctx *gin.Context) {
-		log.Println(ctx.Request.Header)
+	requestLogger := func(ctx *gin.Context) {
+		dump, err := httputil.DumpRequestOut(c.Request, true)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		fmt.Printf("%q", dump)
 		log.Println("-------------------------------------------------------")
 	}
+
 	router := gin.New()
-	router.Use(headersLogger, gin.Logger())
+	router.Use(requestLogger, gin.Logger())
 
 	dbURL := os.Getenv("DATABASE_URL")
 
@@ -92,12 +98,6 @@ func main() {
 	router.POST("/app/image/", func(c *gin.Context) {
 		var image Image
 		if err := c.BindJSON(&image); err != nil {
-			dump, err := httputil.DumpRequestOut(c.Request, true)
-			if err != nil {
-				log.Fatal(err)
-			}
-
-			fmt.Printf("%q", dump)
 			c.AbortWithError(http.StatusBadRequest, err)
 			return
 		}
