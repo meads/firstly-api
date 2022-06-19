@@ -3,12 +3,13 @@ package main
 import (
 	"context"
 	"database/sql"
-	"io/ioutil"
+	"fmt"
 
 	_ "github.com/lib/pq"
 
 	"log"
 	"net/http"
+	"net/http/httputil"
 	"os"
 
 	"github.com/gin-gonic/gin"
@@ -91,8 +92,12 @@ func main() {
 	router.POST("/app/image/", func(c *gin.Context) {
 		var image Image
 		if err := c.BindJSON(&image); err != nil {
-			body, _ := ioutil.ReadAll(c.Request.Body)
-			log.Println(string(body))
+			dump, err := httputil.DumpRequestOut(c.Request, true)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			fmt.Printf("%q", dump)
 			c.AbortWithError(http.StatusBadRequest, err)
 			return
 		}
