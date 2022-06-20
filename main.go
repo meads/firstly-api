@@ -70,8 +70,11 @@ func main() {
 	m.Force(1)
 	err = m.Up()
 	if err != nil {
-		log.Fatalf("error calling Up with the sql-migration instance: %s", err)
-		return
+		mesg := err.Error()
+		if mesg != "no change" {
+			log.Fatalf("error calling Up with the sql-migration instance: %s", mesg)
+			return
+		}
 	}
 	fmt.Print("migrations were a success. 🎉")
 
