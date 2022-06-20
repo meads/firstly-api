@@ -9,7 +9,6 @@ import (
 
 	"log"
 	"net/http"
-	"net/http/httputil"
 	"os"
 
 	"github.com/gin-gonic/gin"
@@ -49,18 +48,8 @@ func (to Image) fromDbAPIType(from *api.Image) *Image {
 }
 
 func main() {
-	requestLogger := func(ctx *gin.Context) {
-		dump, err := httputil.DumpRequestOut(ctx.Request, true)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		fmt.Printf("%s", string(dump))
-		log.Println("-------------------------------------------------------")
-	}
-
 	router := gin.New()
-	router.Use(requestLogger, gin.Logger())
+	router.Use(gin.Logger())
 
 	dbURL := os.Getenv("DATABASE_URL")
 
