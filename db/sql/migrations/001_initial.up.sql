@@ -1,6 +1,9 @@
 
 -- +migrate Up
-CREATE TABLE "images" (
+DROP TABLE IF EXISTS images;
+
+-- +migrate Up
+CREATE TABLE images (
   "id"   BIGSERIAL PRIMARY KEY,
   "name" TEXT NULL,
   "data" TEXT      NOT NULL,
