@@ -67,7 +67,7 @@ func main() {
 		return
 	}
 
-	err = m.Force(0)
+	err = m.Force(1)
 	if err != nil {
 		log.Fatalf("error calling Force with the sql-migration instance: %s", err)
 		return
