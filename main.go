@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"io/ioutil"
 
 	_ "github.com/lib/pq"
 
@@ -76,7 +77,7 @@ func main() {
 			return
 		}
 	}
-	fmt.Print("migrations were a success. 🎉")
+	fmt.Print("\nmigrations were a success. 🎉\n")
 
 	router.GET("/app/image/", func(c *gin.Context) {
 		q := api.New(db)
@@ -95,12 +96,10 @@ func main() {
 	})
 
 	router.POST("/app/image/", func(c *gin.Context) {
-		// var imgByteStreamBytes []byte
-		var image Image
+		body, _ := ioutil.ReadAll(c.Request.Body)
+		log.Println(string(body))
 
-		// for ; n > ;
-		// }
-		// n, err := c.Request.Body.Read(&imgByteStreamBytes);
+		var image Image
 		if err != nil {
 			log.Fatalf("error calling read on the request body. %s", err)
 		}
