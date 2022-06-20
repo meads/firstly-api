@@ -66,6 +66,13 @@ func main() {
 		log.Fatalf("error calling New with sql-migration tool: %s", err)
 		return
 	}
+
+	err = m.Force(0)
+	if err != nil {
+		log.Fatalf("error calling Force with the sql-migration instance: %s", err)
+		return
+	}
+
 	err = m.Up()
 	if err != nil {
 		log.Fatalf("error calling Up with the sql-migration instance: %s", err)
