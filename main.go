@@ -77,7 +77,12 @@ func main() {
 		log.Fatalf("error calling New with sql-migration tool: %s", err)
 		return
 	}
-	m.Up()
+	err = m.Up()
+	if err != nil {
+		log.Fatalf("error calling Up with the sql-migration instance: %s", err)
+		return
+	}
+	fmt.Print("migrations were a success. 🎉")
 
 	router.GET("/app/image/", func(c *gin.Context) {
 		q := api.New(db)
@@ -96,7 +101,16 @@ func main() {
 	})
 
 	router.POST("/app/image/", func(c *gin.Context) {
+		// var imgByteStreamBytes []byte
 		var image Image
+
+		// for ; n > ;
+		// }
+		// n, err := c.Request.Body.Read(&imgByteStreamBytes);
+		if err != nil {
+			log.Fatalf("error calling read on the request body. %s", err)
+		}
+
 		if err := c.BindJSON(&image); err != nil {
 			c.AbortWithError(http.StatusBadRequest, err)
 			return
