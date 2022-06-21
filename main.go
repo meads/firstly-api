@@ -23,7 +23,7 @@ import (
 )
 
 type Image struct {
-	ID      int64  `json:"id"`
+	ID      int    `json:"id"`
 	Created string `json:"created"`
 	Data    string `json:"data"`
 	Deleted bool   `json:"deleted"`
@@ -40,7 +40,7 @@ func (to Image) fromDbAPIType(from *api.Image) *Image {
 	}
 
 	return &Image{
-		ID:      from.ID,
+		ID:      int(from.ID),
 		Created: from.Created,
 		Data:    from.Data,
 		Deleted: deleted,
