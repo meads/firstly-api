@@ -69,14 +69,8 @@ func main() {
 	}
 
 	m.Force(1)
-	err = m.Up()
-	if err != nil {
-		mesg := err.Error()
-		if mesg != "no change" {
-			log.Fatalf("error calling Up with the sql-migration instance: %s", mesg)
-			return
-		}
-	}
+	m.Up()
+
 	fmt.Print("\nmigrations were a success. 🎉\n")
 
 	router.GET("/app/image/", func(c *gin.Context) {
@@ -98,6 +92,8 @@ func main() {
 	router.POST("/app/image/", func(c *gin.Context) {
 		body, _ := ioutil.ReadAll(c.Request.Body)
 		log.Println(string(body))
+
+		log.Println(len(string(body)))
 
 		var image Image
 		if err != nil {
