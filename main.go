@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"io/ioutil"
 
 	_ "github.com/lib/pq"
 
@@ -90,10 +89,8 @@ func main() {
 	})
 
 	router.POST("/app/image/", func(c *gin.Context) {
-		body, _ := ioutil.ReadAll(c.Request.Body)
-		log.Println(string(body))
-
-		log.Println(len(string(body)))
+		// body, _ := ioutil.ReadAll(c.Request.Body)
+		// log.Println(string(body))
 
 		var image Image
 		if err != nil {
