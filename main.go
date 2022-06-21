@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"io/ioutil"
 
 	_ "github.com/lib/pq"
 
@@ -24,7 +23,7 @@ import (
 )
 
 type Image struct {
-	ID      int    `json:"id"`
+	ID      string `json:"id"`
 	Created string `json:"created"`
 	Data    string `json:"data"`
 	Deleted bool   `json:"deleted"`
@@ -41,7 +40,7 @@ func (to Image) fromDbAPIType(from *api.Image) *Image {
 	}
 
 	return &Image{
-		ID:      int(from.ID),
+		ID:      fmt.Sprintf("%d", from.ID),
 		Created: from.Created,
 		Data:    from.Data,
 		Deleted: deleted,
@@ -90,9 +89,6 @@ func main() {
 	})
 
 	router.POST("/app/image/", func(c *gin.Context) {
-		body, _ := ioutil.ReadAll(c.Request.Body)
-		log.Println(string(body))
-
 		var image Image
 		if err != nil {
 			log.Fatalf("error calling read on the request body. %s", err)
