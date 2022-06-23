@@ -84,7 +84,7 @@ func main() {
 			dtoImages = append(dtoImages, *Image{}.fromDbAPIType(&img))
 		}
 
-		c.Header("Content-Type", "text/plain; charset=utf-8")
+		c.Header("Content-Type", "application/json")
 		c.JSON(http.StatusOK, dtoImages)
 	})
 
