@@ -67,7 +67,6 @@ func main() {
 		return
 	}
 
-	m.Force(1)
 	m.Up()
 
 	fmt.Print("\nmigrations were a success. 🎉\n")
