@@ -12,5 +12,5 @@ type Image struct {
 	ID      int64
 	Data    string
 	Created string
-	Deleted sql.NullInt32
+	Deleted sql.NullBool
 }
