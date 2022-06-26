@@ -84,6 +84,7 @@ func main() {
 		}
 
 		c.Header("Content-Type", "application/json")
+		c.Header("Access-Control-Allow-Origin", "*")
 		c.JSON(http.StatusOK, dtoImages)
 	})
 
