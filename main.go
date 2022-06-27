@@ -3,7 +3,9 @@ package main
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
+	"strconv"
 
 	_ "github.com/lib/pq"
 
@@ -90,6 +92,24 @@ func main() {
 
 		c.Header("Access-Control-Allow-Origin", "*")
 		c.JSON(http.StatusOK, dtoImages)
+	})
+
+	router.DELETE("/app/image/:id", func(c *gin.Context) {
+		idParam := c.Param("id")
+		if idParam == "" {
+			c.AbortWithError(http.StatusBadRequest, errors.New("id parameter is required"))
+			return
+		}
+		id, err := strconv.ParseInt(idParam, 10, 64)
+		if err != nil {
+			c.AbortWithError(http.StatusBadRequest, errors.New("id parameter must be a valid integer"))
+			return
+		}
+		q := api.New(db)
+		err = q.DeleteImage(context.Background(), id)
+		if err != nil {
+			c.AbortWithError(http.StatusInternalServerError, err)
+		}
 	})
 
 	router.POST("/app/image/", func(c *gin.Context) {
