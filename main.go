@@ -50,7 +50,7 @@ func (to Image) fromDbAPIType(from *api.Image) *Image {
 func main() {
 	router := gin.New()
 	router.Use(gin.Logger())
-	router.LoadHTMLGlob("html/*.html")
+	router.LoadHTMLGlob("http/*.html")
 
 	dbURL := os.Getenv("DATABASE_URL")
 
