@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Images Dashboard</title>
+    <style>
+        html, body { height: 100%; width: 100%;}
+        #main { display: flex; height: inherit; }
+        #main-inner { flex-direction: column; width: 100%; }
+        #main-inner .item { height: 200px; width:fit-content; flex-direction: row; flex: 1; }
+    </style>
+</head>
+<body>
+    <div id="main">
+        <div id="main-inner">
+        </div>
+    </div>
+    <script>
+        var mainInnerDiv = document.querySelector("#main-inner");
+        var url = 'https://morning-eyrie-29265.herokuapp.com/app/image/'
+        fetch(url).then((r) => {
+            let d = r.json().then(items => {
+                items.forEach(photo => {
+                    let imageEl = document.createElement("img");
+                    imageEl.setAttribute("src", "data:image/png;base64," + photo["data"]);
+                    imageEl.setAttribute("alt", photo["created"]);
+
+                    let figcaption = document.createElement("figcaption");
+                    figcaption.textContent = photo["created"]
+
+                    let figure = document.createElement("figure");
+                    figure.className = 'item';
+
+                    figure.appendChild(imageEl);
+                    figure.appendChild(figcaption);
+                    
+                    mainInnerDiv.appendChild(figure);
+                });
+            });
+        }).catch((reason) => {
+            console.error(reason);
+        });
+    </script>
+</body>
+</html>

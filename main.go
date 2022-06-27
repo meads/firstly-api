@@ -50,6 +50,7 @@ func (to Image) fromDbAPIType(from *api.Image) *Image {
 func main() {
 	router := gin.New()
 	router.Use(gin.Logger())
+	router.LoadHTMLGlob("html/*.html")
 
 	dbURL := os.Getenv("DATABASE_URL")
 
@@ -70,6 +71,10 @@ func main() {
 	m.Up()
 
 	fmt.Print("\nmigrations were a success. 🎉\n")
+
+	router.GET("/app/images/", func(c *gin.Context) {
+		c.HTML(http.StatusOK, "index.html", nil)
+	})
 
 	router.GET("/app/image/", func(c *gin.Context) {
 		q := api.New(db)
