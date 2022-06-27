@@ -26,7 +26,7 @@
                 referrerPolicy: 'no-referrer',
             }).then((r) => {
                 let d = r.json().then(res => {
-                    console.log(res)
+                    alert(res)
                 })
             }).error((reason) => {
                 console.error(reason)
@@ -56,6 +56,7 @@
                     figure.addEventListener("onclick", function(e) {
                         let id = e.target.getAttribute("data-id");
                         deleteImage(id)
+
                     })
                     mainInnerDiv.appendChild(figure);
                 });
