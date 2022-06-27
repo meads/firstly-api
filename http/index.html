@@ -19,7 +19,7 @@
     </div>
     <script>
         var mainInnerDiv = document.querySelector("#main-inner");
-        var url = 'https://morning-eyrie-29265.herokuapp.com/app/images/'
+        var url = 'https://morning-eyrie-29265.herokuapp.com/app/image/'
         fetch(url).then((r) => {
             let d = r.json().then(items => {
                 items.forEach(photo => {
