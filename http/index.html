@@ -57,15 +57,13 @@
             mainInnerDiv.appendChild(figure)
         }        
         
-        fetch(url).then((r) => {
-            let d = r.json().then(items => {
-                items.forEach(image => {
-                    renderImage(image)             
-                });
-            });
-        }).catch((reason) => {
-            console.error(reason);
-        });
+        fetch(url)
+        .then((r) => r.json()
+            .then(items => items.forEach(renderImage))
+        )
+        .catch(
+            console.error(reason)
+        );
     </script>
 </body>
 </html>
