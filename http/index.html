@@ -18,8 +18,9 @@
         </div>
     </div>
     <script>
+        var url = 'https://morning-eyrie-29265.herokuapp.com/app/image/'
         function deleteImage(id) {
-            fetch('https://morning-eyrie-29265.herokuapp.com/app/image/'+id, {
+            fetch(url+id, {
                 method: 'DELETE',
                 headers: { 'Content-Type': 'application/json' },
                 redirect: 'follow',
@@ -35,7 +36,7 @@
 
 
         var mainInnerDiv = document.querySelector("#main-inner");
-        var url = 'https://morning-eyrie-29265.herokuapp.com/app/image/'
+        
         
         fetch(url).then((r) => {
             let d = r.json().then(items => {
