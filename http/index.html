@@ -35,16 +35,16 @@
         function renderImage(img) {
             var mainInnerDiv = document.querySelector("#main-inner");
             let imageEl = document.createElement("img");
-            imageEl.setAttribute("src", "data:image/png;base64," + photo["data"]);
-            imageEl.setAttribute("alt", photo["created"]);
+            imageEl.setAttribute("src", "data:image/png;base64," + img["data"]);
+            imageEl.setAttribute("alt", img["created"]);
 
             let figcaption = document.createElement("figcaption");
-            figcaption.textContent = photo["id"] + " | " + photo["created"];
+            figcaption.textContent = img["id"] + " | " + img["created"];
 
             let figure = document.createElement("figure");
             figure.className = 'item';
 
-            figure.setAttribute("data-id", photo["id"]);
+            figure.setAttribute("data-id", img["id"]);
             figure.appendChild(imageEl);
             figure.appendChild(figcaption);
             
