@@ -54,12 +54,13 @@
                     figure.appendChild(imageEl);
                     figure.appendChild(figcaption);
                     
-                    figure.addEventListener("onclick", function(e) {
+                    figure.onclick = function(e) {
                         let id = e.target.getAttribute("data-id");
                         alert(id);
                         deleteImage(id)
-                    })
-                    mainInnerDiv.appendChild(figure);
+                    };
+
+                    mainInnerDiv.appendChild(figure)
                 });
             });
         }).catch((reason) => {
