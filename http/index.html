@@ -25,11 +25,9 @@
                 headers: { 'Content-Type': 'application/json' },
                 redirect: 'follow',
                 referrerPolicy: 'no-referrer',
-            }).then((r) => {
-                let d = r.json().then(res => {
-                    alert(res)
-                })
-            }).error(console.error)    
+            }).then((r) => r.json()
+                .then(console.log))
+            .error(console.error)    
         }
 
         function renderImage(img) {
