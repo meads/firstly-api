@@ -34,32 +34,33 @@
             })    
         }
 
+        function renderImage(img) {
+            var mainInnerDiv = document.querySelector("#main-inner");
+            let imageEl = document.createElement("img");
+            imageEl.setAttribute("src", "data:image/png;base64," + photo["data"]);
+            imageEl.setAttribute("alt", photo["created"]);
 
-        var mainInnerDiv = document.querySelector("#main-inner");
-        
+            let figcaption = document.createElement("figcaption");
+            figcaption.textContent = photo["id"] + " | " + photo["created"];
+
+            let figure = document.createElement("figure");
+            figure.className = 'item';
+
+            figure.setAttribute("data-id", photo["id"]);
+            figure.appendChild(imageEl);
+            figure.appendChild(figcaption);
+            
+            figure.onclick = function(e) {
+                deleteImage(e.target.parentElement.getAttribute("data-id"))
+            };
+
+            mainInnerDiv.appendChild(figure)
+        }        
         
         fetch(url).then((r) => {
             let d = r.json().then(items => {
-                items.forEach(photo => {
-                    let imageEl = document.createElement("img");
-                    imageEl.setAttribute("src", "data:image/png;base64," + photo["data"]);
-                    imageEl.setAttribute("alt", photo["created"]);
-
-                    let figcaption = document.createElement("figcaption");
-                    figcaption.textContent = photo["id"] + " | " + photo["created"];
-
-                    let figure = document.createElement("figure");
-                    figure.className = 'item';
-
-                    figure.setAttribute("data-id", photo["id"]);
-                    figure.appendChild(imageEl);
-                    figure.appendChild(figcaption);
-                    
-                    figure.onclick = function(e) {
-                        deleteImage(e.target.parentElement.getAttribute("data-id"))
-                    };
-
-                    mainInnerDiv.appendChild(figure)
+                items.forEach(image => {
+                    renderImage(image)             
                 });
             });
         }).catch((reason) => {
