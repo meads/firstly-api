@@ -59,9 +59,7 @@
         .then((r) => r.json()
             .then(items => items.forEach(renderImage))
         )
-        .catch(
-            console.error(reason)
-        );
+        .catch(console.error);
     </script>
 </body>
 </html>
