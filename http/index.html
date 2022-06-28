@@ -29,9 +29,7 @@
                 let d = r.json().then(res => {
                     alert(res)
                 })
-            }).error((reason) => {
-                console.error(reason)
-            })    
+            }).error(console.error)    
         }
 
         function renderImage(img) {
