@@ -55,9 +55,7 @@
                     figure.appendChild(figcaption);
                     
                     figure.onclick = function(e) {
-                        debugger;
-                        let id = e.target.getAttribute("data-id");
-                        deleteImage(id)
+                        deleteImage(e.target.parentElement.getAttribute("data-id"))
                     };
 
                     mainInnerDiv.appendChild(figure)
