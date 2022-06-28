@@ -29,6 +29,7 @@
             .then(response => {
                 if (response.ok) {
                     alert("Image with id " + id + " deleted. ✅")
+                    window.location.reload()
                 }
             })
             .catch(alert);
