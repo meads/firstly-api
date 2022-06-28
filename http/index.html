@@ -25,8 +25,8 @@
                 headers: { 'Content-Type': 'application/json' },
                 redirect: 'follow',
                 referrerPolicy: 'no-referrer',
-            }).then((r) => r.json()
-                .then(console.log))
+            })
+            .then(console.log)
             .error(console.error)    
         }
 
