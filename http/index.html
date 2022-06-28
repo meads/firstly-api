@@ -55,8 +55,8 @@
                     figure.appendChild(figcaption);
                     
                     figure.onclick = function(e) {
+                        debugger;
                         let id = e.target.getAttribute("data-id");
-                        alert(id);
                         deleteImage(id)
                     };
 
