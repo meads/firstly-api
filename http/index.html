@@ -26,8 +26,13 @@
                 redirect: 'follow',
                 referrerPolicy: 'no-referrer',
             })
-            .then(console.log)
-            .error(console.error)    
+            .then(response => {
+                if (response.ok) {
+                    alert("Image with id " + id + " deleted. ✅")
+                }
+            })
+            .catch(alert);
+    
         }
 
         function renderImage(img) {
@@ -57,7 +62,7 @@
         .then((r) => r.json()
             .then(items => items.forEach(renderImage))
         )
-        .catch(console.error);
+        .catch(alert);
     </script>
 </body>
 </html>
