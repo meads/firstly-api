@@ -1,31 +1,4 @@
-done - android app that takes a picture jpeg format
-done - converts the image bitmap to binary string representation
-done - http posts the image data to hosted api
-
-create sqlc data types
-generate the sql backend using sqlc
-redeploy firstly api
-better security on the db
 
 troubleshoot the integration of the applictaion with the api having new db connected.
 
 api has a dashboard to view image data
-
-
-# DB SETUP
-
-export DATABASE_URL=postgres://$(whoami)
-
-[fedora@fedora firstly-api]$ heroku addons:create heroku-postgresql:hobby-dev
-Creating heroku-postgresql:hobby-dev on ⬢ morning-eyrie-29265... free
-Database has been created and is available
- ! This database is empty. If upgrading, you can transfer
- ! data from another database with pg:copy
-Created postgresql-tetrahedral-75949 as DATABASE_URL
-Use heroku addons:docs heroku-postgresql to view documentation
-
-[fedora@fedora firstly-api]$ heroku config
-=== morning-eyrie-29265 Config Vars
-DATABASE_URL: postgres...
-
-heroku pg:info
