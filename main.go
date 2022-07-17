@@ -55,7 +55,10 @@ func main() {
 	router.LoadHTMLGlob("http/*.html")
 
 	dbURL := os.Getenv("DATABASE_URL")
+	argOne := os.Args[0]
+	if argOne != "" {
 
+	}
 	db, err := sql.Open("postgres", dbURL)
 	if err != nil {
 		log.Fatalf("error opening postgres driver using url '%s', '%s'", dbURL, err)

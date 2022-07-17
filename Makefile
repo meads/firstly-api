@@ -3,17 +3,17 @@ DOCKER_BUILD=$(shell pwd)/.docker_build
 DOCKER_CMD=$(DOCKER_BUILD)/firstly-api
 
 $(DOCKER_CMD): clean
-	mkdir -p $(DOCKER_BUILD)
+	@mkdir -p $(DOCKER_BUILD)
 	$(GO_BUILD_ENV) go build -v -o $(DOCKER_CMD) .
 
 clean:
-	rm -rf $(DOCKER_BUILD)
+	@rm -rf $(DOCKER_BUILD)
 
 heroku: $(DOCKER_CMD)
-	heroku container:push web
+	@heroku container:push web
 
 local:
-	heroku container:run
+	@heroku local
 
 sqlc:
 	@sqlc generate
