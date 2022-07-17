@@ -5,4 +5,4 @@ build:
     web: Dockerfile
     languages: go
 run:
-  web: bin/firstly-api 
+  web: bin/firstly-api
