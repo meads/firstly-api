@@ -55,7 +55,7 @@ $ heroku addons
 ```shell
 $ heroku config
 ```
-[![Addons](heroku-config.png)](heroku-config.png)
+<!-- [![Addons](heroku-config.png)](heroku-config.png) -->
 
 
 ## Documentation
