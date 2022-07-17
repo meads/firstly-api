@@ -1,1 +1,1 @@
-web: bin/firstly-api
+web: $(pwd)/.docker_build/firstly-api

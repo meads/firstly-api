@@ -6,16 +6,23 @@ $(DOCKER_CMD): clean
 	@mkdir -p $(DOCKER_BUILD)
 	$(GO_BUILD_ENV) go build -v -o $(DOCKER_CMD) .
 
+build: clean
+	@mkdir -p $(DOCKER_BUILD)
+	$(GO_BUILD_ENV) go build -v -o $(DOCKER_CMD) .
+
 clean:
 	@rm -rf $(DOCKER_BUILD)
 
 heroku: $(DOCKER_CMD)
 	@heroku container:push web
 
-local:
-	@heroku local
+local: build
+	heroku local web
 
 sqlc:
 	@sqlc generate
+
+scale-zero:
+	heroku ps:scale web=0
 
 
