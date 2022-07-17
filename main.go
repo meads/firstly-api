@@ -8,6 +8,7 @@ import (
 	"strconv"
 
 	_ "github.com/lib/pq"
+	"github.com/russross/blackfriday"
 
 	"log"
 	"net/http"
@@ -79,6 +80,10 @@ func main() {
 
 	router.GET("/app/images/", func(c *gin.Context) {
 		c.HTML(http.StatusOK, "index.html", nil)
+	})
+
+	router.GET("/mark", func(c *gin.Context) {
+		c.String(http.StatusOK, string(blackfriday.Run([]byte("**hi!**"))))
 	})
 
 	router.GET("/app/image/", func(c *gin.Context) {

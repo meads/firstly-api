@@ -8,6 +8,7 @@ require (
 	github.com/golang-migrate/migrate/v4 v4.15.2
 	github.com/heroku/x v0.0.33
 	github.com/lib/pq v1.10.2
+	github.com/russross/blackfriday v2.0.0+incompatible
 )
 
 require (
@@ -23,6 +24,7 @@ require (
 	github.com/mattn/go-isatty v0.0.12 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
+	github.com/shurcooL/sanitized_anchor_name v1.0.0 // indirect
 	github.com/ugorji/go/codec v1.1.7 // indirect
 	go.uber.org/atomic v1.7.0 // indirect
 	golang.org/x/crypto v0.0.0-20210921155107-089bfa567519 // indirect
