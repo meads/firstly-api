@@ -16,6 +16,7 @@ type Server struct {
 func NewServer(store db.Store) *Server {
 	server := &Server{store: store}
 	router := gin.Default()
+	router.LoadHTMLGlob("www/*.html")
 
 	router.GET("/app/login", func(c *gin.Context) {
 		c.HTML(http.StatusOK, "login.html", nil)
