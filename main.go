@@ -8,7 +8,6 @@ import (
 	"strconv"
 
 	_ "github.com/lib/pq"
-	"github.com/russross/blackfriday"
 
 	"log"
 	"net/http"
@@ -22,7 +21,7 @@ import (
 
 	_ "github.com/heroku/x/hmetrics/onload"
 
-	api "github.com/heroku/firstly-api/db/api"
+	api "github.com/meads/firstly-api/db/api"
 )
 
 type Image struct {
@@ -56,10 +55,6 @@ func main() {
 	router.LoadHTMLGlob("http/*.html")
 
 	dbURL := os.Getenv("DATABASE_URL")
-	argOne := os.Args[0]
-	if argOne != "" {
-
-	}
 	db, err := sql.Open("postgres", dbURL)
 	if err != nil {
 		log.Fatalf("error opening postgres driver using url '%s', '%s'", dbURL, err)
@@ -78,15 +73,15 @@ func main() {
 
 	fmt.Print("\nmigrations were a success. 🎉\n")
 
-	router.GET("/app/images/", func(c *gin.Context) {
+	router.GET("/app/login", func(c *gin.Context) {
+		c.HTML(http.StatusOK, "login.html", nil)
+	})
+
+	router.GET("/app/images", func(c *gin.Context) {
 		c.HTML(http.StatusOK, "index.html", nil)
 	})
 
-	router.GET("/mark", func(c *gin.Context) {
-		c.String(http.StatusOK, string(blackfriday.Run([]byte("**hi!**"))))
-	})
-
-	router.GET("/app/image/", func(c *gin.Context) {
+	router.GET("/app/image", func(c *gin.Context) {
 		q := api.New(db)
 		images, err := q.ListImages(context.Background())
 		if err != nil {
@@ -120,7 +115,7 @@ func main() {
 		}
 	})
 
-	router.POST("/app/image/", func(c *gin.Context) {
+	router.POST("/app/image", func(c *gin.Context) {
 		var image Image
 		if err != nil {
 			log.Fatalf("error calling read on the request body. %s", err)

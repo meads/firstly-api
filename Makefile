@@ -34,3 +34,6 @@ scale-zero:
 sqlc:
 	@sqlc generate
 
+mockgen:
+	@mockgen -package mockdb -destination ./db/mock/store.go github.com/meads/hermetic-cloud/db/sqlc Store
+
