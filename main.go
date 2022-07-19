@@ -8,6 +8,7 @@ import (
 	"strconv"
 
 	_ "github.com/lib/pq"
+	api "github.com/meads/firstly-api/db/api"
 
 	"log"
 	"net/http"
@@ -20,8 +21,6 @@ import (
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 
 	_ "github.com/heroku/x/hmetrics/onload"
-
-	api "github.com/meads/firstly-api/db/api"
 )
 
 type Image struct {
