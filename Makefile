@@ -15,7 +15,7 @@ build: clean
 	$(GO_BUILD_ENV) go build -v -o $(DOCKER_CMD) .
 
 
-test: clean build
+test: sqlc mockgen
 	@go test -v
 
 release:
@@ -32,8 +32,10 @@ scale-zero:
 	@heroku ps:scale web=0
 
 sqlc:
+	@sqlc version
+	@sqlc compile
 	@sqlc generate
 
 mockgen:
-	@mockgen -package mockdb -destination ./db/mock/store.go github.com/meads/hermetic-cloud/db/sqlc Store
+	@mockgen -package mockapi -destination ./db/mock/store.go github.com/meads/firstly-api/db/api Store
 
