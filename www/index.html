@@ -39,7 +39,7 @@
         function renderNoImages() {
             let mainInnerDiv = document.querySelector("#main-inner");
             let noImagesEl = document.createElement("img");
-            noImagesEl.src = `https://via.placeholder.com/${window.outerWidth}x${window.outerWidth}`;
+            noImagesEl.src = "https://via.placeholder.com/" + window.outerWidth + "x" + window.outerWidth;
 
             mainInnerDiv.appendChild(noImagesEl);
         }
