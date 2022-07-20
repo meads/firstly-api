@@ -68,13 +68,8 @@
         }        
         
         fetch(url)
-        .then((r) => {
-            if (r.status == 404) {
-                renderNoImages()
-            }
-            r.json().then(items => items.forEach(renderImage))
-        })
-        .catch(alert);
+        .then((r) => r.json().then(items => items.forEach(renderImage)))
+        .catch(renderNoImages);
     </script>
 </body>
 </html>
