@@ -36,8 +36,16 @@
     
         }
 
+        function renderNoImages() {
+            let mainInnerDiv = document.querySelector("#main-inner");
+            let noImagesEl = document.createElement("img");
+            noImagesEl.src = `https://via.placeholder.com/${window.outerWidth}x${window.outerWidth}`;
+
+            mainInnerDiv.appendChild(noImagesEl);
+        }
+
         function renderImage(img) {
-            var mainInnerDiv = document.querySelector("#main-inner");
+            let mainInnerDiv = document.querySelector("#main-inner");
             let imageEl = document.createElement("img");
             imageEl.setAttribute("src", "data:image/png;base64," + img["data"]);
             imageEl.setAttribute("alt", img["created"]);
@@ -60,9 +68,12 @@
         }        
         
         fetch(url)
-        .then((r) => r.json()
-            .then(items => items.forEach(renderImage))
-        )
+        .then((r) => {
+            if (r.status == 404) {
+                renderNoImages()
+            }
+            r.json().then(items => items.forEach(renderImage))
+        })
         .catch(alert);
     </script>
 </body>
