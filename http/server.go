@@ -1,10 +1,7 @@
 package http
 
 import (
-	"fmt"
 	"net/http"
-	"os"
-	"path/filepath"
 
 	"github.com/gin-gonic/gin"
 	db "github.com/meads/firstly-api/db/sqlc"
@@ -20,15 +17,6 @@ func NewServer(store db.Store) *Server {
 	server := &Server{store: store}
 	router := gin.Default()
 	router.LoadHTMLGlob("www/*.html")
-
-	ex, err := os.Executable()
-	if err != nil {
-		panic(err)
-	}
-	exPath := filepath.Dir(ex)
-	fmt.Println(exPath)
-	// /home/fedora/dev/firstly-api/.docker_build
-	// router.StaticFile("/app/images/favicon.ico", "./www/favicon.ico")
 
 	router.GET("/app/login", func(c *gin.Context) {
 		c.HTML(http.StatusOK, "login.html", nil)

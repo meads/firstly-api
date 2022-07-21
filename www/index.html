@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" type="image/x-icon" href="favicon.ico">
     <title>Images Dashboard</title>
     <style>
         html, body { height: 100%; width: 100%;}
@@ -20,9 +19,9 @@
         </div>
     </div>
     <script>
-        var url = 'https://morning-eyrie-29265.herokuapp.com/app/image/'
+
         function deleteImage(id) {
-            fetch(url+id, {
+            fetch(window.location.origin+'/app/image/'+id, {
                 method: 'DELETE',
                 headers: { 'Content-Type': 'application/json' },
                 redirect: 'follow',
@@ -41,10 +40,9 @@
         function renderNoImages() {
             let mainInnerDiv = document.querySelector("#main-inner");
             let itemDiv = document.createElement("div");
-            itemDiv.classList.add("item")
+            itemDiv.classList.add("item");
             let noImagesEl = document.createElement("img");
-            // noImagesEl.src = "https://via.placeholder.com/" + window.outerWidth + "?text=No+Results";
-            noImagesEl.src = "assets/no-results.png";
+            noImagesEl.src = "https://via.placeholder.com/" + window.outerWidth + "?text=No+Results";
             itemDiv.appendChild(noImagesEl);
             mainInnerDiv.appendChild(itemDiv);
         }
@@ -71,8 +69,8 @@
 
             mainInnerDiv.appendChild(figure)
         }        
-        
-        fetch(url)
+
+        fetch(window.location.origin+'/app/image/')
         .then((r) => r.json().then(items => items.forEach(renderImage)))
         .catch(renderNoImages);
     </script>
