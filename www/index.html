@@ -21,7 +21,7 @@
     <script>
 
         function deleteImage(id) {
-            fetch(window.location.origin+'/app/image/'+id, {
+            fetch(window.location.origin + '/app/image/' + id, {
                 method: 'DELETE',
                 headers: { 'Content-Type': 'application/json' },
                 redirect: 'follow',
@@ -71,7 +71,13 @@
         }        
 
         fetch(window.location.origin+'/app/image/')
-        .then((r) => r.json().then(items => items.forEach(renderImage)))
+        .then((r) => r.json().then(items => {
+            if (items && items.length) {
+                items.forEach(renderImage)
+            } else {
+                renderNoImages()
+            }
+        }))
         .catch(renderNoImages);
     </script>
 </body>
