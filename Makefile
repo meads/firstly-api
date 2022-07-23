@@ -19,7 +19,9 @@ deploy: build
 login:
 	@heroku login
 	@heroku container:login
-	@docker login --username=resetheadhat@gmail.com --password=$(heroku auth:token) registry.heroku.com
+
+login-docker:
+	@docker login --username=resetheadhat@gmail.com --password=$$(heroku auth:token) registry.heroku.com
 
 release:
 # Release the image to your app.
