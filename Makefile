@@ -28,6 +28,7 @@ release:
 	@heroku container:release web
 
 local: build
+
 	@heroku local web
 
 scale-zero:

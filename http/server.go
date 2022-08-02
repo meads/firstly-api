@@ -26,9 +26,9 @@ func NewServer(store db.Store) *Server {
 		c.HTML(http.StatusOK, "index.html", nil)
 	})
 
-	router.GET("/app/image", server.listImages)
-	router.POST("/app/image", server.createImage)
-	router.DELETE("/app/image/:id", server.deleteImage)
+	router.GET("/api/image", server.listImages)
+	router.POST("/api/image", server.createImage)
+	router.DELETE("/api/image/:id", server.deleteImage)
 
 	server.router = router
 	return server
