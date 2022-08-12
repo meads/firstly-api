@@ -42,7 +42,7 @@ type createImageRequest struct {
 }
 
 func (server *Server) createImage(ctx *gin.Context) {
-	fmt.Print("createImage handler called")
+	log.Fatal("createImage handler called")
 	var req createImageRequest
 	if err := ctx.BindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
@@ -79,32 +79,33 @@ func (server *Server) deleteImage(ctx *gin.Context) {
 	}
 }
 
-type getImageRequest struct {
-	ID int64 `json:"id" binding:"required"`
-}
+// type getImageRequest struct {
+// 	ID int64 `json:"id" binding:"required"`
+// }
 
-func (server *Server) getImage(ctx *gin.Context) {
-	// var req getConfigRequest
+// func (server *Server) getImage(ctx *gin.Context) {
+// var req getConfigRequest
 
-	// idString, ok := ctx.Params.Get("id")
-	// id, err := strconv.Atoi(idString)
-	// if err != nil || !ok {
-	// 	ctx.JSON(http.StatusBadRequest, errorResponse(errors.New("id is required")))
-	// 	return
-	// }
+// idString, ok := ctx.Params.Get("id")
+// id, err := strconv.Atoi(idString)
+// if err != nil || !ok {
+// 	ctx.JSON(http.StatusBadRequest, errorResponse(errors.New("id is required")))
+// 	return
+// }
 
-	// req.ID = int64(id)
-	// config, err := server.store.GetConfig(ctx, req.ID)
-	// if err != nil {
-	// 	if err == sql.ErrNoRows {
-	// 		ctx.JSON(http.StatusNotFound, nil)
-	// 		return
-	// 	}
-	// 	ctx.JSON(http.StatusInternalServerError, errorResponse(err))
-	// 	return
-	// }
-	// ctx.JSON(http.StatusOK, config)
-}
+// req.ID = int64(id)
+// config, err := server.store.GetConfig(ctx, req.ID)
+// if err != nil {
+// 	if err == sql.ErrNoRows {
+// 		ctx.JSON(http.StatusNotFound, nil)
+// 		return
+// 	}
+// 	ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+// 	return
+// }
+// ctx.JSON(http.StatusOK, config)
+// 	return
+// }
 
 func (server *Server) listImages(ctx *gin.Context) {
 	images, err := server.store.ListImages(context.Background())
