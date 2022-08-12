@@ -21,7 +21,7 @@
     <script>
 
         function deleteImage(id) {
-            fetch(window.location.origin + '/app/image/' + id, {
+            fetch(window.location.origin + '/api/image/' + id, {
                 method: 'DELETE',
                 headers: { 'Content-Type': 'application/json' },
                 redirect: 'follow',
