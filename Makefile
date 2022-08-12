@@ -27,9 +27,19 @@ release:
 # Release the image to your app.
 	@heroku container:release web
 
-local: build
+local: local-clean build
+	docker-compose build
+	docker-compose up
+# @heroku local~ web
 
-	@heroku local web
+local-clean:
+	@docker rm firstly-api_web_1 firstly-api_db_1
+
+local-db-shell:
+	docker exec -it firstly-api_db_1 /bin/bash
+
+local-db-psql:
+	docker exec -it firstly-api_db_1 psql postgresql://postgres:password@localhost:5432/postgres
 
 scale-zero:
 	@heroku ps:scale web=0
