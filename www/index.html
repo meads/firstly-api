@@ -70,7 +70,7 @@
             mainInnerDiv.appendChild(figure)
         }        
 
-        fetch(window.location.origin+'/app/image/')
+        fetch(window.location.origin+'/api/image/')
         .then((r) => r.json().then(items => {
             if (items && items.length) {
                 items.forEach(renderImage)

@@ -24,19 +24,17 @@ login-docker:
 	@docker login --username=resetheadhat@gmail.com --password=$$(heroku auth:token) registry.heroku.com
 
 release:
-# Release the image to your app.
 	@heroku container:release web
 
-local: local-clean build
-	docker-compose build
-	docker-compose up
-# @heroku local~ web
+local:
+	@firefox http://localhost:5000/app/images/ >/dev/null &
+	@docker-compose up
 
-local-clean:
-	@docker rm firstly-api_web_1 firstly-api_db_1
+local-clean: build
+	@docker-compose build
 
 local-db-shell:
-	docker exec -it firstly-api_db_1 /bin/bash
+	@docker exec -it firstly-api_db_1 /bin/bash
 
 local-db-psql:
 	docker exec -it firstly-api_db_1 psql postgresql://postgres:password@localhost:5432/postgres

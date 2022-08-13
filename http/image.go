@@ -42,7 +42,6 @@ type createImageRequest struct {
 }
 
 func (server *Server) createImage(ctx *gin.Context) {
-	log.Fatal("createImage handler called")
 	var req createImageRequest
 	if err := ctx.BindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
