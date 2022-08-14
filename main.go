@@ -21,11 +21,10 @@ import (
 
 func main() {
 	dbURL := os.Getenv("DATABASE_URL")
-	fmt.Printf("Here is the DATABASE_URL: %s", dbURL)
 
 	conn, err := sql.Open("postgres", dbURL)
 	if err != nil {
-		log.Fatalf("error opening postgres driver using url '%s', '%s'", dbURL, err)
+		log.Fatalf("error opening postgres database '%s'", err)
 		return
 	}
 	defer conn.Close()

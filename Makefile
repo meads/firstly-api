@@ -12,7 +12,7 @@ build: clean
 test: sqlc mockgen
 	@go test -v
 
-deploy: build
+deploy:
 # Build the image and push to Container Registry.
 	@heroku container:push web
 
@@ -27,7 +27,6 @@ release:
 	@heroku container:release web
 
 local:
-	@firefox http://localhost:5000/app/images/ >/dev/null &
 	@docker-compose up
 
 local-clean: build

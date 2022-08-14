@@ -18,17 +18,21 @@ func NewServer(store db.Store) *Server {
 	router := gin.Default()
 	router.LoadHTMLGlob("www/*.html")
 
-	router.GET("/app/login", func(c *gin.Context) {
+	router.GET("/app/login/", func(c *gin.Context) {
 		c.HTML(http.StatusOK, "login.html", nil)
 	})
 
-	router.GET("/app/images", func(c *gin.Context) {
+	router.GET("/app/images/", func(c *gin.Context) {
 		c.HTML(http.StatusOK, "index.html", nil)
 	})
 
-	router.GET("/api/image", server.listImages)
-	router.POST("/api/image", server.createImage)
-	router.DELETE("/api/image/:id", server.deleteImage)
+	router.GET("/app/add/", func(c *gin.Context) {
+		c.HTML(http.StatusOK, "add-image.html", nil)
+	})
+
+	router.GET("/api/image/", server.listImages)
+	router.POST("/api/image/", server.createImage)
+	router.DELETE("/api/image/:id/", server.deleteImage)
 
 	server.router = router
 	return server
