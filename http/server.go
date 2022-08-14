@@ -26,9 +26,9 @@ func NewServer(store db.Store) *Server {
 		c.HTML(http.StatusOK, "index.html", nil)
 	})
 
-	router.GET("/app/add/", func(c *gin.Context) {
-		c.HTML(http.StatusOK, "add-image.html", nil)
-	})
+	// router.GET("/app/add/", func(c *gin.Context) {
+	// 	c.HTML(http.StatusOK, "add-image.html", nil)
+	// })
 
 	router.GET("/api/image/", server.listImages)
 	router.POST("/api/image/", server.createImage)
