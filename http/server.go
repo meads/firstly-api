@@ -13,29 +13,28 @@ type Server struct {
 }
 
 // NewServer creates a new Http Server and sets up routing.
-func NewServer(store db.Store) *Server {
-	server := &Server{store: store}
-	router := gin.Default()
-	router.LoadHTMLGlob("www/*.html")
+func NewServer(store db.Store, router *gin.Engine) *Server {
+	s := &Server{
+		store:  store,
+		router: router,
+	}
+	s.router.RedirectTrailingSlash = false
 
-	router.GET("/app/login/", func(c *gin.Context) {
+	s.router.LoadHTMLGlob("www/*.html")
+
+	s.router.GET("/firstly/login/", func(c *gin.Context) {
 		c.HTML(http.StatusOK, "login.html", nil)
 	})
 
-	router.GET("/app/images/", func(c *gin.Context) {
+	s.router.GET("/firstly/images/", func(c *gin.Context) {
 		c.HTML(http.StatusOK, "index.html", nil)
 	})
 
-	// router.GET("/app/add/", func(c *gin.Context) {
-	// 	c.HTML(http.StatusOK, "add-image.html", nil)
-	// })
+	s.router.GET("/image/", s.listImages)
+	s.router.POST("/image/", s.createImage)
+	s.router.DELETE("/image/:id/", s.deleteImage)
 
-	router.GET("/api/image/", server.listImages)
-	router.POST("/api/image/", server.createImage)
-	router.DELETE("/api/image/:id/", server.deleteImage)
-
-	server.router = router
-	return server
+	return s
 }
 
 // Start runs the Http server on the supplied address.

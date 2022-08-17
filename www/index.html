@@ -21,7 +21,7 @@
     <script>
 
         function deleteImage(id) {
-            fetch(window.location.origin + '/api/image/' + id, {
+            fetch(window.location.origin + '/image/' + id, {
                 method: 'DELETE',
                 headers: { 'Content-Type': 'application/json' },
                 redirect: 'follow',
@@ -70,7 +70,7 @@
             mainInnerDiv.appendChild(figure)
         }        
 
-        fetch(window.location.origin+'/api/image/')
+        fetch(window.location.origin+'/image/')
         .then((r) => r.json().then(items => {
             if (items && items.length) {
                 items.forEach(renderImage)

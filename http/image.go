@@ -57,10 +57,6 @@ func (server *Server) createImage(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, image)
 }
 
-// type deleteImageRequest struct {
-// 	ID int `json:"id" binding:"required"`
-// }
-
 func (server *Server) deleteImage(ctx *gin.Context) {
 	idParam := ctx.Param("id")
 	if idParam == "" {

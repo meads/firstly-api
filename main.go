@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 
+	"github.com/gin-gonic/gin"
 	_ "github.com/lib/pq"
 
 	"log"
@@ -41,8 +42,11 @@ func main() {
 	fmt.Print("\nmigrations were a success. 🎉\n")
 
 	store := db.NewStore(conn)
-	server := http_api.NewServer(store)
-	// config.ServerAddress
+
+	router := gin.Default()
+
+	server := http_api.NewServer(store, router)
+
 	err = server.Start(":" + os.Getenv("PORT"))
 	if err != nil {
 		log.Fatal("cannot start server: ", err)

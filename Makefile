@@ -9,7 +9,10 @@ clean:
 build: clean
 	$(GO_BUILD_ENV) go build -v -o $(DOCKER_CMD) .
 
-test: sqlc mockgen
+# test: sqlc mockgen
+# 	@go test -v
+
+test:
 	@go test -v
 
 deploy:
@@ -47,5 +50,5 @@ sqlc:
 	@sqlc generate
 
 mockgen:
-	@mockgen -package mockapi -destination ./db/mock/store.go github.com/meads/firstly-api/db/api Store
+	@mockgen -package mockapi -destination ./db/mock/store.go github.com/meads/firstly-api/db/sqlc Store
 
