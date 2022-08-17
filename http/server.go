@@ -18,7 +18,6 @@ func NewServer(store db.Store, router *gin.Engine) *Server {
 		store:  store,
 		router: router,
 	}
-	s.router.RedirectTrailingSlash = false
 
 	s.router.LoadHTMLGlob("www/*.html")
 
