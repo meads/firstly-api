@@ -45,7 +45,7 @@ func main() {
 
 	router := gin.Default()
 
-	server := http_api.NewServer(store, router)
+	server := http_api.NewFirstlyAPI(store, router)
 
 	err = server.Start(":" + os.Getenv("PORT"))
 	if err != nil {

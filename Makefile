@@ -50,5 +50,5 @@ sqlc:
 	@sqlc generate
 
 mockgen:
-	@mockgen -package mockapi -destination ./db/mock/store.go github.com/meads/firstly-api/db/sqlc Store
+	@mockgen -package mockapi -destination ./db/sqlc/mock_store.go github.com/meads/firstly-api/db/sqlc Store
 

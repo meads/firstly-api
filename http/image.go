@@ -41,14 +41,14 @@ type createImageRequest struct {
 	Data string `json:"data" binding:"required"`
 }
 
-func (server *Server) createImage(ctx *gin.Context) {
+func (api *FirstlyAPI) createImage(ctx *gin.Context) {
 	var req createImageRequest
 	if err := ctx.BindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return
 	}
 
-	image, err := server.store.CreateImage(ctx, req.Data)
+	image, err := api.store.CreateImage(ctx, req.Data)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -57,7 +57,7 @@ func (server *Server) createImage(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, image)
 }
 
-func (server *Server) deleteImage(ctx *gin.Context) {
+func (api *FirstlyAPI) deleteImage(ctx *gin.Context) {
 	idParam := ctx.Param("id")
 	if idParam == "" {
 		ctx.AbortWithError(http.StatusBadRequest, errors.New("id parameter is required"))
@@ -68,7 +68,7 @@ func (server *Server) deleteImage(ctx *gin.Context) {
 		ctx.AbortWithError(http.StatusBadRequest, errors.New("id parameter must be a valid integer"))
 		return
 	}
-	err = server.store.DeleteImage(context.Background(), id)
+	err = api.store.DeleteImage(context.Background(), id)
 	if err != nil {
 		ctx.AbortWithError(http.StatusInternalServerError, err)
 	}
@@ -78,7 +78,7 @@ func (server *Server) deleteImage(ctx *gin.Context) {
 // 	ID int64 `json:"id" binding:"required"`
 // }
 
-// func (server *Server) getImage(ctx *gin.Context) {
+// func (api *FirstlyAPI) getImage(ctx *gin.Context) {
 // var req getConfigRequest
 
 // idString, ok := ctx.Params.Get("id")
@@ -102,8 +102,8 @@ func (server *Server) deleteImage(ctx *gin.Context) {
 // 	return
 // }
 
-func (server *Server) listImages(ctx *gin.Context) {
-	images, err := server.store.ListImages(context.Background())
+func (api *FirstlyAPI) listImages(ctx *gin.Context) {
+	images, err := api.store.ListImages(context.Background())
 	if err != nil {
 		log.Fatalf("Error calling ListImages: %s", err)
 		return
@@ -115,6 +115,7 @@ func (server *Server) listImages(ctx *gin.Context) {
 
 	ctx.Header("Access-Control-Allow-Origin", "*")
 	ctx.JSON(http.StatusOK, dtoImages)
+
 	// limit := ctx.Query("limit")
 	// if limit == "0" || limit == "" {
 	// 	limit = "50"
