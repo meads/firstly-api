@@ -8,7 +8,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	db "github.com/meads/firstly-api/db/sqlc"
+	db "github.com/meads/firstly-api/db"
 	// . "github.com/onsi/ginkgo"
 	// . "github.com/onsi/gomega"
 )

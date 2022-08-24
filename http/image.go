@@ -3,39 +3,12 @@ package http
 import (
 	"context"
 	"errors"
-	"fmt"
 	"log"
 	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
-	db "github.com/meads/firstly-api/db/sqlc"
 )
-
-type Image struct {
-	ID      string `json:"id"`
-	Created string `json:"created"`
-	Data    string `json:"data"`
-	Deleted bool   `json:"deleted"`
-}
-
-func (to Image) fromDbAPIType(from *db.Image) *Image {
-	if from == nil {
-		return &Image{}
-	}
-
-	deleted := false
-	if from.Deleted.Valid && from.Deleted.Int32 == 1 {
-		deleted = true
-	}
-
-	return &Image{
-		ID:      fmt.Sprintf("%d", from.ID),
-		Created: from.Created,
-		Data:    from.Data,
-		Deleted: deleted,
-	}
-}
 
 type createImageRequest struct {
 	Data string `json:"data" binding:"required"`
@@ -108,13 +81,9 @@ func (api *FirstlyAPI) listImages(ctx *gin.Context) {
 		log.Fatalf("Error calling ListImages: %s", err)
 		return
 	}
-	dtoImages := []Image{}
-	for _, img := range images {
-		dtoImages = append(dtoImages, *Image{}.fromDbAPIType(&img))
-	}
 
 	ctx.Header("Access-Control-Allow-Origin", "*")
-	ctx.JSON(http.StatusOK, dtoImages)
+	ctx.JSON(http.StatusOK, images)
 
 	// limit := ctx.Query("limit")
 	// if limit == "0" || limit == "" {

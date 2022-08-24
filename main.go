@@ -16,7 +16,7 @@ import (
 
 	_ "github.com/heroku/x/hmetrics/onload"
 
-	db "github.com/meads/firstly-api/db/sqlc"
+	db "github.com/meads/firstly-api/db"
 	http_api "github.com/meads/firstly-api/http"
 )
 
