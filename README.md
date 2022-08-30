@@ -48,15 +48,17 @@ This app uses heroku addons and should currently have the free hobby database ad
 ```shell
 $ heroku addons
 ```
-[![Addons](heroku-addons-output.png)](heroku-addons-output.png)
+
+## Logical Design
+
+
+
 
 ## Managing Environment variables
 
 ```shell
 $ heroku config
 ```
-<!-- [![Addons](heroku-config.png)](heroku-config.png) -->
-
 
 ## Documentation
 

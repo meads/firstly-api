@@ -16,8 +16,8 @@ import (
 
 	_ "github.com/heroku/x/hmetrics/onload"
 
+	http_api "github.com/meads/firstly-api/api"
 	db "github.com/meads/firstly-api/db"
-	http_api "github.com/meads/firstly-api/http"
 )
 
 func main() {
@@ -45,7 +45,7 @@ func main() {
 
 	router := gin.Default()
 
-	server := http_api.NewFirstlyAPI(store, router)
+	server := http_api.NewFirstlyAPI(store, router, true)
 
 	err = server.Start(":" + os.Getenv("PORT"))
 	if err != nil {

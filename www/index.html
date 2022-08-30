@@ -49,6 +49,7 @@
 
         function renderImage(img) {
             let mainInnerDiv = document.querySelector("#main-inner");
+            
             let imageEl = document.createElement("img");
             imageEl.setAttribute("src", "data:image/png;base64," + img["data"]);
             imageEl.setAttribute("alt", img["created"]);
@@ -58,13 +59,16 @@
 
             let figure = document.createElement("figure");
             figure.className = 'item';
-
             figure.setAttribute("data-id", img["id"]);
             figure.appendChild(imageEl);
             figure.appendChild(figcaption);
             
             figure.onclick = function(e) {
-                deleteImage(e.target.parentElement.getAttribute("data-id"))
+                // deleteImage(e.target.parentElement.getAttribute("data-id"))
+                let anchorEl = document.createElement("a");
+                anchorEl.setAttribute("download", "");
+                anchorEl.setAttribute("href", "data:image/png;base64,"+ img["data"]);
+                anchorEl.click();
             };
 
             mainInnerDiv.appendChild(figure)

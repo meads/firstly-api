@@ -9,11 +9,8 @@ clean:
 build: clean
 	$(GO_BUILD_ENV) go build -v -o $(DOCKER_CMD) .
 
-# test: sqlc mockgen
-# 	@go test -v
-
 test:
-	@go test -v
+	@go test -v ./...
 
 deploy:
 # Build the image and push to Container Registry.
@@ -32,7 +29,7 @@ release:
 local:
 	@docker-compose up
 
-local-clean: build
+local-clean: clean
 	@docker-compose build
 
 local-db-shell:
@@ -50,5 +47,5 @@ sqlc:
 	@sqlc generate
 
 mockgen:
-	@mockgen -package db -destination ./db/mock_store.go github.com/meads/firstly-api/db Store
+	@mockgen -package db -destination ./db/store_mock.go github.com/meads/firstly-api/db Store
 

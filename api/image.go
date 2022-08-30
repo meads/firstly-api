@@ -1,4 +1,4 @@
-package http
+package api
 
 import (
 	"context"
@@ -14,7 +14,7 @@ type createImageRequest struct {
 	Data string `json:"data" binding:"required"`
 }
 
-func (api *FirstlyAPI) createImage(ctx *gin.Context) {
+func (api *FirstlyAPI) CreateImageHandler(ctx *gin.Context) {
 	var req createImageRequest
 	if err := ctx.BindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
@@ -30,7 +30,7 @@ func (api *FirstlyAPI) createImage(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, image)
 }
 
-func (api *FirstlyAPI) deleteImage(ctx *gin.Context) {
+func (api *FirstlyAPI) DeleteImageHandler(ctx *gin.Context) {
 	idParam := ctx.Param("id")
 	if idParam == "" {
 		ctx.AbortWithError(http.StatusBadRequest, errors.New("id parameter is required"))
@@ -75,7 +75,7 @@ func (api *FirstlyAPI) deleteImage(ctx *gin.Context) {
 // 	return
 // }
 
-func (api *FirstlyAPI) listImages(ctx *gin.Context) {
+func (api *FirstlyAPI) ListImagesHandler(ctx *gin.Context) {
 	images, err := api.store.ListImages(context.Background())
 	if err != nil {
 		log.Fatalf("Error calling ListImages: %s", err)
