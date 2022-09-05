@@ -48,4 +48,5 @@ sqlc:
 
 mockgen:
 	@mockgen -package db -destination ./db/store_mock.go github.com/meads/firstly-api/db Store
+	@mockgen -package api -destination ./api/api_mock.go github.com/meads/firstly-api/api Firstly
 

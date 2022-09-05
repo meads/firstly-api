@@ -1,6 +1,3 @@
-/*
-  NOTE: this file and comments are used to generate the code found in both firstly-api/db/{api,sqlc}
-*/
 
 -- name: GetImage :one
 SELECT * FROM image

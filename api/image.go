@@ -2,151 +2,92 @@ package api
 
 import (
 	"context"
-	"errors"
-	"log"
-	"net/http"
-	"strconv"
 
-	"github.com/gin-gonic/gin"
+	"github.com/meads/firstly-api/db"
+	"github.com/pkg/errors"
 )
 
-type createImageRequest struct {
-	Data string `json:"data" binding:"required"`
+// db   (Queries)
+// ^
+// |
+// api  (FirstlyAPI)
+// ^
+// |
+// http (FirstlyServer)
+
+type Image struct {
+	ID      int64  `json:"id"`
+	Data    string `json:"data"`
+	Created string `json:"created"`
+	Deleted bool   `json:"deleted"`
 }
 
-func (api *FirstlyAPI) CreateImageHandler(ctx *gin.Context) {
-	var req createImageRequest
-	if err := ctx.BindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, errorResponse(err))
-		return
-	}
-
-	image, err := api.store.CreateImage(ctx, req.Data)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
-		return
-	}
-
-	ctx.JSON(http.StatusOK, image)
+type ImageAPI struct {
+	ctx   context.Context
+	store db.Querier
 }
 
-func (api *FirstlyAPI) DeleteImageHandler(ctx *gin.Context) {
-	idParam := ctx.Param("id")
-	if idParam == "" {
-		ctx.AbortWithError(http.StatusBadRequest, errors.New("id parameter is required"))
-		return
-	}
-	id, err := strconv.ParseInt(idParam, 10, 64)
-	if err != nil {
-		ctx.AbortWithError(http.StatusBadRequest, errors.New("id parameter must be a valid integer"))
-		return
-	}
-	err = api.store.DeleteImage(context.Background(), id)
-	if err != nil {
-		ctx.AbortWithError(http.StatusInternalServerError, err)
+func NewImageAPI(ctx context.Context, store *db.Queries) *ImageAPI {
+	return &ImageAPI{
+		ctx:   ctx,
+		store: store,
 	}
 }
 
-// type getImageRequest struct {
-// 	ID int64 `json:"id" binding:"required"`
-// }
-
-// func (api *FirstlyAPI) getImage(ctx *gin.Context) {
-// var req getConfigRequest
-
-// idString, ok := ctx.Params.Get("id")
-// id, err := strconv.Atoi(idString)
-// if err != nil || !ok {
-// 	ctx.JSON(http.StatusBadRequest, errorResponse(errors.New("id is required")))
-// 	return
-// }
-
-// req.ID = int64(id)
-// config, err := server.store.GetConfig(ctx, req.ID)
-// if err != nil {
-// 	if err == sql.ErrNoRows {
-// 		ctx.JSON(http.StatusNotFound, nil)
-// 		return
-// 	}
-// 	ctx.JSON(http.StatusInternalServerError, errorResponse(err))
-// 	return
-// }
-// ctx.JSON(http.StatusOK, config)
-// 	return
-// }
-
-func (api *FirstlyAPI) ListImagesHandler(ctx *gin.Context) {
-	images, err := api.store.ListImages(context.Background())
-	if err != nil {
-		log.Fatalf("Error calling ListImages: %s", err)
-		return
+func toDTO(img *db.Image) *Image {
+	deleted := false
+	if img.Deleted.Valid && img.Deleted.Int32 == 1 {
+		deleted = true
 	}
-
-	ctx.Header("Access-Control-Allow-Origin", "*")
-	ctx.JSON(http.StatusOK, images)
-
-	// limit := ctx.Query("limit")
-	// if limit == "0" || limit == "" {
-	// 	limit = "50"
-	// }
-	// offset := ctx.Query("offset")
-	// if offset == "" {
-	// 	offset = "0"
-	// }
-	// params := db.ListImages{}
-
-	// limitInt, errLimitConvert := strconv.Atoi(limit)
-	// offsetInt, errOffsetConvert := strconv.Atoi(offset)
-	// if errLimitConvert == nil && errOffsetConvert == nil {
-	// 	params.Limit = int32(limitInt)
-	// 	params.Offset = int32(offsetInt)
-	// }
-
-	// configs, err := server.store.ListConfigs(ctx, params)
-	// if err != nil {
-	// 	ctx.JSON(http.StatusInternalServerError, errorResponse(err))
-	// 	return
-	// }
-
-	// ctx.JSON(http.StatusOK, configs)
+	return &Image{
+		ID:      img.ID,
+		Data:    img.Data,
+		Created: img.Created,
+		Deleted: deleted,
+	}
 }
 
-// type updateImageRequest struct {
-// 	ID   int64  `json:"id" binding:"required"`
-// 	Name string `json:"name" binding:"required"`
-// }
+func (api *ImageAPI) CreateImage(data string) (*Image, error) {
+	img, err := api.store.CreateImage(api.ctx, data)
+	if err != nil {
+		return nil, errors.Wrap(err, "api error creating image")
+	}
+	return toDTO(&img), nil
+}
 
-// func (server *Server) updateConfig(ctx *gin.Context) {
-// 	var req updateConfigRequest
+func (api *ImageAPI) DeleteImage(id int64) error {
+	err := api.store.DeleteImage(api.ctx, id)
+	if err != nil {
+		return errors.Wrap(err, "api error deleting image")
+	}
+	return nil
+}
 
-// 	// validate the request
-// 	if err := ctx.BindJSON(&req); err != nil {
-// 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
-// 		return
-// 	}
+func (api *ImageAPI) GetImage(id int64) (*Image, error) {
+	img, err := api.store.GetImage(api.ctx, id)
+	if err != nil {
+		return nil, errors.Wrap(err, "api error retrieving image")
+	}
+	return toDTO(&img), nil
+}
 
-// 	// query the record for update
-// 	config, err := server.store.GetConfigForUpdate(ctx, req.ID)
-// 	if err != nil {
-// 		if err == sql.ErrNoRows {
-// 			ctx.JSON(http.StatusNotFound, errorResponse(err))
-// 			return
-// 		}
-// 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
-// 		return
-// 	}
+func (api *ImageAPI) ListImages() ([]*Image, error) {
+	imgs, err := api.store.ListImages(api.ctx)
+	if err != nil {
+		return nil, errors.Wrap(err, "api error retrieving images")
+	}
 
-// 	// overlay the request values specified
-// 	var configParams db.UpdateConfigParams
-// 	configParams.ID = req.ID
-// 	configParams.Name = req.Name
+	imagesToReturn := []*Image{}
+	for i, _ := range imgs {
+		imagesToReturn = append(imagesToReturn, toDTO(&imgs[i]))
+	}
+	return imagesToReturn, nil
+}
 
-// 	// issue the update with the update params struct
-// 	config, err = server.store.UpdateConfig(ctx, configParams)
-// 	if err != nil {
-// 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
-// 		return
-// 	}
-
-// 	ctx.JSON(http.StatusOK, config)
-// }
+func (api *ImageAPI) SoftDeleteImage(id int64) error {
+	err := api.store.SoftDeleteImage(api.ctx, id)
+	if err != nil {
+		return errors.Wrap(err, "api error deleting image")
+	}
+	return nil
+}
