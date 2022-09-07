@@ -4,13 +4,11 @@
 
 package db
 
-import (
-	"database/sql"
-)
+import ()
 
 type Image struct {
-	ID      int64         `json:"id"`
-	Data    string        `json:"data"`
-	Created string        `json:"created"`
-	Deleted sql.NullInt32 `json:"deleted"`
+	ID      int64  `json:"id"`
+	Data    string `json:"data"`
+	Created string `json:"created"`
+	Deleted bool   `json:"deleted"`
 }

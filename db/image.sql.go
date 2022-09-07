@@ -9,7 +9,7 @@ import (
 	"context"
 )
 
-const createImage = `-- name: CreateImage :one
+const create = `-- name: Create :one
 INSERT INTO image (
   data, created
 ) VALUES (
@@ -18,8 +18,8 @@ INSERT INTO image (
 RETURNING id, data, created, deleted
 `
 
-func (q *Queries) CreateImage(ctx context.Context, data string) (Image, error) {
-	row := q.db.QueryRowContext(ctx, createImage, data)
+func (q *Queries) Create(ctx context.Context, data string) (Image, error) {
+	row := q.db.QueryRowContext(ctx, create, data)
 	var i Image
 	err := row.Scan(
 		&i.ID,
@@ -30,27 +30,23 @@ func (q *Queries) CreateImage(ctx context.Context, data string) (Image, error) {
 	return i, err
 }
 
-const deleteImage = `-- name: DeleteImage :exec
+const delete = `-- name: Delete :exec
 DELETE FROM image
 WHERE id = $1
 `
 
-func (q *Queries) DeleteImage(ctx context.Context, id int64) error {
-	_, err := q.db.ExecContext(ctx, deleteImage, id)
+func (q *Queries) Delete(ctx context.Context, id int64) error {
+	_, err := q.db.ExecContext(ctx, delete, id)
 	return err
 }
 
-const getImage = `-- name: GetImage :one
-/*
-  NOTE: this file and comments are used to generate the code found in both firstly-api/db/{api,sqlc}
-*/
-
+const get = `-- name: Get :one
 SELECT id, data, created, deleted FROM image
 WHERE id = $1 LIMIT 1
 `
 
-func (q *Queries) GetImage(ctx context.Context, id int64) (Image, error) {
-	row := q.db.QueryRowContext(ctx, getImage, id)
+func (q *Queries) Get(ctx context.Context, id int64) (Image, error) {
+	row := q.db.QueryRowContext(ctx, get, id)
 	var i Image
 	err := row.Scan(
 		&i.ID,
@@ -61,12 +57,12 @@ func (q *Queries) GetImage(ctx context.Context, id int64) (Image, error) {
 	return i, err
 }
 
-const listImages = `-- name: ListImages :many
+const list = `-- name: List :many
 SELECT id, data, created, deleted FROM image
 `
 
-func (q *Queries) ListImages(ctx context.Context) ([]Image, error) {
-	rows, err := q.db.QueryContext(ctx, listImages)
+func (q *Queries) List(ctx context.Context) ([]Image, error) {
+	rows, err := q.db.QueryContext(ctx, list)
 	if err != nil {
 		return nil, err
 	}
@@ -93,13 +89,13 @@ func (q *Queries) ListImages(ctx context.Context) ([]Image, error) {
 	return items, nil
 }
 
-const softDeleteImage = `-- name: SoftDeleteImage :exec
+const softDelete = `-- name: SoftDelete :exec
 UPDATE image
 SET deleted = 1
 WHERE id = $1
 `
 
-func (q *Queries) SoftDeleteImage(ctx context.Context, id int64) error {
-	_, err := q.db.ExecContext(ctx, softDeleteImage, id)
+func (q *Queries) SoftDelete(ctx context.Context, id int64) error {
+	_, err := q.db.ExecContext(ctx, softDelete, id)
 	return err
 }

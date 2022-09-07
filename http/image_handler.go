@@ -1,4 +1,4 @@
-package api
+package http
 
 import (
 	"errors"
@@ -7,42 +7,48 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	db "github.com/meads/firstly-api/db"
 )
 
 type createImageRequest struct {
 	Data string `json:"data" binding:"required"`
 }
 
-func (server *FirstlyServer) CreateImageHandler(ctx *gin.Context) {
-	var req createImageRequest
-	if err := ctx.BindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, errorResponse(err))
-		return
-	}
+func (server *FirstlyServer) CreateImageHandler(store db.Store) func(*gin.Context) {
+	return func(ctx *gin.Context) {
+		var req createImageRequest
+		if err := ctx.BindJSON(&req); err != nil {
+			ctx.JSON(http.StatusBadRequest, errorResponse(err))
+			return
+		}
 
-	image, err := server.api.CreateImage(req.Data)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
-		return
-	}
+		image, err := store.Create(ctx, req.Data)
+		if err != nil {
+			ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+			return
+		}
 
-	ctx.JSON(http.StatusOK, image)
+		ctx.JSON(http.StatusOK, image)
+	}
 }
 
-func (server *FirstlyServer) DeleteImageHandler(ctx *gin.Context) {
-	idParam := ctx.Param("id")
-	if idParam == "" {
-		ctx.AbortWithError(http.StatusBadRequest, errors.New("id parameter is required"))
-		return
-	}
-	id, err := strconv.ParseInt(idParam, 10, 64)
-	if err != nil {
-		ctx.AbortWithError(http.StatusBadRequest, errors.New("id parameter must be a valid integer"))
-		return
-	}
-	err = server.api.DeleteImage(id)
-	if err != nil {
-		ctx.AbortWithError(http.StatusInternalServerError, err)
+func (server *FirstlyServer) DeleteImageHandler(store db.Store) func(*gin.Context) {
+	return func(ctx *gin.Context) {
+		idParam := ctx.Param("id")
+		if idParam == "" {
+			ctx.AbortWithError(http.StatusBadRequest, errors.New("id parameter is required"))
+			return
+		}
+		id, err := strconv.ParseInt(idParam, 10, 64)
+		if err != nil {
+			ctx.AbortWithError(http.StatusBadRequest, errors.New("id parameter must be a valid integer"))
+			return
+		}
+
+		err = store.Delete(ctx, id)
+		if err != nil {
+			ctx.AbortWithError(http.StatusInternalServerError, err)
+		}
 	}
 }
 
@@ -74,15 +80,17 @@ func (server *FirstlyServer) DeleteImageHandler(ctx *gin.Context) {
 // 	return
 // }
 
-func (server *FirstlyServer) ListImagesHandler(ctx *gin.Context) {
-	images, err := server.api.ListImages()
-	if err != nil {
-		log.Fatalf("Error calling ListImages: %s", err)
-		return
-	}
+func (server *FirstlyServer) ListImagesHandler(store db.Store) func(ctx *gin.Context) {
+	return func(ctx *gin.Context) {
+		images, err := store.List(ctx)
+		if err != nil {
+			log.Fatalf("Error calling ListImages: %s", err)
+			return
+		}
 
-	ctx.Header("Access-Control-Allow-Origin", "*")
-	ctx.JSON(http.StatusOK, images)
+		ctx.Header("Access-Control-Allow-Origin", "*")
+		ctx.JSON(http.StatusOK, images)
+	}
 
 	// limit := ctx.Query("limit")
 	// if limit == "0" || limit == "" {

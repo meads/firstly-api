@@ -1,21 +1,19 @@
-package api
+package http
 
 import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	api "github.com/meads/firstly-api/api"
+	db "github.com/meads/firstly-api/db"
 )
 
 type FirstlyServer struct {
-	api    *api.ImageAPI
 	router *gin.Engine
 }
 
 // NewFirstlyAPI creates a new Http Server and sets up routing.
-func NewFirstlyServer(api *api.ImageAPI, router *gin.Engine) *FirstlyServer {
+func NewFirstlyServer(store db.Store, router *gin.Engine) *FirstlyServer {
 	s := &FirstlyServer{
-		api:    api,
 		router: router,
 	}
 
@@ -27,9 +25,9 @@ func NewFirstlyServer(api *api.ImageAPI, router *gin.Engine) *FirstlyServer {
 		c.HTML(http.StatusOK, "index.html", nil)
 	})
 
-	s.router.GET("/image/", s.ListImagesHandler)
-	s.router.POST("/image/", s.CreateImageHandler)
-	s.router.DELETE("/image/:id/", s.DeleteImageHandler)
+	s.router.GET("/image/", s.ListImagesHandler(store))
+	s.router.POST("/image/", s.CreateImageHandler(store))
+	s.router.DELETE("/image/:id/", s.DeleteImageHandler(store))
 
 	return s
 }

@@ -9,11 +9,11 @@ import (
 )
 
 type Querier interface {
-	CreateImage(ctx context.Context, data string) (Image, error)
-	DeleteImage(ctx context.Context, id int64) error
-	GetImage(ctx context.Context, id int64) (Image, error)
-	ListImages(ctx context.Context) ([]Image, error)
-	SoftDeleteImage(ctx context.Context, id int64) error
+	Create(ctx context.Context, data string) (Image, error)
+	Delete(ctx context.Context, id int64) error
+	Get(ctx context.Context, id int64) (Image, error)
+	List(ctx context.Context) ([]Image, error)
+	SoftDelete(ctx context.Context, id int64) error
 }
 
 var _ Querier = (*Queries)(nil)

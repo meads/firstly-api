@@ -34,77 +34,77 @@ func (m *MockStore) EXPECT() *MockStoreMockRecorder {
 	return m.recorder
 }
 
-// CreateImage mocks base method.
-func (m *MockStore) CreateImage(arg0 context.Context, arg1 string) (Image, error) {
+// Create mocks base method.
+func (m *MockStore) Create(arg0 context.Context, arg1 string) (Image, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateImage", arg0, arg1)
+	ret := m.ctrl.Call(m, "Create", arg0, arg1)
 	ret0, _ := ret[0].(Image)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// CreateImage indicates an expected call of CreateImage.
-func (mr *MockStoreMockRecorder) CreateImage(arg0, arg1 interface{}) *gomock.Call {
+// Create indicates an expected call of Create.
+func (mr *MockStoreMockRecorder) Create(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateImage", reflect.TypeOf((*MockStore)(nil).CreateImage), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockStore)(nil).Create), arg0, arg1)
 }
 
-// DeleteImage mocks base method.
-func (m *MockStore) DeleteImage(arg0 context.Context, arg1 int64) error {
+// Delete mocks base method.
+func (m *MockStore) Delete(arg0 context.Context, arg1 int64) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteImage", arg0, arg1)
+	ret := m.ctrl.Call(m, "Delete", arg0, arg1)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// DeleteImage indicates an expected call of DeleteImage.
-func (mr *MockStoreMockRecorder) DeleteImage(arg0, arg1 interface{}) *gomock.Call {
+// Delete indicates an expected call of Delete.
+func (mr *MockStoreMockRecorder) Delete(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteImage", reflect.TypeOf((*MockStore)(nil).DeleteImage), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockStore)(nil).Delete), arg0, arg1)
 }
 
-// GetImage mocks base method.
-func (m *MockStore) GetImage(arg0 context.Context, arg1 int64) (Image, error) {
+// Get mocks base method.
+func (m *MockStore) Get(arg0 context.Context, arg1 int64) (Image, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetImage", arg0, arg1)
+	ret := m.ctrl.Call(m, "Get", arg0, arg1)
 	ret0, _ := ret[0].(Image)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetImage indicates an expected call of GetImage.
-func (mr *MockStoreMockRecorder) GetImage(arg0, arg1 interface{}) *gomock.Call {
+// Get indicates an expected call of Get.
+func (mr *MockStoreMockRecorder) Get(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetImage", reflect.TypeOf((*MockStore)(nil).GetImage), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockStore)(nil).Get), arg0, arg1)
 }
 
-// ListImages mocks base method.
-func (m *MockStore) ListImages(arg0 context.Context) ([]Image, error) {
+// List mocks base method.
+func (m *MockStore) List(arg0 context.Context) ([]Image, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListImages", arg0)
+	ret := m.ctrl.Call(m, "List", arg0)
 	ret0, _ := ret[0].([]Image)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// ListImages indicates an expected call of ListImages.
-func (mr *MockStoreMockRecorder) ListImages(arg0 interface{}) *gomock.Call {
+// List indicates an expected call of List.
+func (mr *MockStoreMockRecorder) List(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListImages", reflect.TypeOf((*MockStore)(nil).ListImages), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockStore)(nil).List), arg0)
 }
 
-// SoftDeleteImage mocks base method.
-func (m *MockStore) SoftDeleteImage(arg0 context.Context, arg1 int64) error {
+// SoftDelete mocks base method.
+func (m *MockStore) SoftDelete(arg0 context.Context, arg1 int64) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SoftDeleteImage", arg0, arg1)
+	ret := m.ctrl.Call(m, "SoftDelete", arg0, arg1)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// SoftDeleteImage indicates an expected call of SoftDeleteImage.
-func (mr *MockStoreMockRecorder) SoftDeleteImage(arg0, arg1 interface{}) *gomock.Call {
+// SoftDelete indicates an expected call of SoftDelete.
+func (mr *MockStoreMockRecorder) SoftDelete(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SoftDeleteImage", reflect.TypeOf((*MockStore)(nil).SoftDeleteImage), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SoftDelete", reflect.TypeOf((*MockStore)(nil).SoftDelete), arg0, arg1)
 }
 
 // Tx mocks base method.

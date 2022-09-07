@@ -1,12 +1,12 @@
 
--- name: GetImage :one
+-- name: Get :one
 SELECT * FROM image
 WHERE id = $1 LIMIT 1;
 
--- name: ListImages :many
+-- name: List :many
 SELECT * FROM image;
 
--- name: CreateImage :one
+-- name: Create :one
 INSERT INTO image (
   data, created
 ) VALUES (
@@ -14,12 +14,12 @@ INSERT INTO image (
 )
 RETURNING *;
 
--- name: SoftDeleteImage :exec
+-- name: SoftDelete :exec
 UPDATE image
 SET deleted = 1
 WHERE id = $1;
 
--- name: DeleteImage :exec
+-- name: Delete :exec
 DELETE FROM image
 WHERE id = $1;
 

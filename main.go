@@ -16,7 +16,6 @@ import (
 
 	_ "github.com/heroku/x/hmetrics/onload"
 
-	"github.com/meads/firstly-api/api"
 	db "github.com/meads/firstly-api/db"
 	http_api "github.com/meads/firstly-api/http"
 )
@@ -45,7 +44,7 @@ func main() {
 	store := db.NewStore(conn)
 
 	router := gin.Default()
-	api := api.NewFirstlyAPI(&store)
+
 	server := http_api.NewFirstlyServer(store, router)
 	server.LoadHTMLTemplates()
 
