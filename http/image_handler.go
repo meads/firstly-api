@@ -48,7 +48,10 @@ func (server *FirstlyServer) DeleteImageHandler(store db.Store) func(*gin.Contex
 		err = store.Delete(ctx, id)
 		if err != nil {
 			ctx.AbortWithError(http.StatusInternalServerError, err)
+			return
 		}
+
+		ctx.JSON(http.StatusOK, nil)
 	}
 }
 

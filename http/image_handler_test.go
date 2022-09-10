@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -26,11 +27,9 @@ func TestImageHandler(t *testing.T) {
 		setupExpectations func(store *db.MockStore)
 	}{
 		{
-			body: func() *bytes.Buffer {
-				return bytes.NewBufferString("{\"data\":\"test\"}")
-			}(),
+			body:         bytes.NewBufferString("{\"data\":\"test\"}"),
 			method:       http.MethodPost,
-			name:         "should respond with Status Code 200 when valid data supplied",
+			name:         "create handler responds with Status Code 200 when valid data supplied",
 			responseCode: http.StatusOK,
 			route:        "/image/",
 			setupExpectations: func(store *db.MockStore) {
@@ -44,10 +43,8 @@ func TestImageHandler(t *testing.T) {
 			},
 		},
 		{
-			name: "should respond with Status Code 400 given no name is supplied",
-			body: func() *bytes.Buffer {
-				return bytes.NewBufferString("{\"data\":\"\"}")
-			}(),
+			name:         "create handler responds with Status Code 400 given no name is supplied",
+			body:         bytes.NewBufferString("{\"data\":\"\"}"),
 			method:       http.MethodPost,
 			responseCode: http.StatusBadRequest,
 			route:        "/image/",
@@ -55,15 +52,49 @@ func TestImageHandler(t *testing.T) {
 			},
 		},
 		{
-			name: "should respond with Status Code 500 given there is some server error",
-			body: func() *bytes.Buffer {
-				return bytes.NewBufferString("{\"data\":\"server error\"}")
-			}(),
+			name:         "create handler responds with Status Code 500 given there is some server error",
+			body:         bytes.NewBufferString("{\"data\":\"server error\"}"),
 			method:       http.MethodPost,
 			responseCode: http.StatusInternalServerError,
 			route:        "/image/",
 			setupExpectations: func(store *db.MockStore) {
 				store.EXPECT().Create(gomock.Any(), "server error").Return(db.Image{}, errors.New("oops"))
+			},
+		},
+		{
+			body:         bytes.NewBufferString(""),
+			name:         "delete handler responds with Status Code 200 given valid request",
+			method:       http.MethodDelete,
+			responseCode: http.StatusOK,
+			route:        "/image/69/",
+			setupExpectations: func(store *db.MockStore) {
+				store.EXPECT().Delete(gomock.Any(), int64(69)).Return(nil)
+			},
+		},
+		{
+			body:              bytes.NewBufferString(""),
+			name:              "delete handler responds with Status Code 400 given param id not supplied",
+			method:            http.MethodDelete,
+			responseCode:      http.StatusBadRequest,
+			route:             "/image//",
+			setupExpectations: func(store *db.MockStore) {},
+		},
+		{
+			body:              bytes.NewBufferString(""),
+			name:              "delete handler responds with Status Code 400 given param id is not a valid integer",
+			method:            http.MethodDelete,
+			responseCode:      http.StatusBadRequest,
+			route:             "/image/invalid/",
+			setupExpectations: func(store *db.MockStore) {},
+		},
+		{
+			body:         bytes.NewBufferString(""),
+			name:         "delete handler responds with Status Code 500 given there is a server error",
+			method:       http.MethodDelete,
+			responseCode: http.StatusInternalServerError,
+			route:        "/image/69/",
+			setupExpectations: func(store *db.MockStore) {
+				store.EXPECT().Delete(gomock.Any(), int64(69)).Return(errors.New("oops"))
 			},
 		},
 	}
@@ -84,17 +115,21 @@ func TestImageHandler(t *testing.T) {
 			request := httptest.NewRequest(test.method, test.route, test.body)
 			router.ServeHTTP(responseRecorder, request)
 
+			result := responseRecorder.Result()
+			defer result.Body.Close()
+
 			// Assert
-			assert.Equal(t, test.responseCode, responseRecorder.Code)
+			assert.Equal(t, test.responseCode, result.StatusCode)
 
 			response := db.Image{}
 
-			t.Log()
-			t.Log(responseRecorder.Body)
-			t.Log()
-
-			if err := json.NewDecoder(responseRecorder.Body).Decode(&response); err != nil {
-				t.Errorf("Error decoding response body: %v", err)
+			if result.Body != http.NoBody {
+				if err := json.NewDecoder(result.Body).Decode(&response); err != nil && !errors.Is(err, io.EOF) {
+					t.Errorf("Error decoding response body: %v", err)
+					t.Log()
+					t.Log(responseRecorder.Body)
+					t.Log()
+				}
 			}
 		})
 	}
