@@ -48,7 +48,6 @@ mockgen:
 verify: tidy sqlc mockgen build test
 
 deploy:
-	@ssh-session
 	@git push origin main
 	@heroku container:push web
 	@heroku container:release web
