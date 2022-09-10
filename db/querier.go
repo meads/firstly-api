@@ -12,7 +12,7 @@ type Querier interface {
 	Create(ctx context.Context, data string) (Image, error)
 	Delete(ctx context.Context, id int64) error
 	Get(ctx context.Context, id int64) (Image, error)
-	List(ctx context.Context) ([]Image, error)
+	List(ctx context.Context, arg ListParams) ([]Image, error)
 	SoftDelete(ctx context.Context, id int64) error
 }
 

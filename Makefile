@@ -46,6 +46,10 @@ sqlc:
 	@sqlc compile
 	@sqlc generate
 
+tidy:
+	go mod tidy
+
 mockgen:
 	@mockgen -package db -destination ./db/store_mock.go github.com/meads/firstly-api/db Store
 
+verify: tidy sqlc mockgen build test

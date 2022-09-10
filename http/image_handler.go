@@ -2,7 +2,6 @@ package http
 
 import (
 	"errors"
-	"log"
 	"net/http"
 	"strconv"
 
@@ -85,40 +84,41 @@ func (server *FirstlyServer) DeleteImageHandler(store db.Store) func(*gin.Contex
 
 func (server *FirstlyServer) ListImagesHandler(store db.Store) func(ctx *gin.Context) {
 	return func(ctx *gin.Context) {
-		images, err := store.List(ctx)
+		limit, offset := getLimitAndOffset(ctx)
+		i, err := strconv.ParseInt(limit, 10, 32)
 		if err != nil {
-			log.Fatalf("Error calling ListImages: %s", err)
+			ctx.AbortWithError(http.StatusBadRequest, errors.New("error parsing limit as int"))
+			return
+		}
+
+		j, err := strconv.ParseInt(offset, 10, 32)
+		if err != nil {
+			ctx.AbortWithError(http.StatusBadRequest, errors.New("error parsing offset as int"))
+			return
+		}
+
+		images, err := store.List(ctx, db.ListParams{Limit: int32(i), Offset: int32(j)})
+		if err != nil {
+			ctx.AbortWithError(http.StatusInternalServerError, err)
 			return
 		}
 
 		ctx.Header("Access-Control-Allow-Origin", "*")
 		ctx.JSON(http.StatusOK, images)
 	}
+}
 
-	// limit := ctx.Query("limit")
-	// if limit == "0" || limit == "" {
-	// 	limit = "50"
-	// }
-	// offset := ctx.Query("offset")
-	// if offset == "" {
-	// 	offset = "0"
-	// }
-	// params := db.ListImages{}
+func getLimitAndOffset(ctx *gin.Context) (string, string) {
+	limit := ctx.Query("limit")
+	if limit == "0" || limit == "" {
+		limit = "50"
+	}
+	offset := ctx.Query("offset")
+	if offset == "" {
+		offset = "0"
+	}
 
-	// limitInt, errLimitConvert := strconv.Atoi(limit)
-	// offsetInt, errOffsetConvert := strconv.Atoi(offset)
-	// if errLimitConvert == nil && errOffsetConvert == nil {
-	// 	params.Limit = int32(limitInt)
-	// 	params.Offset = int32(offsetInt)
-	// }
-
-	// configs, err := server.store.ListConfigs(ctx, params)
-	// if err != nil {
-	// 	ctx.JSON(http.StatusInternalServerError, errorResponse(err))
-	// 	return
-	// }
-
-	// ctx.JSON(http.StatusOK, configs)
+	return limit, offset
 }
 
 // type updateImageRequest struct {

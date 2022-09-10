@@ -10,7 +10,6 @@ require (
 	github.com/golang/mock v1.6.0
 	github.com/heroku/x v0.0.33
 	github.com/lib/pq v1.10.2
-	github.com/pkg/errors v0.9.1
 )
 
 require (

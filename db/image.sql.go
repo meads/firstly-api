@@ -58,11 +58,16 @@ func (q *Queries) Get(ctx context.Context, id int64) (Image, error) {
 }
 
 const list = `-- name: List :many
-SELECT id, data, created, deleted FROM image
+SELECT id, data, created, deleted FROM image LIMIT $1 OFFSET $2
 `
 
-func (q *Queries) List(ctx context.Context) ([]Image, error) {
-	rows, err := q.db.QueryContext(ctx, list)
+type ListParams struct {
+	Limit  int32 `json:"limit"`
+	Offset int32 `json:"offset"`
+}
+
+func (q *Queries) List(ctx context.Context, arg ListParams) ([]Image, error) {
+	rows, err := q.db.QueryContext(ctx, list, arg.Limit, arg.Offset)
 	if err != nil {
 		return nil, err
 	}

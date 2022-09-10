@@ -4,7 +4,7 @@ SELECT * FROM image
 WHERE id = $1 LIMIT 1;
 
 -- name: List :many
-SELECT * FROM image;
+SELECT * FROM image LIMIT $1 OFFSET $2;
 
 -- name: Create :one
 INSERT INTO image (

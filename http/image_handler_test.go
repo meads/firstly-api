@@ -24,6 +24,7 @@ func TestImageHandler(t *testing.T) {
 		name              string
 		responseCode      int
 		route             string
+		isList            bool
 		setupExpectations func(store *db.MockStore)
 	}{
 		{
@@ -97,14 +98,60 @@ func TestImageHandler(t *testing.T) {
 				store.EXPECT().Delete(gomock.Any(), int64(69)).Return(errors.New("oops"))
 			},
 		},
+		{
+			body:              bytes.NewBufferString(""),
+			name:              "list handler responds with Status Code 400 given limit param is invalid int",
+			method:            http.MethodGet,
+			responseCode:      http.StatusBadRequest,
+			route:             "/image/?limit=invalid",
+			setupExpectations: func(store *db.MockStore) {},
+		},
+		{
+			body:              bytes.NewBufferString(""),
+			name:              "list handler responds with Status Code 400 given offset param is invalid int",
+			method:            http.MethodGet,
+			responseCode:      http.StatusBadRequest,
+			route:             "/image/?offset=invalid",
+			setupExpectations: func(store *db.MockStore) {},
+		},
+		{
+			body:         bytes.NewBufferString(""),
+			name:         "list handler responds with Status Code 500 given there is a server error",
+			method:       http.MethodGet,
+			responseCode: http.StatusInternalServerError,
+			route:        "/image/",
+			setupExpectations: func(store *db.MockStore) {
+				params := db.ListParams{Limit: 50, Offset: 0}
+				store.EXPECT().List(gomock.Any(), params).Return([]db.Image{}, errors.New("oops."))
+			},
+		},
+		{
+			body:         bytes.NewBufferString(""),
+			name:         "list handler responds with Status Code 200 given a valid request",
+			method:       http.MethodGet,
+			responseCode: http.StatusOK,
+			route:        "/image/",
+			isList:       true,
+			setupExpectations: func(store *db.MockStore) {
+				params := db.ListParams{Limit: 50, Offset: 0}
+				store.EXPECT().List(gomock.Any(), params).Return([]db.Image{
+					{
+						ID:      69,
+						Data:    "foo",
+						Created: "",
+						Deleted: false,
+					},
+				}, nil)
+			},
+		},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			// Arrange
 			router := gin.Default()
 			gin.SetMode(gin.TestMode)
-
 			ctrl := gomock.NewController(t)
+
 			mockStore := db.NewMockStore(ctrl)
 			test.setupExpectations(mockStore)
 
@@ -121,14 +168,26 @@ func TestImageHandler(t *testing.T) {
 			// Assert
 			assert.Equal(t, test.responseCode, result.StatusCode)
 
-			response := db.Image{}
+			if !test.isList {
+				response := db.Image{}
 
-			if result.Body != http.NoBody {
-				if err := json.NewDecoder(result.Body).Decode(&response); err != nil && !errors.Is(err, io.EOF) {
-					t.Errorf("Error decoding response body: %v", err)
-					t.Log()
-					t.Log(responseRecorder.Body)
-					t.Log()
+				if result.Body != http.NoBody {
+					if err := json.NewDecoder(result.Body).Decode(&response); err != nil && !errors.Is(err, io.EOF) {
+						t.Errorf("Error decoding response body: %v", err)
+						t.Log()
+						t.Log(responseRecorder.Body)
+						t.Log()
+					}
+				}
+			} else {
+				response := []db.Image{}
+				if result.Body != http.NoBody {
+					if err := json.NewDecoder(result.Body).Decode(&response); err != nil && !errors.Is(err, io.EOF) {
+						t.Errorf("Error decoding response body: %v", err)
+						t.Log()
+						t.Log(responseRecorder.Body)
+						t.Log()
+					}
 				}
 			}
 		})
