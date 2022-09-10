@@ -12,19 +12,12 @@ build: clean
 test:
 	@go test -v ./...
 
-deploy:
-# Build the image and push to Container Registry.
-	@heroku container:push web
-
 login:
 	@heroku login
 	@heroku container:login
 
 login-docker:
 	@docker login --username=resetheadhat@gmail.com --password=$$(heroku auth:token) registry.heroku.com
-
-release:
-	@heroku container:release web
 
 local:
 	@docker-compose up
@@ -36,7 +29,7 @@ local-db-shell:
 	@docker exec -it firstly-api_db_1 /bin/bash
 
 local-db-psql:
-	docker exec -it firstly-api_db_1 psql postgresql://postgres:password@localhost:5432/postgres
+	@docker exec -it firstly-api_db_1 psql postgresql://postgres:password@localhost:5432/postgres
 
 scale-zero:
 	@heroku ps:scale web=0
@@ -47,9 +40,16 @@ sqlc:
 	@sqlc generate
 
 tidy:
-	go mod tidy
+	@go mod tidy
 
 mockgen:
 	@mockgen -package db -destination ./db/store_mock.go github.com/meads/firstly-api/db Store
 
 verify: tidy sqlc mockgen build test
+
+deploy:
+	@ssh-session
+	@git push origin main
+	@heroku container:push web
+	@heroku container:release web
+
