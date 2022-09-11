@@ -28,6 +28,7 @@ func NewFirstlyServer(store db.Store, router *gin.Engine) *FirstlyServer {
 	s.router.GET("/image/", s.ListImagesHandler(store))
 	s.router.POST("/image/", s.CreateImageHandler(store))
 	s.router.DELETE("/image/:id/", s.DeleteImageHandler(store))
+	s.router.PATCH("/image/", s.UpdateImageHandler(store))
 
 	return s
 }

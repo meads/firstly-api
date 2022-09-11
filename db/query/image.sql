@@ -23,3 +23,9 @@ WHERE id = $1;
 DELETE FROM image
 WHERE id = $1;
 
+-- name: Update :exec
+UPDATE image
+SET memo = $1, updated = NOW()
+WHERE id = $2
+RETURNING updated;
+

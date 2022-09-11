@@ -1,6 +1,7 @@
 package http
 
 import (
+	"database/sql"
 	"errors"
 	"net/http"
 	"strconv"
@@ -54,35 +55,19 @@ func (server *FirstlyServer) DeleteImageHandler(store db.Store) func(*gin.Contex
 	}
 }
 
-// type getImageRequest struct {
-// 	ID int64 `json:"id" binding:"required"`
-// }
-
-// func (api *FirstlyServer) getImage(ctx *gin.Context) {
-// var req getConfigRequest
-
-// idString, ok := ctx.Params.Get("id")
-// id, err := strconv.Atoi(idString)
-// if err != nil || !ok {
-// 	ctx.JSON(http.StatusBadRequest, errorResponse(errors.New("id is required")))
-// 	return
-// }
-
-// req.ID = int64(id)
-// config, err := server.store.GetConfig(ctx, req.ID)
-// if err != nil {
-// 	if err == sql.ErrNoRows {
-// 		ctx.JSON(http.StatusNotFound, nil)
-// 		return
-// 	}
-// 	ctx.JSON(http.StatusInternalServerError, errorResponse(err))
-// 	return
-// }
-// ctx.JSON(http.StatusOK, config)
-// 	return
-// }
-
 func (server *FirstlyServer) ListImagesHandler(store db.Store) func(ctx *gin.Context) {
+	getLimitAndOffset := func(ctx *gin.Context) (string, string) {
+		limit := ctx.Query("limit")
+		if limit == "0" || limit == "" {
+			limit = "50"
+		}
+		offset := ctx.Query("offset")
+		if offset == "" {
+			offset = "0"
+		}
+
+		return limit, offset
+	}
 	return func(ctx *gin.Context) {
 		limit, offset := getLimitAndOffset(ctx)
 		i, err := strconv.ParseInt(limit, 10, 32)
@@ -108,55 +93,40 @@ func (server *FirstlyServer) ListImagesHandler(store db.Store) func(ctx *gin.Con
 	}
 }
 
-func getLimitAndOffset(ctx *gin.Context) (string, string) {
-	limit := ctx.Query("limit")
-	if limit == "0" || limit == "" {
-		limit = "50"
-	}
-	offset := ctx.Query("offset")
-	if offset == "" {
-		offset = "0"
-	}
-
-	return limit, offset
+type updateImageRequest struct {
+	ID   int64  `json:"id" binding:"required"`
+	Memo string `json:"memo" binding:"required"`
 }
 
-// type updateImageRequest struct {
-// 	ID   int64  `json:"id" binding:"required"`
-// 	Name string `json:"name" binding:"required"`
-// }
+func (server *FirstlyServer) UpdateImageHandler(store db.Store) func(ctx *gin.Context) {
+	return func(ctx *gin.Context) {
+		var req updateImageRequest
+		if err := ctx.BindJSON(&req); err != nil {
+			ctx.JSON(http.StatusBadRequest, errorResponse(err))
+			return
+		}
 
-// func (server *Server) updateConfig(ctx *gin.Context) {
-// 	var req updateConfigRequest
+		image, err := store.Get(ctx, req.ID)
+		if err != nil {
+			if err == sql.ErrNoRows {
+				ctx.JSON(http.StatusNotFound, errorResponse(err))
+				return
+			}
+			ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+			return
+		}
 
-// 	// validate the request
-// 	if err := ctx.BindJSON(&req); err != nil {
-// 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
-// 		return
-// 	}
+		var updateParams db.UpdateParams
+		updateParams.ID = req.ID
+		updateParams.Memo = req.Memo
 
-// 	// query the record for update
-// 	config, err := server.store.GetConfigForUpdate(ctx, req.ID)
-// 	if err != nil {
-// 		if err == sql.ErrNoRows {
-// 			ctx.JSON(http.StatusNotFound, errorResponse(err))
-// 			return
-// 		}
-// 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
-// 		return
-// 	}
+		err = store.Update(ctx, updateParams)
+		if err != nil {
+			ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+			return
+		}
 
-// 	// overlay the request values specified
-// 	var configParams db.UpdateConfigParams
-// 	configParams.ID = req.ID
-// 	configParams.Name = req.Name
-
-// 	// issue the update with the update params struct
-// 	config, err = server.store.UpdateConfig(ctx, configParams)
-// 	if err != nil {
-// 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
-// 		return
-// 	}
-
-// 	ctx.JSON(http.StatusOK, config)
-// }
+		image.Memo = req.Memo
+		ctx.JSON(http.StatusOK, image)
+	}
+}

@@ -15,7 +15,7 @@ INSERT INTO image (
 ) VALUES (
   $1, NOW()
 )
-RETURNING id, data, created, deleted
+RETURNING id, data, memo, created, updated, deleted
 `
 
 func (q *Queries) Create(ctx context.Context, data string) (Image, error) {
@@ -24,7 +24,9 @@ func (q *Queries) Create(ctx context.Context, data string) (Image, error) {
 	err := row.Scan(
 		&i.ID,
 		&i.Data,
+		&i.Memo,
 		&i.Created,
+		&i.Updated,
 		&i.Deleted,
 	)
 	return i, err
@@ -41,7 +43,7 @@ func (q *Queries) Delete(ctx context.Context, id int64) error {
 }
 
 const get = `-- name: Get :one
-SELECT id, data, created, deleted FROM image
+SELECT id, data, memo, created, updated, deleted FROM image
 WHERE id = $1 LIMIT 1
 `
 
@@ -51,14 +53,16 @@ func (q *Queries) Get(ctx context.Context, id int64) (Image, error) {
 	err := row.Scan(
 		&i.ID,
 		&i.Data,
+		&i.Memo,
 		&i.Created,
+		&i.Updated,
 		&i.Deleted,
 	)
 	return i, err
 }
 
 const list = `-- name: List :many
-SELECT id, data, created, deleted FROM image LIMIT $1 OFFSET $2
+SELECT id, data, memo, created, updated, deleted FROM image LIMIT $1 OFFSET $2
 `
 
 type ListParams struct {
@@ -78,7 +82,9 @@ func (q *Queries) List(ctx context.Context, arg ListParams) ([]Image, error) {
 		if err := rows.Scan(
 			&i.ID,
 			&i.Data,
+			&i.Memo,
 			&i.Created,
+			&i.Updated,
 			&i.Deleted,
 		); err != nil {
 			return nil, err
@@ -102,5 +108,22 @@ WHERE id = $1
 
 func (q *Queries) SoftDelete(ctx context.Context, id int64) error {
 	_, err := q.db.ExecContext(ctx, softDelete, id)
+	return err
+}
+
+const update = `-- name: Update :exec
+UPDATE image
+SET memo = $1, updated = NOW()
+WHERE id = $2
+RETURNING updated
+`
+
+type UpdateParams struct {
+	Memo string `json:"memo"`
+	ID   int64  `json:"id"`
+}
+
+func (q *Queries) Update(ctx context.Context, arg UpdateParams) error {
+	_, err := q.db.ExecContext(ctx, update, arg.Memo, arg.ID)
 	return err
 }

@@ -14,6 +14,7 @@ type Querier interface {
 	Get(ctx context.Context, id int64) (Image, error)
 	List(ctx context.Context, arg ListParams) ([]Image, error)
 	SoftDelete(ctx context.Context, id int64) error
+	Update(ctx context.Context, arg UpdateParams) error
 }
 
 var _ Querier = (*Queries)(nil)

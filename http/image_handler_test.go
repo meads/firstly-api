@@ -2,6 +2,7 @@ package http
 
 import (
 	"bytes"
+	"database/sql"
 	"encoding/json"
 	"errors"
 	"io"
@@ -142,6 +143,66 @@ func TestImageHandler(t *testing.T) {
 						Deleted: false,
 					},
 				}, nil)
+			},
+		},
+		{
+			body:         bytes.NewBufferString("{\"id\":69, \"memo\": \"memo test\"}"),
+			method:       http.MethodPatch,
+			name:         "update handler responds with Status Code 200 when valid data supplied",
+			responseCode: http.StatusOK,
+			route:        "/image/",
+			setupExpectations: func(store *db.MockStore) {
+				params := db.UpdateParams{ID: int64(69), Memo: "memo test"}
+				store.EXPECT().Get(gomock.Any(), params.ID).Return(db.Image{
+					ID:   int64(69),
+					Memo: "",
+				}, nil)
+				store.EXPECT().Update(gomock.Any(), params).Return(nil)
+			},
+		},
+		{
+			body:              bytes.NewBufferString("{\"id\":69}"),
+			method:            http.MethodPatch,
+			name:              "update handler responds with Status Code 400 when invalid data supplied",
+			responseCode:      http.StatusBadRequest,
+			route:             "/image/",
+			setupExpectations: func(store *db.MockStore) {},
+		},
+		{
+			body:         bytes.NewBufferString("{\"id\":68, \"memo\":\"memo test\"}"),
+			method:       http.MethodPatch,
+			name:         "update handler responds with Status Code 404 when record not found",
+			responseCode: http.StatusNotFound,
+			route:        "/image/",
+			setupExpectations: func(store *db.MockStore) {
+				params := db.UpdateParams{ID: int64(68), Memo: "memo test"}
+				store.EXPECT().Get(gomock.Any(), params.ID).Return(db.Image{}, sql.ErrNoRows)
+			},
+		},
+		{
+			body:         bytes.NewBufferString("{\"id\":68, \"memo\":\"memo test\"}"),
+			method:       http.MethodPatch,
+			name:         "update handler responds with Status Code 500 when server error on get before update",
+			responseCode: http.StatusInternalServerError,
+			route:        "/image/",
+			setupExpectations: func(store *db.MockStore) {
+				params := db.UpdateParams{ID: int64(68), Memo: "memo test"}
+				store.EXPECT().Get(gomock.Any(), params.ID).Return(db.Image{}, errors.New("oops"))
+			},
+		},
+		{
+			body:         bytes.NewBufferString("{\"id\":69, \"memo\": \"memo test\"}"),
+			method:       http.MethodPatch,
+			name:         "update handler responds with Status Code 500 when server error on update",
+			responseCode: http.StatusInternalServerError,
+			route:        "/image/",
+			setupExpectations: func(store *db.MockStore) {
+				params := db.UpdateParams{ID: int64(69), Memo: "memo test"}
+				store.EXPECT().Get(gomock.Any(), params.ID).Return(db.Image{
+					ID:   int64(69),
+					Memo: "",
+				}, nil)
+				store.EXPECT().Update(gomock.Any(), params).Return(errors.New("oops"))
 			},
 		},
 	}

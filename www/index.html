@@ -37,6 +37,24 @@
     
         }
 
+        function updateImage(id, memo) {
+            fetch(window.location.origin + '/image/', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                redirect: 'follow',
+                referrerPolicy: 'no-referrer',
+                body: JSON.stringify({id, memo}),
+            })
+            .then(response => {
+                if (response.ok) {
+                    alert("Memo added for image ✅")
+                    window.location.reload()
+                }
+            })
+            .catch(alert);
+    
+        }
+
         function renderNoImages() {
             let mainInnerDiv = document.querySelector("#main-inner");
             let itemDiv = document.createElement("div");
