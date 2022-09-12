@@ -47,6 +47,11 @@ mockgen:
 
 verify: tidy sqlc mockgen build test
 
+migrate-drop-recreate:
+	@go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
+	@migrate -path db/migration -database $$(grep -iR '^DATABASE_URL*' .env | cut -d= -f2 | while read f ; do echo $${f:1}; done) drop
+	@migrate -path db/migration -database $$(grep -iR '^DATABASE_URL*' .env | cut -d= -f2 | while read f ; do echo $${f:1}; done) up
+
 deploy:
 	@git push origin main
 	@heroku container:push web
