@@ -22,7 +22,7 @@ login-docker:
 local:
 	@docker-compose up
 
-local-clean: clean
+local-build: build 
 	@docker-compose build
 
 local-db-shell:
