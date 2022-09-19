@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Images Dashboard</title>
+    <title>Images</title>
 
-    <link rel="icon" type="image/x-icon" href="/assets/favicon.ico"/>
+    <link rel="icon" type="image/x-icon" href="/assets/favicon.svg"/>
 
     <style>
         html, body { height: 100%; width: 100%;}
@@ -23,7 +23,16 @@
     </div>
     <script>
         (function(){
-            
+            function Image() {
+                this.id = 0
+                this.data = ""
+                this.memo = ""
+                this.created = ""
+                this.updated = ""
+                this.deleted = false
+                return this
+            }
+
             function deleteImage(id) {
                 fetch(window.location.origin + '/image/' + id, {
                     method: 'DELETE',
@@ -38,7 +47,6 @@
                     }
                 })
                 .catch(alert);
-        
             }
 
             function updateImage(id, memo) {
