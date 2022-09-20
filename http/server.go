@@ -19,13 +19,15 @@ func NewFirstlyServer(store db.Store, router *gin.Engine) *FirstlyServer {
 
 	s.router.Static("/assets", "./www/assets")
 
-	s.router.GET("/firstly/login/", func(c *gin.Context) {
+	s.router.GET("/firstly/", func(c *gin.Context) {
 		c.HTML(http.StatusOK, "login.html", nil)
 	})
 
 	s.router.GET("/firstly/images/", func(c *gin.Context) {
-		c.HTML(http.StatusOK, "index.html", nil)
+		c.HTML(http.StatusOK, "images.html", nil)
 	})
+
+	s.router.POST("/login/", s.LoginHandler(store))
 
 	s.router.GET("/image/", s.ListImagesHandler(store))
 	s.router.POST("/image/", s.CreateImageHandler(store))
