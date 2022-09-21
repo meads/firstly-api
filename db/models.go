@@ -6,6 +6,15 @@ package db
 
 import ()
 
+type Account struct {
+	ID       int64  `json:"id"`
+	Username string `json:"username"`
+	Drowssap string `json:"drowssap"`
+	Created  string `json:"created"`
+	Updated  string `json:"updated"`
+	Deleted  bool   `json:"deleted"`
+}
+
 type Image struct {
 	ID      int64  `json:"id"`
 	Data    string `json:"data"`

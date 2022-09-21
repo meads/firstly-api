@@ -9,7 +9,7 @@ import (
 	"context"
 )
 
-const create = `-- name: Create :one
+const createImage = `-- name: CreateImage :one
 INSERT INTO image (
   data, created
 ) VALUES (
@@ -18,8 +18,8 @@ INSERT INTO image (
 RETURNING id, data, memo, created, updated, deleted
 `
 
-func (q *Queries) Create(ctx context.Context, data string) (Image, error) {
-	row := q.db.QueryRowContext(ctx, create, data)
+func (q *Queries) CreateImage(ctx context.Context, data string) (Image, error) {
+	row := q.db.QueryRowContext(ctx, createImage, data)
 	var i Image
 	err := row.Scan(
 		&i.ID,
@@ -32,23 +32,23 @@ func (q *Queries) Create(ctx context.Context, data string) (Image, error) {
 	return i, err
 }
 
-const delete = `-- name: Delete :exec
+const deleteImage = `-- name: DeleteImage :exec
 DELETE FROM image
 WHERE id = $1
 `
 
-func (q *Queries) Delete(ctx context.Context, id int64) error {
-	_, err := q.db.ExecContext(ctx, delete, id)
+func (q *Queries) DeleteImage(ctx context.Context, id int64) error {
+	_, err := q.db.ExecContext(ctx, deleteImage, id)
 	return err
 }
 
-const get = `-- name: Get :one
+const getImage = `-- name: GetImage :one
 SELECT id, data, memo, created, updated, deleted FROM image
 WHERE id = $1 LIMIT 1
 `
 
-func (q *Queries) Get(ctx context.Context, id int64) (Image, error) {
-	row := q.db.QueryRowContext(ctx, get, id)
+func (q *Queries) GetImage(ctx context.Context, id int64) (Image, error) {
+	row := q.db.QueryRowContext(ctx, getImage, id)
 	var i Image
 	err := row.Scan(
 		&i.ID,
@@ -61,17 +61,17 @@ func (q *Queries) Get(ctx context.Context, id int64) (Image, error) {
 	return i, err
 }
 
-const list = `-- name: List :many
+const listImages = `-- name: ListImages :many
 SELECT id, data, memo, created, updated, deleted FROM image LIMIT $1 OFFSET $2
 `
 
-type ListParams struct {
+type ListImagesParams struct {
 	Limit  int32 `json:"limit"`
 	Offset int32 `json:"offset"`
 }
 
-func (q *Queries) List(ctx context.Context, arg ListParams) ([]Image, error) {
-	rows, err := q.db.QueryContext(ctx, list, arg.Limit, arg.Offset)
+func (q *Queries) ListImages(ctx context.Context, arg ListImagesParams) ([]Image, error) {
+	rows, err := q.db.QueryContext(ctx, listImages, arg.Limit, arg.Offset)
 	if err != nil {
 		return nil, err
 	}
@@ -100,30 +100,30 @@ func (q *Queries) List(ctx context.Context, arg ListParams) ([]Image, error) {
 	return items, nil
 }
 
-const softDelete = `-- name: SoftDelete :exec
+const softDeleteImage = `-- name: SoftDeleteImage :exec
 UPDATE image
 SET deleted = 1
 WHERE id = $1
 `
 
-func (q *Queries) SoftDelete(ctx context.Context, id int64) error {
-	_, err := q.db.ExecContext(ctx, softDelete, id)
+func (q *Queries) SoftDeleteImage(ctx context.Context, id int64) error {
+	_, err := q.db.ExecContext(ctx, softDeleteImage, id)
 	return err
 }
 
-const update = `-- name: Update :exec
+const updateImage = `-- name: UpdateImage :exec
 UPDATE image
 SET memo = $1, updated = NOW()
 WHERE id = $2
 RETURNING updated
 `
 
-type UpdateParams struct {
+type UpdateImageParams struct {
 	Memo string `json:"memo"`
 	ID   int64  `json:"id"`
 }
 
-func (q *Queries) Update(ctx context.Context, arg UpdateParams) error {
-	_, err := q.db.ExecContext(ctx, update, arg.Memo, arg.ID)
+func (q *Queries) UpdateImage(ctx context.Context, arg UpdateImageParams) error {
+	_, err := q.db.ExecContext(ctx, updateImage, arg.Memo, arg.ID)
 	return err
 }

@@ -35,7 +35,7 @@ func TestImageHandler(t *testing.T) {
 			responseCode: http.StatusOK,
 			route:        "/image/",
 			setupExpectations: func(store *db.MockStore) {
-				store.EXPECT().Create(gomock.Any(), "test").Return(
+				store.EXPECT().CreateImage(gomock.Any(), "test").Return(
 					db.Image{
 						ID:      1,
 						Data:    "test",
@@ -60,7 +60,7 @@ func TestImageHandler(t *testing.T) {
 			responseCode: http.StatusInternalServerError,
 			route:        "/image/",
 			setupExpectations: func(store *db.MockStore) {
-				store.EXPECT().Create(gomock.Any(), "server error").Return(db.Image{}, errors.New("oops"))
+				store.EXPECT().CreateImage(gomock.Any(), "server error").Return(db.Image{}, errors.New("oops"))
 			},
 		},
 		{
@@ -70,7 +70,7 @@ func TestImageHandler(t *testing.T) {
 			responseCode: http.StatusOK,
 			route:        "/image/69/",
 			setupExpectations: func(store *db.MockStore) {
-				store.EXPECT().Delete(gomock.Any(), int64(69)).Return(nil)
+				store.EXPECT().DeleteImage(gomock.Any(), int64(69)).Return(nil)
 			},
 		},
 		{
@@ -96,7 +96,7 @@ func TestImageHandler(t *testing.T) {
 			responseCode: http.StatusInternalServerError,
 			route:        "/image/69/",
 			setupExpectations: func(store *db.MockStore) {
-				store.EXPECT().Delete(gomock.Any(), int64(69)).Return(errors.New("oops"))
+				store.EXPECT().DeleteImage(gomock.Any(), int64(69)).Return(errors.New("oops"))
 			},
 		},
 		{
@@ -122,8 +122,8 @@ func TestImageHandler(t *testing.T) {
 			responseCode: http.StatusInternalServerError,
 			route:        "/image/",
 			setupExpectations: func(store *db.MockStore) {
-				params := db.ListParams{Limit: 50, Offset: 0}
-				store.EXPECT().List(gomock.Any(), params).Return([]db.Image{}, errors.New("oops."))
+				params := db.ListImagesParams{Limit: 50, Offset: 0}
+				store.EXPECT().ListImages(gomock.Any(), params).Return([]db.Image{}, errors.New("oops."))
 			},
 		},
 		{
@@ -134,8 +134,8 @@ func TestImageHandler(t *testing.T) {
 			route:        "/image/",
 			isList:       true,
 			setupExpectations: func(store *db.MockStore) {
-				params := db.ListParams{Limit: 50, Offset: 0}
-				store.EXPECT().List(gomock.Any(), params).Return([]db.Image{
+				params := db.ListImagesParams{Limit: 50, Offset: 0}
+				store.EXPECT().ListImages(gomock.Any(), params).Return([]db.Image{
 					{
 						ID:      69,
 						Data:    "foo",
@@ -152,12 +152,12 @@ func TestImageHandler(t *testing.T) {
 			responseCode: http.StatusOK,
 			route:        "/image/",
 			setupExpectations: func(store *db.MockStore) {
-				params := db.UpdateParams{ID: int64(69), Memo: "memo test"}
-				store.EXPECT().Get(gomock.Any(), params.ID).Return(db.Image{
+				params := db.UpdateImageParams{ID: int64(69), Memo: "memo test"}
+				store.EXPECT().GetImage(gomock.Any(), params.ID).Return(db.Image{
 					ID:   int64(69),
 					Memo: "",
 				}, nil)
-				store.EXPECT().Update(gomock.Any(), params).Return(nil)
+				store.EXPECT().UpdateImage(gomock.Any(), params).Return(nil)
 			},
 		},
 		{
@@ -175,8 +175,8 @@ func TestImageHandler(t *testing.T) {
 			responseCode: http.StatusNotFound,
 			route:        "/image/",
 			setupExpectations: func(store *db.MockStore) {
-				params := db.UpdateParams{ID: int64(68), Memo: "memo test"}
-				store.EXPECT().Get(gomock.Any(), params.ID).Return(db.Image{}, sql.ErrNoRows)
+				params := db.UpdateImageParams{ID: int64(68), Memo: "memo test"}
+				store.EXPECT().GetImage(gomock.Any(), params.ID).Return(db.Image{}, sql.ErrNoRows)
 			},
 		},
 		{
@@ -186,8 +186,8 @@ func TestImageHandler(t *testing.T) {
 			responseCode: http.StatusInternalServerError,
 			route:        "/image/",
 			setupExpectations: func(store *db.MockStore) {
-				params := db.UpdateParams{ID: int64(68), Memo: "memo test"}
-				store.EXPECT().Get(gomock.Any(), params.ID).Return(db.Image{}, errors.New("oops"))
+				params := db.UpdateImageParams{ID: int64(68), Memo: "memo test"}
+				store.EXPECT().GetImage(gomock.Any(), params.ID).Return(db.Image{}, errors.New("oops"))
 			},
 		},
 		{
@@ -197,12 +197,12 @@ func TestImageHandler(t *testing.T) {
 			responseCode: http.StatusInternalServerError,
 			route:        "/image/",
 			setupExpectations: func(store *db.MockStore) {
-				params := db.UpdateParams{ID: int64(69), Memo: "memo test"}
-				store.EXPECT().Get(gomock.Any(), params.ID).Return(db.Image{
+				params := db.UpdateImageParams{ID: int64(69), Memo: "memo test"}
+				store.EXPECT().GetImage(gomock.Any(), params.ID).Return(db.Image{
 					ID:   int64(69),
 					Memo: "",
 				}, nil)
-				store.EXPECT().Update(gomock.Any(), params).Return(errors.New("oops"))
+				store.EXPECT().UpdateImage(gomock.Any(), params).Return(errors.New("oops"))
 			},
 		},
 	}

@@ -6,3 +6,12 @@ CREATE TABLE "image" (
   "updated" VARCHAR NOT NULL,
   "deleted" BOOLEAN NOT NULL DEFAULT FALSE
 );
+
+CREATE TABLE "account" (
+  "id"       BIGSERIAL  PRIMARY KEY,
+  "username" TEXT       NOT NULL,
+  "drowssap" TEXT       NOT NULL,
+  "created"  VARCHAR NOT NULL,
+  "updated"  VARCHAR NOT NULL,
+  "deleted"  BOOLEAN NOT NULL DEFAULT FALSE
+);

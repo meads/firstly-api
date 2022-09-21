@@ -22,7 +22,7 @@ func (server *FirstlyServer) CreateImageHandler(store db.Store) func(*gin.Contex
 			return
 		}
 
-		image, err := store.Create(ctx, req.Data)
+		image, err := store.CreateImage(ctx, req.Data)
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 			return
@@ -45,7 +45,7 @@ func (server *FirstlyServer) DeleteImageHandler(store db.Store) func(*gin.Contex
 			return
 		}
 
-		err = store.Delete(ctx, id)
+		err = store.DeleteImage(ctx, id)
 		if err != nil {
 			ctx.AbortWithError(http.StatusInternalServerError, err)
 			return
@@ -82,7 +82,7 @@ func (server *FirstlyServer) ListImagesHandler(store db.Store) func(ctx *gin.Con
 			return
 		}
 
-		images, err := store.List(ctx, db.ListParams{Limit: int32(i), Offset: int32(j)})
+		images, err := store.ListImages(ctx, db.ListImagesParams{Limit: int32(i), Offset: int32(j)})
 		if err != nil {
 			ctx.AbortWithError(http.StatusInternalServerError, err)
 			return
@@ -106,7 +106,7 @@ func (server *FirstlyServer) UpdateImageHandler(store db.Store) func(ctx *gin.Co
 			return
 		}
 
-		image, err := store.Get(ctx, req.ID)
+		image, err := store.GetImage(ctx, req.ID)
 		if err != nil {
 			if err == sql.ErrNoRows {
 				ctx.JSON(http.StatusNotFound, errorResponse(err))
@@ -116,11 +116,11 @@ func (server *FirstlyServer) UpdateImageHandler(store db.Store) func(ctx *gin.Co
 			return
 		}
 
-		var updateParams db.UpdateParams
+		var updateParams db.UpdateImageParams
 		updateParams.ID = req.ID
 		updateParams.Memo = req.Memo
 
-		err = store.Update(ctx, updateParams)
+		err = store.UpdateImage(ctx, updateParams)
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 			return
