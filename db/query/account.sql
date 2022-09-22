@@ -12,9 +12,9 @@ SELECT * FROM account LIMIT $1 OFFSET $2;
 
 -- name: CreateAccount :one
 INSERT INTO account (
-  username, drowssap, created
+  username, phrase, salt, created
 ) VALUES (
-  $1, $2, NOW()
+  $1, $2, $3, NOW()
 )
 RETURNING *;
 
@@ -29,7 +29,7 @@ WHERE id = $1;
 
 -- name: UpdateAccount :exec
 UPDATE account
-SET drowssap = $1, updated = NOW()
-WHERE id = $2
+SET username = $1, phrase = $2, salt = $3, updated = NOW()
+WHERE id = $4
 RETURNING updated;
 

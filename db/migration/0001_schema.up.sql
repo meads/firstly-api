@@ -10,7 +10,8 @@ CREATE TABLE "image" (
 CREATE TABLE "account" (
   "id"       BIGSERIAL  PRIMARY KEY,
   "username" TEXT       NOT NULL,
-  "drowssap" TEXT       NOT NULL,
+  "phrase"   TEXT       NOT NULL,
+  "salt"     TEXT       NOT NULL,
   "created"  VARCHAR NOT NULL,
   "updated"  VARCHAR NOT NULL,
   "deleted"  BOOLEAN NOT NULL DEFAULT FALSE

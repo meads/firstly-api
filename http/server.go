@@ -28,7 +28,8 @@ func NewFirstlyServer(store db.Store, router *gin.Engine) *FirstlyServer {
 	})
 
 	s.router.POST("/account/", s.CreateAccountHandler(store))
-	s.router.POST("/account/login/", s.LoginAccountHandler(store))
+	s.router.POST("/login/", s.LoginAccountHandler(store))
+	s.router.DELETE("/account/:id/", s.DeleteAccountHandler(store))
 
 	s.router.GET("/image/", s.ListImagesHandler(store))
 	s.router.POST("/image/", s.CreateImageHandler(store))

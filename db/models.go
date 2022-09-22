@@ -9,7 +9,8 @@ import ()
 type Account struct {
 	ID       int64  `json:"id"`
 	Username string `json:"username"`
-	Drowssap string `json:"drowssap"`
+	Phrase   string `json:"phrase"`
+	Salt     string `json:"salt"`
 	Created  string `json:"created"`
 	Updated  string `json:"updated"`
 	Deleted  bool   `json:"deleted"`

@@ -11,25 +11,27 @@ import (
 
 const createAccount = `-- name: CreateAccount :one
 INSERT INTO account (
-  username, drowssap, created
+  username, phrase, salt, created
 ) VALUES (
-  $1, $2, NOW()
+  $1, $2, $3, NOW()
 )
-RETURNING id, username, drowssap, created, updated, deleted
+RETURNING id, username, phrase, salt, created, updated, deleted
 `
 
 type CreateAccountParams struct {
 	Username string `json:"username"`
-	Drowssap string `json:"drowssap"`
+	Phrase   string `json:"phrase"`
+	Salt     string `json:"salt"`
 }
 
 func (q *Queries) CreateAccount(ctx context.Context, arg CreateAccountParams) (Account, error) {
-	row := q.db.QueryRowContext(ctx, createAccount, arg.Username, arg.Drowssap)
+	row := q.db.QueryRowContext(ctx, createAccount, arg.Username, arg.Phrase, arg.Salt)
 	var i Account
 	err := row.Scan(
 		&i.ID,
 		&i.Username,
-		&i.Drowssap,
+		&i.Phrase,
+		&i.Salt,
 		&i.Created,
 		&i.Updated,
 		&i.Deleted,
@@ -48,7 +50,7 @@ func (q *Queries) DeleteAccount(ctx context.Context, id int64) error {
 }
 
 const getAccount = `-- name: GetAccount :one
-SELECT id, username, drowssap, created, updated, deleted FROM account
+SELECT id, username, phrase, salt, created, updated, deleted FROM account
 WHERE id = $1 LIMIT 1
 `
 
@@ -58,7 +60,8 @@ func (q *Queries) GetAccount(ctx context.Context, id int64) (Account, error) {
 	err := row.Scan(
 		&i.ID,
 		&i.Username,
-		&i.Drowssap,
+		&i.Phrase,
+		&i.Salt,
 		&i.Created,
 		&i.Updated,
 		&i.Deleted,
@@ -67,7 +70,7 @@ func (q *Queries) GetAccount(ctx context.Context, id int64) (Account, error) {
 }
 
 const getAccountByUsername = `-- name: GetAccountByUsername :one
-SELECT id, username, drowssap, created, updated, deleted FROM account
+SELECT id, username, phrase, salt, created, updated, deleted FROM account
 WHERE username = $1 LIMIT 1
 `
 
@@ -77,7 +80,8 @@ func (q *Queries) GetAccountByUsername(ctx context.Context, username string) (Ac
 	err := row.Scan(
 		&i.ID,
 		&i.Username,
-		&i.Drowssap,
+		&i.Phrase,
+		&i.Salt,
 		&i.Created,
 		&i.Updated,
 		&i.Deleted,
@@ -86,7 +90,7 @@ func (q *Queries) GetAccountByUsername(ctx context.Context, username string) (Ac
 }
 
 const listAccounts = `-- name: ListAccounts :many
-SELECT id, username, drowssap, created, updated, deleted FROM account LIMIT $1 OFFSET $2
+SELECT id, username, phrase, salt, created, updated, deleted FROM account LIMIT $1 OFFSET $2
 `
 
 type ListAccountsParams struct {
@@ -106,7 +110,8 @@ func (q *Queries) ListAccounts(ctx context.Context, arg ListAccountsParams) ([]A
 		if err := rows.Scan(
 			&i.ID,
 			&i.Username,
-			&i.Drowssap,
+			&i.Phrase,
+			&i.Salt,
 			&i.Created,
 			&i.Updated,
 			&i.Deleted,
@@ -137,17 +142,24 @@ func (q *Queries) SoftDeleteAccount(ctx context.Context, id int64) error {
 
 const updateAccount = `-- name: UpdateAccount :exec
 UPDATE account
-SET drowssap = $1, updated = NOW()
-WHERE id = $2
+SET username = $1, phrase = $2, salt = $3, updated = NOW()
+WHERE id = $4
 RETURNING updated
 `
 
 type UpdateAccountParams struct {
-	Drowssap string `json:"drowssap"`
+	Username string `json:"username"`
+	Phrase   string `json:"phrase"`
+	Salt     string `json:"salt"`
 	ID       int64  `json:"id"`
 }
 
 func (q *Queries) UpdateAccount(ctx context.Context, arg UpdateAccountParams) error {
-	_, err := q.db.ExecContext(ctx, updateAccount, arg.Drowssap, arg.ID)
+	_, err := q.db.ExecContext(ctx, updateAccount,
+		arg.Username,
+		arg.Phrase,
+		arg.Salt,
+		arg.ID,
+	)
 	return err
 }
