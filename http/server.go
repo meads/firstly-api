@@ -29,6 +29,7 @@ func NewFirstlyServer(store db.Store, hasher security.Hasher, router *gin.Engine
 	})
 
 	s.router.POST("/account/", s.CreateAccountHandler(store, hasher))
+	s.router.GET("/account/", s.ListAccountsHandler(store))
 	s.router.POST("/login/", s.LoginAccountHandler(store))
 	s.router.DELETE("/account/:id/", s.DeleteAccountHandler(store))
 

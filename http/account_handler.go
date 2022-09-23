@@ -24,17 +24,6 @@ func (server *FirstlyServer) CreateAccountHandler(store db.Store, hasher securit
 			return
 		}
 
-		// createAccountRequest
-		// --------------------
-		// Username string `json:"username" binding:"required"`
-		// Phrase   string `json:"phrase" binding:"required"`
-
-		// dbCreateAccountParams
-		// ---------------------
-		// Username string `json:"username"`
-		// Phrase   string `json:"phrase"`
-		// Salt     string `json:"salt"
-
 		var param db.CreateAccountParams
 		param.Username = req.Username
 		param.Salt = hasher.GenerateSalt()
