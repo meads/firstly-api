@@ -140,7 +140,7 @@ type updateAccountRequest struct {
 	Phrase   string `json:"phrase" binding:"required"`
 }
 
-func (server *FirstlyServer) UpdateAccountHandler(store db.Store) func(ctx *gin.Context) {
+func (server *FirstlyServer) UpdateAccountHandler(store db.Store, hasher security.Hasher) func(ctx *gin.Context) {
 	return func(ctx *gin.Context) {
 		var req updateAccountRequest
 		if err := ctx.BindJSON(&req); err != nil {
@@ -150,7 +150,7 @@ func (server *FirstlyServer) UpdateAccountHandler(store db.Store) func(ctx *gin.
 
 		account, err := store.GetAccount(ctx, req.ID)
 		if err != nil {
-			if err == sql.ErrNoRows {
+			if errors.Is(err, sql.ErrNoRows) {
 				ctx.JSON(http.StatusNotFound, errorResponse(err))
 				return
 			}
@@ -161,8 +161,14 @@ func (server *FirstlyServer) UpdateAccountHandler(store db.Store) func(ctx *gin.
 		var updateParams db.UpdateAccountParams
 		updateParams.ID = req.ID
 
-		// TODO: update phrase using hmac etc.
-		updateParams.Phrase = req.Phrase
+		newPhrase, err := hasher.GeneratePasswordHash([]byte(req.Phrase), account.Salt)
+		if err != nil {
+			ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+			return
+		}
+
+		// TODO: add more combinations to the hmac.
+		updateParams.Phrase = string(newPhrase)
 
 		err = store.UpdateAccount(ctx, updateParams)
 		if err != nil {

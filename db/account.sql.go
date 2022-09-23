@@ -142,18 +142,17 @@ func (q *Queries) SoftDeleteAccount(ctx context.Context, id int64) error {
 
 const updateAccount = `-- name: UpdateAccount :exec
 UPDATE account
-SET phrase = $1, salt = $2, updated = NOW()
-WHERE id = $3
+SET phrase = $1, updated = NOW()
+WHERE id = $2
 RETURNING updated
 `
 
 type UpdateAccountParams struct {
 	Phrase string `json:"phrase"`
-	Salt   string `json:"salt"`
 	ID     int64  `json:"id"`
 }
 
 func (q *Queries) UpdateAccount(ctx context.Context, arg UpdateAccountParams) error {
-	_, err := q.db.ExecContext(ctx, updateAccount, arg.Phrase, arg.Salt, arg.ID)
+	_, err := q.db.ExecContext(ctx, updateAccount, arg.Phrase, arg.ID)
 	return err
 }

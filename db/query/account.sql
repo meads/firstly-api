@@ -29,7 +29,7 @@ WHERE id = $1;
 
 -- name: UpdateAccount :exec
 UPDATE account
-SET phrase = $1, salt = $2, updated = NOW()
-WHERE id = $3
+SET phrase = $1, updated = NOW()
+WHERE id = $2
 RETURNING updated;
 

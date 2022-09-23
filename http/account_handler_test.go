@@ -2,7 +2,10 @@ package http
 
 import (
 	"bytes"
+	"database/sql"
+	"encoding/json"
 	"errors"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -146,67 +149,63 @@ func TestAccountHandler(t *testing.T) {
 				}, nil)
 			},
 		},
-		// {
-		// 	body:         bytes.NewBufferString("{\"id\":69,\"phrase\":\"newpass\"}"),
-		// 	method:       http.MethodPatch,
-		// 	name:         "update handler responds with Status Code 200 when valid data supplied",
-		// 	responseCode: http.StatusOK,
-		// 	route:        "/account/",
-		// 	setupExpectations: func(store *db.MockStore, hasher *security.MockHasher) {
-		// 		hasher.EXPECT().
-		// 		params := db.UpdateAccountParams{ID: int64(69)}
-		// 		store.EXPECT().GetImage(gomock.Any(), params.ID).Return(db.Image{
-		// 			ID:   int64(69),
-		// 			Memo: "",
-		// 		}, nil)
-		// 		store.EXPECT().UpdateImage(gomock.Any(), params).Return(nil)
-		// 	},
-		// },
-		// {
-		// 	body:              bytes.NewBufferString("{\"id\":69}"),
-		// 	method:            http.MethodPatch,
-		// 	name:              "update handler responds with Status Code 400 when invalid data supplied",
-		// 	responseCode:      http.StatusBadRequest,
-		// 	route:             "/image/",
-		// 	setupExpectations: func(store *db.MockStore, hasher *security.MockHasher) {},
-		// },
-		// {
-		// 	body:         bytes.NewBufferString("{\"id\":68, \"memo\":\"memo test\"}"),
-		// 	method:       http.MethodPatch,
-		// 	name:         "update handler responds with Status Code 404 when record not found",
-		// 	responseCode: http.StatusNotFound,
-		// 	route:        "/image/",
-		// 	setupExpectations: func(store *db.MockStore, hasher *security.MockHasher) {
-		// 		params := db.UpdateImageParams{ID: int64(68), Memo: "memo test"}
-		// 		store.EXPECT().GetImage(gomock.Any(), params.ID).Return(db.Image{}, sql.ErrNoRows)
-		// 	},
-		// },
-		// {
-		// 	body:         bytes.NewBufferString("{\"id\":68, \"memo\":\"memo test\"}"),
-		// 	method:       http.MethodPatch,
-		// 	name:         "update handler responds with Status Code 500 when server error on get before update",
-		// 	responseCode: http.StatusInternalServerError,
-		// 	route:        "/image/",
-		// 	setupExpectations: func(store *db.MockStore, hasher *security.MockHasher) {
-		// 		params := db.UpdateImageParams{ID: int64(68), Memo: "memo test"}
-		// 		store.EXPECT().GetImage(gomock.Any(), params.ID).Return(db.Image{}, errors.New("oops"))
-		// 	},
-		// },
-		// {
-		// 	body:         bytes.NewBufferString("{\"id\":69, \"memo\": \"memo test\"}"),
-		// 	method:       http.MethodPatch,
-		// 	name:         "update handler responds with Status Code 500 when server error on update",
-		// 	responseCode: http.StatusInternalServerError,
-		// 	route:        "/image/",
-		// 	setupExpectations: func(store *db.MockStore, hasher *security.MockHasher) {
-		// 		params := db.UpdateImageParams{ID: int64(69), Memo: "memo test"}
-		// 		store.EXPECT().GetImage(gomock.Any(), params.ID).Return(db.Image{
-		// 			ID:   int64(69),
-		// 			Memo: "",
-		// 		}, nil)
-		// 		store.EXPECT().UpdateImage(gomock.Any(), params).Return(errors.New("oops"))
-		// 	},
-		// },
+		{
+			body:         bytes.NewBufferString("{\"id\":69,\"username\":\"user\",\"phrase\":\"newpass\"}"),
+			method:       http.MethodPatch,
+			name:         "update handler responds with Status Code 200 when valid data supplied",
+			responseCode: http.StatusOK,
+			route:        "/account/",
+			setupExpectations: func(store *db.MockStore, hasher *security.MockHasher) {
+				store.EXPECT().GetAccount(gomock.Any(), int64(69)).Return(db.Account{ID: 69, Phrase: "newpass", Salt: "salt the snail"}, nil)
+				hasher.EXPECT().GenerateSalt().Times(0)
+				hasher.EXPECT().GeneratePasswordHash([]byte("newpass"), "salt the snail").Return([]byte("newhash"), nil)
+				params := db.UpdateAccountParams{ID: int64(69), Phrase: "newhash"}
+				store.EXPECT().UpdateAccount(gomock.Any(), params).Return(nil)
+			},
+		},
+		{
+			body:              bytes.NewBufferString("{\"id\":69,\"username\":\"user\",\"wrong\":\"newpass\"}"),
+			method:            http.MethodPatch,
+			name:              "update handler responds with Status Code 400 when invalid data supplied",
+			responseCode:      http.StatusBadRequest,
+			route:             "/account/",
+			setupExpectations: func(store *db.MockStore, hasher *security.MockHasher) {},
+		},
+		{
+			body:         bytes.NewBufferString("{\"id\":68,\"username\":\"user\",\"phrase\":\"newpass\"}"),
+			method:       http.MethodPatch,
+			name:         "update handler responds with Status Code 404 when record not found",
+			responseCode: http.StatusNotFound,
+			route:        "/account/",
+			setupExpectations: func(store *db.MockStore, hasher *security.MockHasher) {
+				store.EXPECT().GetAccount(gomock.Any(), int64(68)).Return(db.Account{}, sql.ErrNoRows)
+			},
+		},
+		{
+			body:         bytes.NewBufferString("{\"id\":69,\"username\":\"user\",\"phrase\":\"newpass\"}"),
+			method:       http.MethodPatch,
+			name:         "update handler responds with Status Code 500 when server error on get before update",
+			responseCode: http.StatusInternalServerError,
+			route:        "/account/",
+			setupExpectations: func(store *db.MockStore, hasher *security.MockHasher) {
+				store.EXPECT().GetAccount(gomock.Any(), int64(69)).
+					Return(db.Account{}, errors.New("oops"))
+			},
+		},
+		{
+			body:         bytes.NewBufferString("{\"id\":69,\"username\":\"user\",\"phrase\":\"newpass\"}"),
+			method:       http.MethodPatch,
+			name:         "update handler responds with Status Code 500 when server error on update",
+			responseCode: http.StatusInternalServerError,
+			route:        "/account/",
+			setupExpectations: func(store *db.MockStore, hasher *security.MockHasher) {
+				store.EXPECT().GetAccount(gomock.Any(), int64(69)).Return(db.Account{ID: 69, Phrase: "newpass", Salt: "salt the snail"}, nil)
+				hasher.EXPECT().GenerateSalt().Times(0)
+				hasher.EXPECT().GeneratePasswordHash([]byte("newpass"), "salt the snail").Return([]byte("newhash"), nil)
+				params := db.UpdateAccountParams{ID: 69, Phrase: "newhash"}
+				store.EXPECT().UpdateAccount(gomock.Any(), params).Return(errors.New("oops"))
+			},
+		},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
@@ -232,28 +231,28 @@ func TestAccountHandler(t *testing.T) {
 			// Assert
 			assert.Equal(t, test.responseCode, result.StatusCode)
 
-			// if !test.isList {
-			// 	response := db.Image{}
+			if !test.isList {
+				response := db.Account{}
 
-			// 	if result.Body != http.NoBody {
-			// 		if err := json.NewDecoder(result.Body).Decode(&response); err != nil && !errors.Is(err, io.EOF) {
-			// 			t.Errorf("Error decoding response body: %v", err)
-			// 			t.Log()
-			// 			t.Log(responseRecorder.Body)
-			// 			t.Log()
-			// 		}
-			// 	}
-			// } else {
-			// 	response := []db.Image{}
-			// 	if result.Body != http.NoBody {
-			// 		if err := json.NewDecoder(result.Body).Decode(&response); err != nil && !errors.Is(err, io.EOF) {
-			// 			t.Errorf("Error decoding response body: %v", err)
-			// 			t.Log()
-			// 			t.Log(responseRecorder.Body)
-			// 			t.Log()
-			// 		}
-			// 	}
-			// }
+				if result.Body != http.NoBody {
+					if err := json.NewDecoder(result.Body).Decode(&response); err != nil && !errors.Is(err, io.EOF) {
+						t.Errorf("Error decoding response body: %v", err)
+						t.Log()
+						t.Log(responseRecorder.Body)
+						t.Log()
+					}
+				}
+			} else {
+				response := []db.Account{}
+				if result.Body != http.NoBody {
+					if err := json.NewDecoder(result.Body).Decode(&response); err != nil && !errors.Is(err, io.EOF) {
+						t.Errorf("Error decoding response body: %v", err)
+						t.Log()
+						t.Log(responseRecorder.Body)
+						t.Log()
+					}
+				}
+			}
 		})
 	}
 }
