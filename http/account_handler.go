@@ -8,6 +8,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	db "github.com/meads/firstly-api/db"
+	"github.com/meads/firstly-api/security"
 )
 
 type createAccountRequest struct {
@@ -15,7 +16,7 @@ type createAccountRequest struct {
 	Phrase   string `json:"phrase" binding:"required"`
 }
 
-func (server *FirstlyServer) CreateAccountHandler(store db.Store) func(*gin.Context) {
+func (server *FirstlyServer) CreateAccountHandler(store db.Store, hasher security.Hasher) func(*gin.Context) {
 	return func(ctx *gin.Context) {
 		var req createAccountRequest
 		if err := ctx.BindJSON(&req); err != nil {
@@ -23,9 +24,27 @@ func (server *FirstlyServer) CreateAccountHandler(store db.Store) func(*gin.Cont
 			return
 		}
 
+		// createAccountRequest
+		// --------------------
+		// Username string `json:"username" binding:"required"`
+		// Phrase   string `json:"phrase" binding:"required"`
+
+		// dbCreateAccountParams
+		// ---------------------
+		// Username string `json:"username"`
+		// Phrase   string `json:"phrase"`
+		// Salt     string `json:"salt"
+
 		var param db.CreateAccountParams
 		param.Username = req.Username
-		param.Phrase = req.Phrase
+		param.Salt = hasher.GenerateSalt()
+
+		phrase, err := hasher.GeneratePasswordHash([]byte(req.Phrase), param.Salt)
+		if err != nil {
+			ctx.JSON(http.StatusInternalServerError, errorResponse(errors.New("account creation failed")))
+			return
+		}
+		param.Phrase = string(phrase)
 
 		account, err := store.CreateAccount(ctx, param)
 		if err != nil {

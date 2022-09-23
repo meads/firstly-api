@@ -15,6 +15,7 @@ import (
 	"github.com/go-playground/assert/v2"
 	"github.com/golang/mock/gomock"
 	"github.com/meads/firstly-api/db"
+	"github.com/meads/firstly-api/security"
 )
 
 func TestImageHandler(t *testing.T) {
@@ -214,9 +215,10 @@ func TestImageHandler(t *testing.T) {
 			ctrl := gomock.NewController(t)
 
 			mockStore := db.NewMockStore(ctrl)
+			mockHasher := security.NewMockHasher(ctrl)
 			test.setupExpectations(mockStore)
 
-			NewFirstlyServer(mockStore, router)
+			NewFirstlyServer(mockStore, mockHasher, router)
 			responseRecorder := httptest.NewRecorder()
 
 			// Act

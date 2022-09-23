@@ -10,9 +10,21 @@ import (
 	"os"
 )
 
-// Generate a salt string with 16 bytes of crypto/rand data.
-func generateSalt() string {
-	randomBytes := make([]byte, 16)
+type Hasher interface {
+	GenerateSalt() string
+	IsValidPasswordHash(message, messageMAC, key []byte) bool
+	GeneratePasswordHash(message []byte, salt string) ([]byte, error)
+}
+
+type HashLib struct{}
+
+func NewHasher() Hasher {
+	return &HashLib{}
+}
+
+// Generate a salt string with 4096 bytes of crypto/rand data.
+func (*HashLib) GenerateSalt() string {
+	randomBytes := make([]byte, 4096)
 	_, err := rand.Read(randomBytes)
 	if err != nil {
 		return ""
@@ -21,14 +33,14 @@ func generateSalt() string {
 }
 
 // ValidMAC reports whether messageMAC is a valid HMAC tag for message.
-func IsValidPasswordHash(message, messageMAC, key []byte) bool {
+func (*HashLib) IsValidPasswordHash(message, messageMAC, key []byte) bool {
 	mac := hmac.New(sha256.New, key)
 	mac.Write(message)
 	expectedMAC := mac.Sum(nil)
 	return hmac.Equal(messageMAC, expectedMAC)
 }
 
-func GeneratePasswordHash(message []byte, salt string) ([]byte, error) {
+func (*HashLib) GeneratePasswordHash(message []byte, salt string) ([]byte, error) {
 	if len(message) > 0 {
 		secret := os.Getenv("SECRET")
 		if len(secret) > 0 {

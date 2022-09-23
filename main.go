@@ -18,6 +18,7 @@ import (
 
 	db "github.com/meads/firstly-api/db"
 	http_api "github.com/meads/firstly-api/http"
+	"github.com/meads/firstly-api/security"
 )
 
 func main() {
@@ -42,10 +43,10 @@ func main() {
 	fmt.Print("\nmigrations were a success. 🎉\n")
 
 	store := db.NewStore(conn)
-
+	hasher := security.NewHasher()
 	router := gin.Default()
 
-	server := http_api.NewFirstlyServer(store, router)
+	server := http_api.NewFirstlyServer(store, hasher, router)
 	server.LoadHTMLTemplates()
 
 	err = server.Start(":" + os.Getenv("PORT"))

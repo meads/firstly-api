@@ -45,7 +45,8 @@ func TestGeneratePasswordHash(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			test.secret()
-			actualHash, err := GeneratePasswordHash(test.message, test.salt)
+			sut := NewHasher()
+			actualHash, err := sut.GeneratePasswordHash(test.message, test.salt)
 			if !reflect.DeepEqual(test.expectedHash, actualHash) {
 				t.Fatalf("expected hash: '%+v', doesn't match actual: '%+v'", test.expectedHash, actualHash)
 			}

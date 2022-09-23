@@ -44,6 +44,7 @@ tidy:
 
 mockgen:
 	@mockgen -package db -destination ./db/store_mock.go github.com/meads/firstly-api/db Store
+	@mockgen -package security -destination ./security/hmac_mock.go github.com/meads/firstly-api/security Hasher
 
 verify: tidy sqlc mockgen build test
 

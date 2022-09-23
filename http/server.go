@@ -5,6 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	db "github.com/meads/firstly-api/db"
+	"github.com/meads/firstly-api/security"
 )
 
 type FirstlyServer struct {
@@ -12,7 +13,7 @@ type FirstlyServer struct {
 }
 
 // NewFirstlyAPI creates a new Http Server and sets up routing.
-func NewFirstlyServer(store db.Store, router *gin.Engine) *FirstlyServer {
+func NewFirstlyServer(store db.Store, hasher security.Hasher, router *gin.Engine) *FirstlyServer {
 	s := &FirstlyServer{
 		router: router,
 	}
@@ -27,7 +28,7 @@ func NewFirstlyServer(store db.Store, router *gin.Engine) *FirstlyServer {
 		c.HTML(http.StatusOK, "images.html", nil)
 	})
 
-	s.router.POST("/account/", s.CreateAccountHandler(store))
+	s.router.POST("/account/", s.CreateAccountHandler(store, hasher))
 	s.router.POST("/login/", s.LoginAccountHandler(store))
 	s.router.DELETE("/account/:id/", s.DeleteAccountHandler(store))
 
