@@ -28,6 +28,10 @@ func NewFirstlyServer(store db.Store, hasher security.Hasher, router *gin.Engine
 		c.HTML(http.StatusOK, "images.html", nil)
 	})
 
+	s.router.GET("/firstly/sign-up/", func(c *gin.Context) {
+		c.HTML(http.StatusOK, "sign-up.html", nil)
+	})
+
 	s.router.POST("/account/", s.CreateAccountHandler(store, hasher))
 	s.router.GET("/account/", s.ListAccountsHandler(store))
 	s.router.PATCH("/account/", s.UpdateAccountHandler(store, hasher))

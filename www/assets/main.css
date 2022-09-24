@@ -1,0 +1,4 @@
+html, body { height: 100%; width: 100%; margin:0; }
+.box {height: 100%;box-shadow: 2px 2px 5px rgba(0,0,0,0.03);border-radius: 4px;color: #666;font-family: "Lucida Console", Monaco, monospace;border-bottom: 1px solid #F9F2D6;border-right: 1px solid #F9F2D6;}         
+.box.flex {display: flex;justify-content: center;align-items: center;align-self: center;}
+form {width: 300px;}
