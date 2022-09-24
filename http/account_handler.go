@@ -33,7 +33,7 @@ func (server *FirstlyServer) CreateAccountHandler(store db.Store, hasher securit
 			ctx.JSON(http.StatusInternalServerError, errorResponse(errors.New("account creation failed")))
 			return
 		}
-		param.Phrase = string(phrase)
+		param.Phrase = phrase
 
 		account, err := store.CreateAccount(ctx, param)
 		if err != nil {
@@ -52,7 +52,7 @@ type loginAccountRequest struct {
 	Password string `json:"password" binding:"required"`
 }
 
-func (server *FirstlyServer) LoginAccountHandler(store db.Store) func(*gin.Context) {
+func (server *FirstlyServer) LoginAccountHandler(store db.Store, hasher security.Hasher) func(*gin.Context) {
 	return func(ctx *gin.Context) {
 		var req loginAccountRequest
 		if err := ctx.BindJSON(&req); err != nil {
@@ -60,8 +60,19 @@ func (server *FirstlyServer) LoginAccountHandler(store db.Store) func(*gin.Conte
 			return
 		}
 
+		account, err := store.GetAccountByUsername(ctx, req.Username)
+		if err != nil {
+			if errors.Is(err, sql.ErrNoRows) {
+				ctx.JSON(http.StatusNotFound, errorResponse(err))
+				return
+			}
+			ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+			return
+		}
+
+		// TODO: Complete IsValidPasswordHash testing and use function here to check authorization etc.
 		// query the account based on hmac etc.
-		// return token
+		// return a token
 
 		// image, err := store.Login(ctx, req.Data)
 		// if err != nil {
@@ -69,7 +80,7 @@ func (server *FirstlyServer) LoginAccountHandler(store db.Store) func(*gin.Conte
 		// 	return
 		// }
 
-		ctx.JSON(http.StatusOK, req)
+		ctx.JSON(http.StatusOK, struct{ username string }{username: account.Username})
 	}
 }
 
@@ -142,18 +153,28 @@ type updateAccountRequest struct {
 
 func (server *FirstlyServer) UpdateAccountHandler(store db.Store, hasher security.Hasher) func(ctx *gin.Context) {
 	return func(ctx *gin.Context) {
+
+		// validate the update request
 		var req updateAccountRequest
 		if err := ctx.BindJSON(&req); err != nil {
 			ctx.JSON(http.StatusBadRequest, errorResponse(err))
 			return
 		}
 
+		// verify the account exists
+		accountExists, err := store.AccountExists(ctx, req.ID)
+		if err != nil {
+			ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+			return
+		}
+		if !accountExists {
+			ctx.JSON(http.StatusNotFound, errorResponse(errors.New("error updating account")))
+			return
+		}
+
+		// get the account for the request id
 		account, err := store.GetAccount(ctx, req.ID)
 		if err != nil {
-			if errors.Is(err, sql.ErrNoRows) {
-				ctx.JSON(http.StatusNotFound, errorResponse(err))
-				return
-			}
 			ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 			return
 		}
@@ -168,7 +189,7 @@ func (server *FirstlyServer) UpdateAccountHandler(store db.Store, hasher securit
 		}
 
 		// TODO: add more combinations to the hmac.
-		updateParams.Phrase = string(newPhrase)
+		updateParams.Phrase = newPhrase
 
 		err = store.UpdateAccount(ctx, updateParams)
 		if err != nil {
@@ -176,7 +197,8 @@ func (server *FirstlyServer) UpdateAccountHandler(store db.Store, hasher securit
 			return
 		}
 
-		account.Phrase = req.Phrase
+		account.Phrase = []byte(req.Phrase)
+
 		ctx.JSON(http.StatusOK, struct{ username string }{username: account.Username})
 	}
 }

@@ -9,6 +9,17 @@ import (
 	"context"
 )
 
+const accountExists = `-- name: AccountExists :one
+SELECT EXISTS(SELECT 1 FROM account WHERE id = $1)
+`
+
+func (q *Queries) AccountExists(ctx context.Context, id int64) (bool, error) {
+	row := q.db.QueryRowContext(ctx, accountExists, id)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
+}
+
 const createAccount = `-- name: CreateAccount :one
 INSERT INTO account (
   username, phrase, salt, created
@@ -20,7 +31,7 @@ RETURNING id, username, phrase, salt, created, updated, deleted
 
 type CreateAccountParams struct {
 	Username string `json:"username"`
-	Phrase   string `json:"phrase"`
+	Phrase   []byte `json:"phrase"`
 	Salt     string `json:"salt"`
 }
 
@@ -148,7 +159,7 @@ RETURNING updated
 `
 
 type UpdateAccountParams struct {
-	Phrase string `json:"phrase"`
+	Phrase []byte `json:"phrase"`
 	ID     int64  `json:"id"`
 }
 

@@ -34,6 +34,21 @@ func (m *MockStore) EXPECT() *MockStoreMockRecorder {
 	return m.recorder
 }
 
+// AccountExists mocks base method.
+func (m *MockStore) AccountExists(arg0 context.Context, arg1 int64) (bool, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "AccountExists", arg0, arg1)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// AccountExists indicates an expected call of AccountExists.
+func (mr *MockStoreMockRecorder) AccountExists(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AccountExists", reflect.TypeOf((*MockStore)(nil).AccountExists), arg0, arg1)
+}
+
 // CreateAccount mocks base method.
 func (m *MockStore) CreateAccount(arg0 context.Context, arg1 CreateAccountParams) (Account, error) {
 	m.ctrl.T.Helper()

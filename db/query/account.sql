@@ -1,3 +1,5 @@
+-- name: AccountExists :one
+SELECT EXISTS(SELECT 1 FROM account WHERE id = $1);
 
 -- name: GetAccount :one
 SELECT * FROM account

@@ -9,6 +9,7 @@ import (
 )
 
 type Querier interface {
+	AccountExists(ctx context.Context, id int64) (bool, error)
 	CreateAccount(ctx context.Context, arg CreateAccountParams) (Account, error)
 	CreateImage(ctx context.Context, data string) (Image, error)
 	DeleteAccount(ctx context.Context, id int64) error
