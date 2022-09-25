@@ -179,16 +179,17 @@ func (server *FirstlyServer) UpdateAccountHandler(store db.Store, hasher securit
 			return
 		}
 
-		var updateParams db.UpdateAccountParams
-		updateParams.ID = req.ID
-
+		// update the phrase for the account using the current salt for the account
 		newPhrase, err := hasher.GeneratePasswordHash([]byte(req.Phrase), account.Salt)
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 			return
 		}
 
+		// initialize the parameters for the update using the known account id and new phrase
 		// TODO: add more combinations to the hmac.
+		var updateParams db.UpdateAccountParams
+		updateParams.ID = account.ID
 		updateParams.Phrase = newPhrase
 
 		err = store.UpdateAccount(ctx, updateParams)
