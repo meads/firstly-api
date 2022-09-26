@@ -62,16 +62,17 @@ func (mr *MockHasherMockRecorder) GenerateSalt() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GenerateSalt", reflect.TypeOf((*MockHasher)(nil).GenerateSalt))
 }
 
-// IsValidPasswordHash mocks base method.
-func (m *MockHasher) IsValidPasswordHash(arg0, arg1, arg2 []byte) bool {
+// IsValidPassword mocks base method.
+func (m *MockHasher) IsValidPassword(arg0 []byte, arg1, arg2 string) (bool, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "IsValidPasswordHash", arg0, arg1, arg2)
+	ret := m.ctrl.Call(m, "IsValidPassword", arg0, arg1, arg2)
 	ret0, _ := ret[0].(bool)
-	return ret0
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
-// IsValidPasswordHash indicates an expected call of IsValidPasswordHash.
-func (mr *MockHasherMockRecorder) IsValidPasswordHash(arg0, arg1, arg2 interface{}) *gomock.Call {
+// IsValidPassword indicates an expected call of IsValidPassword.
+func (mr *MockHasherMockRecorder) IsValidPassword(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsValidPasswordHash", reflect.TypeOf((*MockHasher)(nil).IsValidPasswordHash), arg0, arg1, arg2)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsValidPassword", reflect.TypeOf((*MockHasher)(nil).IsValidPassword), arg0, arg1, arg2)
 }

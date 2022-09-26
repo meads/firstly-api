@@ -69,7 +69,7 @@ func (server *FirstlyServer) LoginAccountHandler(store db.Store, hasher security
 			ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 			return
 		}
-
+		// phrase, salt, password (req)
 		// TODO: Complete IsValidPasswordHash testing and use function here to check authorization etc.
 		// query the account based on hmac etc.
 		// return a token

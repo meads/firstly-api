@@ -3,7 +3,6 @@ package security
 import (
 	"crypto/hmac"
 	"crypto/rand"
-	"crypto/sha256"
 	"crypto/sha512"
 	"encoding/base64"
 	"errors"
@@ -12,8 +11,8 @@ import (
 
 type Hasher interface {
 	GenerateSalt() string
-	IsValidPasswordHash(message, messageMAC, key []byte) bool
-	GeneratePasswordHash(message []byte, salt string) ([]byte, error)
+	IsValidPassword(phrase []byte, salt, password string) (bool, error)
+	GeneratePasswordHash(phrase []byte, salt string) ([]byte, error)
 }
 
 type HashLib struct{}
@@ -33,22 +32,25 @@ func (*HashLib) GenerateSalt() string {
 }
 
 // ValidMAC reports whether messageMAC is a valid HMAC tag for message.
-func (*HashLib) IsValidPasswordHash(message, messageMAC, key []byte) bool {
-	mac := hmac.New(sha256.New, key)
-	mac.Write(message)
-	expectedMAC := mac.Sum(nil)
-	return hmac.Equal(messageMAC, expectedMAC)
+func (*HashLib) IsValidPassword(phrase []byte, salt, password string) (bool, error) {
+	secret := os.Getenv("SECRET")
+	if len(secret) == 0 {
+		return false, errors.New("SECRET env variable not set")
+	}
+	mac := hmac.New(sha512.New, []byte(secret))
+	mac.Write(append([]byte(password), salt...))
+	return hmac.Equal(mac.Sum(nil), phrase), nil
 }
 
-func (*HashLib) GeneratePasswordHash(message []byte, salt string) ([]byte, error) {
-	if len(message) > 0 {
+func (*HashLib) GeneratePasswordHash(phrase []byte, salt string) ([]byte, error) {
+	if len(phrase) > 0 {
 		secret := os.Getenv("SECRET")
 		if len(secret) > 0 {
 			mac := hmac.New(sha512.New, []byte(secret))
-			mac.Write(append(message, salt...))
+			mac.Write(append(phrase, salt...))
 			return mac.Sum(nil), nil
 		}
 		return nil, errors.New("SECRET env variable not set")
 	}
-	return nil, errors.New("message is required")
+	return nil, errors.New("phrase is required")
 }
