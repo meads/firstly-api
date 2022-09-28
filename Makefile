@@ -53,6 +53,11 @@ migrate-drop-recreate:
 	@migrate -path db/migration -database $$(grep -iR '^DATABASE_URL*' .env | cut -d= -f2 | while read f ; do echo $${f:1}; done) drop
 	@migrate -path db/migration -database $$(grep -iR '^DATABASE_URL*' .env | cut -d= -f2 | while read f ; do echo $${f:1}; done) up
 
+migrate-drop-recreate-local:
+	@go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
+	@migrate -path db/migration -database  postgres://postgres:password@localhost:5432/firstly?sslmode=disable drop
+	@migrate -path db/migration -database  postgres://postgres:password@localhost:5432/firstly?sslmode=disable up
+
 deploy:
 	@git push origin main
 	@heroku container:push web

@@ -26,7 +26,7 @@ INSERT INTO account (
 ) VALUES (
   $1, $2, $3, NOW()
 )
-RETURNING id, username, phrase, salt, created, updated, deleted
+RETURNING id, username, phrase, salt, locked, created, updated, deleted
 `
 
 type CreateAccountParams struct {
@@ -43,6 +43,7 @@ func (q *Queries) CreateAccount(ctx context.Context, arg CreateAccountParams) (A
 		&i.Username,
 		&i.Phrase,
 		&i.Salt,
+		&i.Locked,
 		&i.Created,
 		&i.Updated,
 		&i.Deleted,
@@ -61,7 +62,7 @@ func (q *Queries) DeleteAccount(ctx context.Context, id int64) error {
 }
 
 const getAccount = `-- name: GetAccount :one
-SELECT id, username, phrase, salt, created, updated, deleted FROM account
+SELECT id, username, phrase, salt, locked, created, updated, deleted FROM account
 WHERE id = $1 LIMIT 1
 `
 
@@ -73,6 +74,7 @@ func (q *Queries) GetAccount(ctx context.Context, id int64) (Account, error) {
 		&i.Username,
 		&i.Phrase,
 		&i.Salt,
+		&i.Locked,
 		&i.Created,
 		&i.Updated,
 		&i.Deleted,
@@ -81,7 +83,7 @@ func (q *Queries) GetAccount(ctx context.Context, id int64) (Account, error) {
 }
 
 const getAccountByUsername = `-- name: GetAccountByUsername :one
-SELECT id, username, phrase, salt, created, updated, deleted FROM account
+SELECT id, username, phrase, salt, locked, created, updated, deleted FROM account
 WHERE username = $1 LIMIT 1
 `
 
@@ -93,6 +95,7 @@ func (q *Queries) GetAccountByUsername(ctx context.Context, username string) (Ac
 		&i.Username,
 		&i.Phrase,
 		&i.Salt,
+		&i.Locked,
 		&i.Created,
 		&i.Updated,
 		&i.Deleted,
@@ -101,7 +104,7 @@ func (q *Queries) GetAccountByUsername(ctx context.Context, username string) (Ac
 }
 
 const listAccounts = `-- name: ListAccounts :many
-SELECT id, username, phrase, salt, created, updated, deleted FROM account LIMIT $1 OFFSET $2
+SELECT id, username, phrase, salt, locked, created, updated, deleted FROM account LIMIT $1 OFFSET $2
 `
 
 type ListAccountsParams struct {
@@ -123,6 +126,7 @@ func (q *Queries) ListAccounts(ctx context.Context, arg ListAccountsParams) ([]A
 			&i.Username,
 			&i.Phrase,
 			&i.Salt,
+			&i.Locked,
 			&i.Created,
 			&i.Updated,
 			&i.Deleted,

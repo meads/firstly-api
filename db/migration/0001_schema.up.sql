@@ -12,7 +12,18 @@ CREATE TABLE "account" (
   "username" TEXT       NOT NULL,
   "phrase"   BYTEA      NOT NULL,
   "salt"     TEXT       NOT NULL,
+  "locked"   BOOLEAN NOT NULL DEFAULT FALSE,
   "created"  VARCHAR NOT NULL,
   "updated"  VARCHAR NOT NULL DEFAULT '',
   "deleted"  BOOLEAN NOT NULL DEFAULT FALSE
 );
+
+-- CREATE TABLE "login" (
+--   "id"        BIGSERIAL PRIMARY KEY,
+--   "ipaddress" TEXT NOT NULL DEFAULT '',
+--   "headers"   TEXT NOT NULL DEFAULT '',
+--   "token"     VARCHAR NOT NULL,
+--   "valid"     BOOLEAN NOT NULL DEFAULT TRUE  
+--   "created"   VARCHAR NOT NULL DEFAULT NOW()
+-- );
+

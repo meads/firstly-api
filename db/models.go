@@ -11,6 +11,7 @@ type Account struct {
 	Username string `json:"username"`
 	Phrase   []byte `json:"phrase"`
 	Salt     string `json:"salt"`
+	Locked   bool   `json:"locked"`
 	Created  string `json:"created"`
 	Updated  string `json:"updated"`
 	Deleted  bool   `json:"deleted"`

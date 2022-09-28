@@ -52,6 +52,11 @@ type loginAccountRequest struct {
 	Password string `json:"password" binding:"required"`
 }
 
+// type Claims struct {
+// 	Username string `json:"username"`
+// 	jwt.StandardClaims
+// }
+
 func (server *FirstlyServer) LoginAccountHandler(store db.Store, hasher security.Hasher) func(*gin.Context) {
 	return func(ctx *gin.Context) {
 		var req loginAccountRequest
