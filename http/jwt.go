@@ -42,7 +42,8 @@ func (server *FirstlyServer) SigninHandler(store db.Store) func(*gin.Context) {
 		}
 
 		// Get the expected password from our in memory map
-		expectedPassword, ok := users[creds.Username]
+		expectedPassword, ok := users[creds.Password]
+		// TODO: check if creds.Username was correct code; doesn't make sense
 
 		// If a password exists for the given user
 		// AND, if it is the same as the password we received, the we can move ahead
@@ -55,6 +56,7 @@ func (server *FirstlyServer) SigninHandler(store db.Store) func(*gin.Context) {
 		// Declare the expiration time of the token
 		// here, we have kept it as 5 minutes
 		expirationTime := time.Now().Add(5 * time.Minute)
+
 		// Create the JWT claims, which includes the username and expiry time
 		claims := &Claims{
 			Username: creds.Username,
@@ -66,6 +68,7 @@ func (server *FirstlyServer) SigninHandler(store db.Store) func(*gin.Context) {
 
 		// Declare the token with the algorithm used for signing, and the claims
 		token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+
 		// Create the JWT string
 		tokenString, err := token.SignedString(jwtKey)
 		if err != nil {
