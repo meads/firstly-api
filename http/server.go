@@ -18,7 +18,7 @@ func NewFirstlyServer(store db.Store, hasher security.Hasher, router *gin.Engine
 		router: router,
 	}
 
-	s.router.Static("/assets", "./www/assets")
+	s.router.Static("/firstly/assets/", "./www/assets")
 
 	s.router.GET("/firstly/", func(c *gin.Context) {
 		c.HTML(http.StatusOK, "login.html", nil)

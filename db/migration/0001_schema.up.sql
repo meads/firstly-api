@@ -12,7 +12,6 @@ CREATE TABLE "account" (
   "username" TEXT       NOT NULL,
   "phrase"   BYTEA      NOT NULL,
   "salt"     TEXT       NOT NULL,
-  "locked"   BOOLEAN NOT NULL DEFAULT FALSE,
   "created"  VARCHAR NOT NULL,
   "updated"  VARCHAR NOT NULL DEFAULT '',
   "deleted"  BOOLEAN NOT NULL DEFAULT FALSE
