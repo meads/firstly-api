@@ -32,6 +32,11 @@ func NewFirstlyServer(store db.Store, hasher security.Hasher, router *gin.Engine
 		c.HTML(http.StatusOK, "sign-up.html", nil)
 	})
 
+	// "Signin" and "Welcome" are the handlers that we will implement
+	s.router.POST("/signin/", s.SigninHandler(store))
+	s.router.GET("/welcome/", s.WelcomeHandler(store))
+	s.router.POST("/refresh/", s.RefreshHandler(store))
+
 	s.router.POST("/account/", s.CreateAccountHandler(store, hasher))
 	s.router.GET("/account/", s.ListAccountsHandler(store))
 	s.router.PATCH("/account/", s.UpdateAccountHandler(store, hasher))
