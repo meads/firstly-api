@@ -21,7 +21,7 @@ var users = map[string]string{
 
 // Create a struct that models the structure of a user, both in the request body, and in the DB
 type Credentials struct {
-	Password string `json:"password"`
+	Phrase   string `json:"phrase"`
 	Username string `json:"username"`
 }
 
@@ -42,13 +42,13 @@ func (server *FirstlyServer) SigninHandler(store db.Store) func(*gin.Context) {
 		}
 
 		// Get the expected password from our in memory map
-		expectedPassword, ok := users[creds.Password]
+		expectedPassword, ok := users[creds.Phrase]
 		// TODO: check if creds.Username was correct code; doesn't make sense
 
 		// If a password exists for the given user
 		// AND, if it is the same as the password we received, the we can move ahead
 		// if NOT, then we return an "Unauthorized" status
-		if !ok || expectedPassword != creds.Password {
+		if !ok || expectedPassword != creds.Phrase {
 			ctx.Writer.WriteHeader(http.StatusUnauthorized)
 			return
 		}
