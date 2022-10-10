@@ -10,14 +10,10 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	db "github.com/meads/firstly-api/db"
+	"github.com/meads/firstly-api/security"
 )
 
 var jwtKey = []byte(os.Getenv("SECRET"))
-
-var users = map[string]string{
-	"user1": "password1",
-	"user2": "password2",
-}
 
 // Create a struct that models the structure of a user, both in the request body, and in the DB
 type Credentials struct {
@@ -30,25 +26,32 @@ type Claims struct {
 	jwt.StandardClaims
 }
 
-func (server *FirstlyServer) SigninHandler(store db.Store) func(*gin.Context) {
+func (server *FirstlyServer) SigninHandler(store db.Store, hasher security.Hasher) func(*gin.Context) {
 	return func(ctx *gin.Context) {
 		var creds Credentials
-		// Get the JSON body and decode into credentials
+
 		err := json.NewDecoder(ctx.Request.Body).Decode(&creds)
 		if err != nil {
-			// If the structure of the body is wrong, return an HTTP error
 			ctx.Writer.WriteHeader(http.StatusBadRequest)
 			return
 		}
 
-		// Get the expected password from our in memory map
-		expectedPassword, ok := users[creds.Phrase]
-		// TODO: check if creds.Username was correct code; doesn't make sense
+		account, err := store.GetAccountByUsername(ctx, creds.Username)
+		if err != nil {
+			ctx.Writer.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		valid, err := hasher.IsValidPassword([]byte(account.Phrase), account.Salt, creds.Phrase)
+		if err != nil {
+			ctx.Writer.WriteHeader(http.StatusInternalServerError)
+			return
+		}
 
 		// If a password exists for the given user
 		// AND, if it is the same as the password we received, the we can move ahead
 		// if NOT, then we return an "Unauthorized" status
-		if !ok || expectedPassword != creds.Phrase {
+		if !valid {
 			ctx.Writer.WriteHeader(http.StatusUnauthorized)
 			return
 		}

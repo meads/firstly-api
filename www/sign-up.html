@@ -65,7 +65,7 @@ background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/s
                 .catch(error => notify.error("Account creation failed, " + error.message +". ❌"))
                 .then(response => {
                     notify.success("Account creation successful! 🎉")
-                    window.location.href = window.location.origin + '/firstly/images/'
+                    window.location.href = window.location.origin + '/firstly/'
                 })
             }, true);
         }())

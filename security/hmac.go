@@ -31,7 +31,7 @@ func (*HashLib) GenerateSalt() string {
 	return base64.URLEncoding.EncodeToString(randomBytes)
 }
 
-// ValidMAC reports whether messageMAC is a valid HMAC tag for message.
+// IsValidPassword reports whether password generates a valid HMAC matching the stored phrase.
 func (*HashLib) IsValidPassword(phrase []byte, salt, password string) (bool, error) {
 	secret := os.Getenv("SECRET")
 	if len(secret) == 0 {
