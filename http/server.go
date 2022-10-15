@@ -1,8 +1,6 @@
 package http
 
 import (
-	"net/http"
-
 	"github.com/gin-gonic/gin"
 	db "github.com/meads/firstly-api/db"
 	"github.com/meads/firstly-api/security"
@@ -17,20 +15,6 @@ func NewFirstlyServer(store db.Store, hasher security.Hasher, router *gin.Engine
 	s := &FirstlyServer{
 		router: router,
 	}
-
-	s.router.Static("/firstly/assets/", "./www/assets")
-
-	s.router.GET("/firstly/", func(c *gin.Context) {
-		c.HTML(http.StatusOK, "login.html", nil)
-	})
-
-	s.router.GET("/firstly/images/", func(c *gin.Context) {
-		c.HTML(http.StatusOK, "images.html", nil)
-	})
-
-	s.router.GET("/firstly/sign-up/", func(c *gin.Context) {
-		c.HTML(http.StatusOK, "sign-up.html", nil)
-	})
 
 	// "Signin" and "Welcome" are the handlers that we will implement
 	s.router.POST("/signin/", s.SigninHandler(store, hasher))
