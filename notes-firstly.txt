@@ -1,10 +1,4 @@
 
-troubleshoot the integration of the applictaion with the api having new db connected.
-
-api has a dashboard to view image data
-
-
-
 Firstly API
 
   - add ability to choose an action on each image in the list:

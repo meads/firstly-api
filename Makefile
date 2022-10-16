@@ -10,7 +10,8 @@ build: clean
 	$(GO_BUILD_ENV) go build -v -o $(DOCKER_CMD) .
 
 test:
-	@go test -v ./...
+	@go test -v -coverprofile cover.out ./...
+	@go tool cover -html=cover.out
 
 login:
 	@heroku login

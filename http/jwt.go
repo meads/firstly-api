@@ -1,7 +1,6 @@
 package http
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
@@ -16,9 +15,9 @@ import (
 var jwtKey = []byte(os.Getenv("SECRET"))
 
 // Create a struct that models the structure of a user, both in the request body, and in the DB
-type Credentials struct {
-	Phrase   string `json:"phrase"`
-	Username string `json:"username"`
+type signInRequest struct {
+	Phrase   string `json:"phrase" binding:"required"`
+	Username string `json:"username" binding:"required"`
 }
 
 type Claims struct {
@@ -28,23 +27,22 @@ type Claims struct {
 
 func (server *FirstlyServer) SigninHandler(store db.Store, hasher security.Hasher) func(*gin.Context) {
 	return func(ctx *gin.Context) {
-		var creds Credentials
+		var req signInRequest
 
-		err := json.NewDecoder(ctx.Request.Body).Decode(&creds)
-		if err != nil {
-			ctx.Writer.WriteHeader(http.StatusBadRequest)
+		if err := ctx.BindJSON(&req); err != nil {
+			ctx.JSON(http.StatusBadRequest, errorResponse(err))
 			return
 		}
 
-		account, err := store.GetAccountByUsername(ctx, creds.Username)
+		account, err := store.GetAccountByUsername(ctx, req.Username)
 		if err != nil {
-			ctx.Writer.WriteHeader(http.StatusBadRequest)
+			ctx.JSON(http.StatusBadRequest, errorResponse(err))
 			return
 		}
 
-		valid, err := hasher.IsValidPassword([]byte(account.Phrase), account.Salt, creds.Phrase)
+		valid, err := hasher.IsValidPassword(account.Phrase, account.Salt, req.Phrase)
 		if err != nil {
-			ctx.Writer.WriteHeader(http.StatusInternalServerError)
+			ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 			return
 		}
 
@@ -62,7 +60,7 @@ func (server *FirstlyServer) SigninHandler(store db.Store, hasher security.Hashe
 
 		// Create the JWT claims, which includes the username and expiry time
 		claims := &Claims{
-			Username: creds.Username,
+			Username: req.Username,
 			StandardClaims: jwt.StandardClaims{
 				// In JWT, the expiry time is expressed as unix milliseconds
 				ExpiresAt: expirationTime.Unix(),
