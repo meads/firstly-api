@@ -35,7 +35,7 @@ func TestAccountHandler(t *testing.T) {
 			responseCode: http.StatusOK,
 			route:        "/account/",
 			setupExpectations: func(store *db.MockStore, hasher *security.MockHasher) {
-				store.EXPECT().AccountExists(gomock.Any(), gomock.Any()).Times(0)
+				store.EXPECT().GetAccountByUsername(gomock.Any(), "newuser").Return(db.Account{Deleted: true}, nil)
 				os.Setenv("SECRET", "test")
 				hash := []byte("generated_hash")
 				hasher.EXPECT().GenerateSalt().Return("salt").Times(1)
@@ -56,12 +56,30 @@ func TestAccountHandler(t *testing.T) {
 			},
 		},
 		{
-			name:         "create handler responds with Status Code 500 given there is some server error",
+			name:         "create handler responds with Status Code 500 given there is some server error with get account",
 			body:         bytes.NewBufferString("{\"username\":\"newuser\",\"phrase\":\"message\"}"),
 			method:       http.MethodPost,
 			responseCode: http.StatusInternalServerError,
 			route:        "/account/",
 			setupExpectations: func(store *db.MockStore, hasher *security.MockHasher) {
+				// hash := []byte("generated_hash")
+				store.EXPECT().GetAccountByUsername(gomock.Any(), "newuser").Return(db.Account{}, errors.New("oops"))
+				// hasher.EXPECT().GenerateSalt().Return("salt").Times(1)
+				// hasher.EXPECT().GeneratePasswordHash([]byte("message"), "salt").Return(hash, nil)
+				// store.EXPECT().CreateAccount(
+				// 	gomock.Any(),
+				// 	db.CreateAccountParams{Username: "newuser", Phrase: []byte("generated_hash"), Salt: "salt"}).
+				// 	Return(db.Account{}, errors.New("oops"))
+			},
+		},
+		{
+			name:         "create handler responds with Status Code 500 given there is some server error before create",
+			body:         bytes.NewBufferString("{\"username\":\"newuser\",\"phrase\":\"message\"}"),
+			method:       http.MethodPost,
+			responseCode: http.StatusInternalServerError,
+			route:        "/account/",
+			setupExpectations: func(store *db.MockStore, hasher *security.MockHasher) {
+				store.EXPECT().GetAccountByUsername(gomock.Any(), "newuser").Return(db.Account{ID: 0}, nil)
 				os.Setenv("SECRET", "test")
 				hash := []byte("generated_hash")
 				hasher.EXPECT().GenerateSalt().Return("salt").Times(1)
@@ -70,6 +88,17 @@ func TestAccountHandler(t *testing.T) {
 					gomock.Any(),
 					db.CreateAccountParams{Username: "newuser", Phrase: []byte("generated_hash"), Salt: "salt"}).
 					Return(db.Account{}, errors.New("oops"))
+			},
+		},
+		{
+			name:         "create handler responds with Status Code 400 given a user already exists with username x",
+			body:         bytes.NewBufferString("{\"username\":\"invalid\",\"phrase\":\"valid\"}"),
+			method:       http.MethodPost,
+			responseCode: http.StatusBadRequest,
+			route:        "/account/",
+			setupExpectations: func(store *db.MockStore, hasher *security.MockHasher) {
+				store.EXPECT().GetAccountByUsername(gomock.Any(), "invalid").
+					Return(db.Account{ID: 1}, nil)
 			},
 		},
 		{

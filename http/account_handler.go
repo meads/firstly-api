@@ -24,6 +24,17 @@ func (server *FirstlyServer) CreateAccountHandler(store db.Store, hasher securit
 			return
 		}
 
+		tmpAccount, err := store.GetAccountByUsername(ctx, req.Username)
+		if err != nil {
+			ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+			return
+		}
+
+		if !tmpAccount.Deleted && tmpAccount.ID > 0 {
+			ctx.JSON(http.StatusBadRequest, errorResponse(errors.New("please choose another username")))
+			return
+		}
+
 		var param db.CreateAccountParams
 		param.Username = req.Username
 		param.Salt = hasher.GenerateSalt()
