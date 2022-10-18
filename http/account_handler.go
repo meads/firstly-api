@@ -1,7 +1,6 @@
 package http
 
 import (
-	"database/sql"
 	"errors"
 	"net/http"
 	"strconv"
@@ -30,7 +29,7 @@ func (server *FirstlyServer) CreateAccountHandler(store db.Store, hasher securit
 			return
 		}
 
-		if !tmpAccount.Deleted && tmpAccount.ID > 0 {
+		if tmpAccount.ID > 0 {
 			ctx.JSON(http.StatusBadRequest, errorResponse(errors.New("please choose another username")))
 			return
 		}
@@ -61,43 +60,6 @@ func (server *FirstlyServer) CreateAccountHandler(store db.Store, hasher securit
 type loginAccountRequest struct {
 	Username string `json:"username" binding:"required"`
 	Password string `json:"password" binding:"required"`
-}
-
-// type Claims struct {
-// 	Username string `json:"username"`
-// 	jwt.StandardClaims
-// }
-
-func (server *FirstlyServer) LoginAccountHandler(store db.Store, hasher security.Hasher) func(*gin.Context) {
-	return func(ctx *gin.Context) {
-		var req loginAccountRequest
-		if err := ctx.BindJSON(&req); err != nil {
-			ctx.JSON(http.StatusBadRequest, errorResponse(err))
-			return
-		}
-
-		account, err := store.GetAccountByUsername(ctx, req.Username)
-		if err != nil {
-			if errors.Is(err, sql.ErrNoRows) {
-				ctx.JSON(http.StatusNotFound, errorResponse(err))
-				return
-			}
-			ctx.JSON(http.StatusInternalServerError, errorResponse(err))
-			return
-		}
-		// phrase, salt, password (req)
-		// TODO: Complete IsValidPasswordHash testing and use function here to check authorization etc.
-		// query the account based on hmac etc.
-		// return a token
-
-		// image, err := store.Login(ctx, req.Data)
-		// if err != nil {
-		// 	ctx.JSON(http.StatusInternalServerError, errorResponse(err))
-		// 	return
-		// }
-
-		ctx.JSON(http.StatusOK, struct{ username string }{username: account.Username})
-	}
 }
 
 func (server *FirstlyServer) DeleteAccountHandler(store db.Store) func(*gin.Context) {

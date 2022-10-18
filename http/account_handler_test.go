@@ -56,20 +56,29 @@ func TestAccountHandler(t *testing.T) {
 			},
 		},
 		{
+			name:         "create handler responds with Status Code 500 given there is an error hashing the phrase, no env var set",
+			body:         bytes.NewBufferString("{\"username\":\"newuser\",\"phrase\":\"message\"}"),
+			method:       http.MethodPost,
+			responseCode: http.StatusInternalServerError,
+			route:        "/account/",
+			setupExpectations: func(store *db.MockStore, hasher *security.MockHasher) {
+				store.EXPECT().GetAccountByUsername(gomock.Any(), "newuser").Return(db.Account{ID: 0}, nil)
+				hasher.EXPECT().GenerateSalt().Return("somesalt")
+				os.Unsetenv("SECRET")
+				hasher.EXPECT().GeneratePasswordHash(gomock.Any(), "somesalt").Return(
+					nil,
+					errors.New("secret not set"),
+				)
+			},
+		},
+		{
 			name:         "create handler responds with Status Code 500 given there is some server error with get account",
 			body:         bytes.NewBufferString("{\"username\":\"newuser\",\"phrase\":\"message\"}"),
 			method:       http.MethodPost,
 			responseCode: http.StatusInternalServerError,
 			route:        "/account/",
 			setupExpectations: func(store *db.MockStore, hasher *security.MockHasher) {
-				// hash := []byte("generated_hash")
 				store.EXPECT().GetAccountByUsername(gomock.Any(), "newuser").Return(db.Account{}, errors.New("oops"))
-				// hasher.EXPECT().GenerateSalt().Return("salt").Times(1)
-				// hasher.EXPECT().GeneratePasswordHash([]byte("message"), "salt").Return(hash, nil)
-				// store.EXPECT().CreateAccount(
-				// 	gomock.Any(),
-				// 	db.CreateAccountParams{Username: "newuser", Phrase: []byte("generated_hash"), Salt: "salt"}).
-				// 	Return(db.Account{}, errors.New("oops"))
 			},
 		},
 		{
@@ -223,6 +232,24 @@ func TestAccountHandler(t *testing.T) {
 				store.EXPECT().AccountExists(gomock.Any(), int64(69)).Return(true, nil)
 				store.EXPECT().GetAccount(gomock.Any(), int64(69)).
 					Return(db.Account{}, errors.New("oops"))
+			},
+		},
+		{
+			body:         bytes.NewBufferString("{\"id\":69,\"username\":\"user\",\"phrase\":\"newpass\"}"),
+			method:       http.MethodPatch,
+			name:         "update handler responds with Status Code 500 when server error on update hash",
+			responseCode: http.StatusInternalServerError,
+			route:        "/account/",
+			setupExpectations: func(store *db.MockStore, hasher *security.MockHasher) {
+				store.EXPECT().AccountExists(gomock.Any(), int64(69)).Return(true, nil)
+				store.EXPECT().GetAccount(gomock.Any(), int64(69)).Return(
+					db.Account{ID: 69, Salt: "somesalt", Phrase: []byte("newpass")}, nil)
+				hasher.EXPECT().GenerateSalt().Times(0)
+				os.Unsetenv("SECRET")
+				hasher.EXPECT().GeneratePasswordHash(gomock.Any(), "somesalt").Return(
+					nil,
+					errors.New("secret not set"),
+				)
 			},
 		},
 		{
