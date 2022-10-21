@@ -1,6 +1,7 @@
 package http
 
 import (
+	"database/sql"
 	"errors"
 	"net/http"
 	"strconv"
@@ -26,7 +27,7 @@ func (server *FirstlyServer) CreateAccountHandler(store db.Store, hasher securit
 		}
 
 		tmpAccount, err := store.GetAccountByUsername(ctx, req.Username)
-		if err != nil {
+		if err != nil && !errors.Is(sql.ErrNoRows, err) {
 			ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 			return
 		}
