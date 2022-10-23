@@ -85,6 +85,8 @@ func (server *FirstlyServer) SigninHandler(store db.Store, hasher security.Hashe
 			Value:   tokenString,
 			Expires: expirationTime,
 		})
+
+		ctx.Status(http.StatusOK)
 	}
 }
 
