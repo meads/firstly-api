@@ -17,7 +17,7 @@ func NewFirstlyServer(store db.Store, hasher security.Hasher, router *gin.Engine
 	}
 
 	s.router.POST("/signin/", s.SigninHandler(store, hasher))
-	s.router.GET("/welcome/", s.WelcomeHandler(store))
+	s.router.GET("/welcome/", s.WelcomeHandler())
 	s.router.POST("/refresh/", s.RefreshHandler(store))
 
 	s.router.POST("/account/", s.CreateAccountHandler(store, hasher))

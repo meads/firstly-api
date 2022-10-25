@@ -90,18 +90,12 @@ func (server *FirstlyServer) SigninHandler(store db.Store, hasher security.Hashe
 	}
 }
 
-func (server *FirstlyServer) WelcomeHandler(store db.Store) func(*gin.Context) {
+func (server *FirstlyServer) WelcomeHandler() func(*gin.Context) {
 	return func(ctx *gin.Context) {
 		// We can obtain the session token from the requests cookies, which come with every request
 		c, err := ctx.Request.Cookie("token")
 		if err != nil {
-			if err == http.ErrNoCookie {
-				// If the cookie is not set, return an unauthorized status
-				ctx.Writer.WriteHeader(http.StatusUnauthorized)
-				return
-			}
-			// For any other type of error, return a bad request status
-			ctx.Writer.WriteHeader(http.StatusBadRequest)
+			ctx.Writer.WriteHeader(http.StatusUnauthorized)
 			return
 		}
 

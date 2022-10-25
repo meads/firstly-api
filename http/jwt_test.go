@@ -3,6 +3,7 @@ package http
 import (
 	"bytes"
 	"errors"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -216,6 +217,90 @@ func TestJWTSignInHandler(t *testing.T) {
 
 			// Assert
 			assert.Equal(t, test.responseCode, result.StatusCode)
+		})
+	}
+}
+
+func TestJWTWelcomeHandler(t *testing.T) {
+	tests := []struct {
+		name              string
+		responseCode      int
+		route             string
+		expectedBody      string
+		setupExpectations func(r *http.Request, rr *httptest.ResponseRecorder)
+	}{
+		{
+			name:         "welcome handler given no token cookie will respond with status unauthorized",
+			responseCode: http.StatusUnauthorized,
+			route:        "/welcome/",
+			expectedBody: "",
+			setupExpectations: func(r *http.Request, rr *httptest.ResponseRecorder) {
+				cookies := r.Cookies()
+				if len(cookies) > 0 {
+					t.Fatal("expected no cookies in request scenario")
+				}
+			},
+		},
+		{
+			name:         "welcome handler given valid token cookie will respond with status ok",
+			responseCode: http.StatusOK,
+			route:        "/welcome/",
+			expectedBody: "Welcome valid!",
+			setupExpectations: func(r *http.Request, rr *httptest.ResponseRecorder) {
+				// Create the JWT claims, which includes the username and expiry time
+				expirationTime := time.Now().Add(5 * time.Minute)
+
+				claims := &Claims{
+					Username: "valid",
+					StandardClaims: jwt.StandardClaims{
+						// In JWT, the expiry time is expressed as unix milliseconds
+						ExpiresAt: expirationTime.Unix(),
+					},
+				}
+
+				// Declare the token with the algorithm used for signing, and the claims
+				token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+
+				// Create the JWT string
+				tokenString, _ := token.SignedString(jwtKey)
+
+				// Finally, we set the client cookie for "token" as the JWT we just generated
+				// we also set an expiry time which is the same as the token itself
+				r.AddCookie(&http.Cookie{
+					Name:    "token",
+					Value:   tokenString,
+					Expires: expirationTime,
+				})
+			},
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			// Arrange
+			router := gin.Default()
+			gin.SetMode(gin.TestMode)
+			ctrl := gomock.NewController(t)
+
+			mockStore := db.NewMockStore(ctrl)
+			mockHasher := security.NewMockHasher(ctrl)
+
+			NewFirstlyServer(mockStore, mockHasher, router)
+			responseRecorder := httptest.NewRecorder()
+
+			request := httptest.NewRequest(http.MethodGet, test.route, nil)
+			test.setupExpectations(request, responseRecorder)
+
+			// Act
+			router.ServeHTTP(responseRecorder, request)
+
+			result := responseRecorder.Result()
+			defer result.Body.Close()
+
+			// Assert
+			assert.Equal(t, test.responseCode, result.StatusCode)
+
+			responseBody, _ := io.ReadAll(result.Body)
+			assert.Equal(t, string(responseBody), test.expectedBody)
 		})
 	}
 }
