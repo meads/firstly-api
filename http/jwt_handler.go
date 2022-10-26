@@ -12,17 +12,10 @@ import (
 	"github.com/meads/firstly-api/security"
 )
 
-var jwtKey = []byte(os.Getenv("SECRET"))
-
 // Create a struct that models the structure of a user, both in the request body, and in the DB
 type signInRequest struct {
 	Phrase   string `json:"phrase" binding:"required"`
 	Username string `json:"username" binding:"required"`
-}
-
-type Claims struct {
-	Username string `json:"username"`
-	jwt.StandardClaims
 }
 
 func (server *FirstlyServer) SigninHandler(store db.Store, hasher security.Hasher) func(*gin.Context) {
@@ -54,24 +47,7 @@ func (server *FirstlyServer) SigninHandler(store db.Store, hasher security.Hashe
 			return
 		}
 
-		// Declare the expiration time of the token
-		// here, we have kept it as 5 minutes
-		expirationTime := time.Now().Add(5 * time.Minute)
-
-		// Create the JWT claims, which includes the username and expiry time
-		claims := &Claims{
-			Username: req.Username,
-			StandardClaims: jwt.StandardClaims{
-				// In JWT, the expiry time is expressed as unix milliseconds
-				ExpiresAt: expirationTime.Unix(),
-			},
-		}
-
-		// Declare the token with the algorithm used for signing, and the claims
-		token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-
-		// Create the JWT string
-		tokenString, err := token.SignedString(jwtKey)
+		tokenString, expirationTime, err := security.GetFiveMinuteExpirationToken(account.Username)
 		if err != nil {
 			// If there is an error in creating the JWT return an internal server error
 			ctx.Writer.WriteHeader(http.StatusInternalServerError)
@@ -103,14 +79,14 @@ func (server *FirstlyServer) WelcomeHandler() func(*gin.Context) {
 		tknStr := c.Value
 
 		// Initialize a new instance of `Claims`
-		claims := &Claims{}
+		claims := &security.ClaimsValidator{}
 
 		// Parse the JWT string and store the result in `claims`.
 		// Note that we are passing the key in this method as well. This method will return an error
 		// if the token is invalid (if it has expired according to the expiry time we set on sign in),
 		// or if the signature does not match
 		tkn, err := jwt.ParseWithClaims(tknStr, claims, func(token *jwt.Token) (interface{}, error) {
-			return jwtKey, nil
+			return []byte(os.Getenv("SECRET")), nil
 		})
 		if err != nil {
 			if err == jwt.ErrSignatureInvalid {
@@ -143,9 +119,9 @@ func (server *FirstlyServer) RefreshHandler(store db.Store) func(*gin.Context) {
 			return
 		}
 		tknStr := c.Value
-		claims := &Claims{}
+		claims := &security.ClaimsValidator{}
 		tkn, err := jwt.ParseWithClaims(tknStr, claims, func(token *jwt.Token) (interface{}, error) {
-			return jwtKey, nil
+			return []byte(os.Getenv("SECRET")), nil
 		})
 		if !tkn.Valid {
 			ctx.Writer.WriteHeader(http.StatusUnauthorized)
@@ -170,10 +146,7 @@ func (server *FirstlyServer) RefreshHandler(store db.Store) func(*gin.Context) {
 		}
 
 		// Now, create a new token for the current use, with a renewed expiration time
-		expirationTime := time.Now().Add(5 * time.Minute)
-		claims.ExpiresAt = expirationTime.Unix()
-		token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-		tokenString, err := token.SignedString(jwtKey)
+		tokenString, expirationTime, err := security.GetFiveMinuteExpirationToken(claims.Username)
 		if err != nil {
 			ctx.Writer.WriteHeader(http.StatusInternalServerError)
 			return
