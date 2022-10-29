@@ -46,7 +46,7 @@ tidy:
 mockgen:
 	@mockgen -package db -destination ./db/store_mock.go github.com/meads/firstly-api/db Store
 	@mockgen -package security -destination ./security/hmac_mock.go github.com/meads/firstly-api/security Hasher
-	@mockgen -package security -destination ./security/claims_mock.go github.com/meads/firstly-api/security MethodSigner,ClaimValidator,Claimer
+	@mockgen -package security -destination ./security/claims_mock.go github.com/meads/firstly-api/security Claimer
 
 verify: tidy sqlc mockgen build test
 

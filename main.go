@@ -44,9 +44,10 @@ func main() {
 
 	store := db.NewStore(conn)
 	hasher := security.NewHasher()
+	claimer := security.NewClaims()
 	router := gin.Default()
 
-	server := http_api.NewFirstlyServer(store, hasher, router)
+	server := http_api.NewFirstlyServer(store, hasher, claimer, router)
 
 	err = server.Start(":" + os.Getenv("PORT"))
 	if err != nil {

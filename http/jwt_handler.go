@@ -18,7 +18,7 @@ type signInRequest struct {
 	Username string `json:"username" binding:"required"`
 }
 
-func (server *FirstlyServer) SigninHandler(store db.Store, hasher security.Hasher) func(*gin.Context) {
+func (server *FirstlyServer) SigninHandler(store db.Store, hasher security.Hasher, claimer security.Claimer) func(*gin.Context) {
 	return func(ctx *gin.Context) {
 		var req signInRequest
 
@@ -47,7 +47,7 @@ func (server *FirstlyServer) SigninHandler(store db.Store, hasher security.Hashe
 			return
 		}
 
-		tokenString, expirationTime, err := security.GetFiveMinuteExpirationToken(account.Username)
+		tokenString, expirationTime, err := claimer.GetFiveMinuteExpirationToken(account.Username)
 		if err != nil {
 			// If there is an error in creating the JWT return an internal server error
 			ctx.Writer.WriteHeader(http.StatusInternalServerError)
@@ -66,7 +66,7 @@ func (server *FirstlyServer) SigninHandler(store db.Store, hasher security.Hashe
 	}
 }
 
-func (server *FirstlyServer) WelcomeHandler() func(*gin.Context) {
+func (server *FirstlyServer) WelcomeHandler(claimer security.Claimer) func(*gin.Context) {
 	return func(ctx *gin.Context) {
 		// We can obtain the session token from the requests cookies, which come with every request
 		c, err := ctx.Request.Cookie("token")
@@ -76,18 +76,13 @@ func (server *FirstlyServer) WelcomeHandler() func(*gin.Context) {
 		}
 
 		// Get the JWT string from the cookie
-		tknStr := c.Value
-
-		// Initialize a new instance of `Claims`
+		tokenString := c.Value
 		claims := &security.ClaimsValidator{}
 
-		// Parse the JWT string and store the result in `claims`.
-		// Note that we are passing the key in this method as well. This method will return an error
-		// if the token is invalid (if it has expired according to the expiry time we set on sign in),
-		// or if the signature does not match
-		tkn, err := jwt.ParseWithClaims(tknStr, claims, func(token *jwt.Token) (interface{}, error) {
+		tkn, err := claimer.ParseWithClaims(tokenString, *claims, func(token *jwt.Token) (interface{}, error) {
 			return []byte(os.Getenv("SECRET")), nil
 		})
+
 		if err != nil {
 			if err == jwt.ErrSignatureInvalid {
 				ctx.Writer.WriteHeader(http.StatusUnauthorized)
@@ -100,13 +95,12 @@ func (server *FirstlyServer) WelcomeHandler() func(*gin.Context) {
 			ctx.Writer.WriteHeader(http.StatusUnauthorized)
 			return
 		}
-		// Finally, return the welcome message to the user, along with their
-		// username given in the token
+		// Return the welcome message to the user, along with their username
 		ctx.Writer.Write([]byte(fmt.Sprintf("Welcome %s!", claims.Username)))
 	}
 }
 
-func (server *FirstlyServer) RefreshHandler(store db.Store) func(*gin.Context) {
+func (server *FirstlyServer) RefreshHandler(store db.Store, claimer security.Claimer) func(*gin.Context) {
 	return func(ctx *gin.Context) {
 		// (BEGIN) The code uptil this point is the same as the first part of the `Welcome` route
 		c, err := ctx.Request.Cookie("token")
@@ -118,9 +112,10 @@ func (server *FirstlyServer) RefreshHandler(store db.Store) func(*gin.Context) {
 			ctx.Writer.WriteHeader(http.StatusBadRequest)
 			return
 		}
-		tknStr := c.Value
+		tokenString := c.Value
 		claims := &security.ClaimsValidator{}
-		tkn, err := jwt.ParseWithClaims(tknStr, claims, func(token *jwt.Token) (interface{}, error) {
+
+		tkn, err := claimer.ParseWithClaims(tokenString, *claims, func(token *jwt.Token) (interface{}, error) {
 			return []byte(os.Getenv("SECRET")), nil
 		})
 		if !tkn.Valid {
@@ -146,7 +141,7 @@ func (server *FirstlyServer) RefreshHandler(store db.Store) func(*gin.Context) {
 		}
 
 		// Now, create a new token for the current use, with a renewed expiration time
-		tokenString, expirationTime, err := security.GetFiveMinuteExpirationToken(claims.Username)
+		tokenString, expirationTime, err := claimer.GetFiveMinuteExpirationToken(claims.Username)
 		if err != nil {
 			ctx.Writer.WriteHeader(http.StatusInternalServerError)
 			return

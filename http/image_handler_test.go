@@ -216,9 +216,11 @@ func TestImageHandler(t *testing.T) {
 
 			mockStore := db.NewMockStore(ctrl)
 			mockHasher := security.NewMockHasher(ctrl)
+			mockClaimer := security.NewMockClaimer(ctrl)
+
 			test.setupExpectations(mockStore)
 
-			NewFirstlyServer(mockStore, mockHasher, router)
+			NewFirstlyServer(mockStore, mockHasher, mockClaimer, router)
 			responseRecorder := httptest.NewRecorder()
 
 			// Act

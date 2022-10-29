@@ -16,7 +16,7 @@ type createAccountRequest struct {
 	Phrase   string `json:"phrase" binding:"required"`
 }
 
-func (server *FirstlyServer) CreateAccountHandler(store db.Store, hasher security.Hasher) func(*gin.Context) {
+func (server *FirstlyServer) CreateAccountHandler(store db.Store, hasher security.Hasher, claimer security.Claimer) func(*gin.Context) {
 	return func(ctx *gin.Context) {
 		var req createAccountRequest
 		if err := ctx.BindJSON(&req); err != nil {
@@ -52,7 +52,7 @@ func (server *FirstlyServer) CreateAccountHandler(store db.Store, hasher securit
 			return
 		}
 
-		tokenString, expirationTime, err := security.GetFiveMinuteExpirationToken(account.Username)
+		tokenString, expirationTime, err := claimer.GetFiveMinuteExpirationToken(account.Username)
 		if err != nil {
 			// If there is an error in creating the JWT return an internal server error
 			ctx.Writer.WriteHeader(http.StatusInternalServerError)
