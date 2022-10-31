@@ -124,7 +124,7 @@ func TestJWTSignInHandler(t *testing.T) {
 			mockHasher := security.NewMockHasher(ctrl)
 			mockClaimer := security.NewMockClaimer(ctrl)
 
-			NewFirstlyServer(mockStore, mockHasher, mockClaimer, router)
+			NewFirstlyServer(mockClaimer, mockHasher, router, mockStore)
 			responseRecorder := httptest.NewRecorder()
 
 			request := httptest.NewRequest(test.method, test.route, test.body)
@@ -196,7 +196,7 @@ func TestJWTWelcomeHandler(t *testing.T) {
 			mockHasher := security.NewMockHasher(ctrl)
 			mockClaimer := security.NewMockClaimer(ctrl)
 
-			NewFirstlyServer(mockStore, mockHasher, mockClaimer, router)
+			NewFirstlyServer(mockClaimer, mockHasher, router, mockStore)
 			responseRecorder := httptest.NewRecorder()
 
 			request := httptest.NewRequest(http.MethodGet, test.route, nil)

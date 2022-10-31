@@ -8,7 +8,6 @@ import (
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
-	db "github.com/meads/firstly-api/db"
 	"github.com/meads/firstly-api/security"
 )
 
@@ -18,56 +17,8 @@ type signInRequest struct {
 	Username string `json:"username" binding:"required"`
 }
 
-func (server *FirstlyServer) SigninHandler(store db.Store, hasher security.Hasher, claimer security.Claimer) func(*gin.Context) {
-	return func(ctx *gin.Context) {
-		var req signInRequest
-
-		if err := ctx.BindJSON(&req); err != nil {
-			ctx.JSON(http.StatusBadRequest, errorResponse(err))
-			return
-		}
-
-		account, err := store.GetAccountByUsername(ctx, req.Username)
-		if err != nil {
-			ctx.JSON(http.StatusBadRequest, errorResponse(err))
-			return
-		}
-
-		valid, err := hasher.IsValidPassword(account.Phrase, account.Salt, req.Phrase)
-		if err != nil {
-			ctx.JSON(http.StatusInternalServerError, errorResponse(err))
-			return
-		}
-
-		// If a password exists for the given user
-		// AND, if it is the same as the password we received, the we can move ahead
-		// if NOT, then we return an "Unauthorized" status
-		if !valid {
-			ctx.Writer.WriteHeader(http.StatusUnauthorized)
-			return
-		}
-
-		tokenString, expirationTime, err := claimer.GetFiveMinuteExpirationToken(account.Username)
-		if err != nil {
-			// If there is an error in creating the JWT return an internal server error
-			ctx.Writer.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-
-		// Finally, we set the client cookie for "token" as the JWT we just generated
-		// we also set an expiry time which is the same as the token itself
-		http.SetCookie(ctx.Writer, &http.Cookie{
-			Name:    "token",
-			Value:   tokenString,
-			Expires: expirationTime,
-		})
-
-		ctx.Status(http.StatusOK)
-	}
-}
-
-func (server *FirstlyServer) WelcomeHandler(claimer security.Claimer) func(*gin.Context) {
-	return func(ctx *gin.Context) {
+func claimsMiddleware(h gin.HandlerFunc) gin.HandlerFunc {
+	return gin.HandlerFunc(func(ctx *gin.Context) {
 		// We can obtain the session token from the requests cookies, which come with every request
 		c, err := ctx.Request.Cookie("token")
 		if err != nil {
@@ -79,7 +30,7 @@ func (server *FirstlyServer) WelcomeHandler(claimer security.Claimer) func(*gin.
 		tokenString := c.Value
 		claims := &security.ClaimsValidator{}
 
-		tkn, err := claimer.ParseWithClaims(tokenString, *claims, func(token *jwt.Token) (interface{}, error) {
+		tkn, err := firstly.claimer.ParseWithClaims(tokenString, *claims, func(token *jwt.Token) (interface{}, error) {
 			return []byte(os.Getenv("SECRET")), nil
 		})
 
@@ -95,63 +46,139 @@ func (server *FirstlyServer) WelcomeHandler(claimer security.Claimer) func(*gin.
 			ctx.Writer.WriteHeader(http.StatusUnauthorized)
 			return
 		}
-		// Return the welcome message to the user, along with their username
-		ctx.Writer.Write([]byte(fmt.Sprintf("Welcome %s!", claims.Username)))
-	}
+
+		h(ctx)
+	})
 }
 
-func (server *FirstlyServer) RefreshHandler(store db.Store, claimer security.Claimer) func(*gin.Context) {
-	return func(ctx *gin.Context) {
-		// (BEGIN) The code uptil this point is the same as the first part of the `Welcome` route
-		c, err := ctx.Request.Cookie("token")
-		if err != nil {
-			if err == http.ErrNoCookie {
-				ctx.Writer.WriteHeader(http.StatusUnauthorized)
-				return
-			}
-			ctx.Writer.WriteHeader(http.StatusBadRequest)
-			return
-		}
-		tokenString := c.Value
-		claims := &security.ClaimsValidator{}
+func signinHandler(ctx *gin.Context) {
+	var req signInRequest
 
-		tkn, err := claimer.ParseWithClaims(tokenString, *claims, func(token *jwt.Token) (interface{}, error) {
-			return []byte(os.Getenv("SECRET")), nil
-		})
-		if !tkn.Valid {
+	if err := ctx.BindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, errorResponse(err))
+		return
+	}
+
+	account, err := firstly.store.GetAccountByUsername(ctx, req.Username)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, errorResponse(err))
+		return
+	}
+
+	valid, err := firstly.hasher.IsValidPassword(account.Phrase, account.Salt, req.Phrase)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	// If a password exists for the given user
+	// AND, if it is the same as the password we received, the we can move ahead
+	// if NOT, then we return an "Unauthorized" status
+	if !valid {
+		ctx.Writer.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
+	tokenString, expirationTime, err := firstly.claimer.GetFiveMinuteExpirationToken(account.Username)
+	if err != nil {
+		// If there is an error in creating the JWT return an internal server error
+		ctx.Writer.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	// Finally, we set the client cookie for "token" as the JWT we just generated
+	// we also set an expiry time which is the same as the token itself
+	http.SetCookie(ctx.Writer, &http.Cookie{
+		Name:    "token",
+		Value:   tokenString,
+		Expires: expirationTime,
+	})
+
+	ctx.Status(http.StatusOK)
+}
+
+func welcomeHandler(ctx *gin.Context) {
+	// We can obtain the session token from the requests cookies, which come with every request
+	c, err := ctx.Request.Cookie("token")
+	if err != nil {
+		ctx.Writer.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
+	// Get the JWT string from the cookie
+	tokenString := c.Value
+	claims := &security.ClaimsValidator{}
+
+	tkn, err := firstly.claimer.ParseWithClaims(tokenString, *claims, func(token *jwt.Token) (interface{}, error) {
+		return []byte(os.Getenv("SECRET")), nil
+	})
+
+	if err != nil {
+		if err == jwt.ErrSignatureInvalid {
 			ctx.Writer.WriteHeader(http.StatusUnauthorized)
 			return
 		}
-		if err != nil {
-			if err == jwt.ErrSignatureInvalid {
-				ctx.Writer.WriteHeader(http.StatusUnauthorized)
-				return
-			}
-			ctx.Writer.WriteHeader(http.StatusBadRequest)
-			return
-		}
-		// (END) The code uptil this point is the same as the first part of the `Welcome` route
-
-		// We ensure that a new token is not issued until enough time has elapsed
-		// In this case, a new token will only be issued if the old token is within
-		// 30 seconds of expiry. Otherwise, return a bad request status
-		if time.Unix(claims.ExpiresAt, 0).Sub(time.Now()) > 30*time.Second {
-			ctx.Writer.WriteHeader(http.StatusBadRequest)
-			return
-		}
-
-		// Now, create a new token for the current use, with a renewed expiration time
-		tokenString, expirationTime, err := claimer.GetFiveMinuteExpirationToken(claims.Username)
-		if err != nil {
-			ctx.Writer.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-
-		// Set the new token as the users `session_token` cookie
-		http.SetCookie(ctx.Writer, &http.Cookie{
-			Name:    "session_token",
-			Value:   tokenString,
-			Expires: expirationTime,
-		})
+		ctx.Writer.WriteHeader(http.StatusBadRequest)
+		return
 	}
+	if !tkn.Valid {
+		ctx.Writer.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+	// Return the welcome message to the user, along with their username
+	ctx.Writer.Write([]byte(fmt.Sprintf("cWelcome %s!", claims.Username)))
+}
+
+func refreshHandler(ctx *gin.Context) {
+	// (BEGIN) The code uptil this point is the same as the first part of the `Welcome` route
+	c, err := ctx.Request.Cookie("token")
+	if err != nil {
+		if err == http.ErrNoCookie {
+			ctx.Writer.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+		ctx.Writer.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	tokenString := c.Value
+	claims := &security.ClaimsValidator{}
+
+	tkn, err := firstly.claimer.ParseWithClaims(tokenString, *claims, func(token *jwt.Token) (interface{}, error) {
+		return []byte(os.Getenv("SECRET")), nil
+	})
+	if !tkn.Valid {
+		ctx.Writer.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+	if err != nil {
+		if err == jwt.ErrSignatureInvalid {
+			ctx.Writer.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+		ctx.Writer.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	// (END) The code uptil this point is the same as the first part of the `Welcome` route
+
+	// We ensure that a new token is not issued until enough time has elapsed
+	// In this case, a new token will only be issued if the old token is within
+	// 30 seconds of expiry. Otherwise, return a bad request status
+	if time.Unix(claims.ExpiresAt, 0).Sub(time.Now()) > 30*time.Second {
+		ctx.Writer.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	// Now, create a new token for the current use, with a renewed expiration time
+	tokenString, expirationTime, err := firstly.claimer.GetFiveMinuteExpirationToken(claims.Username)
+	if err != nil {
+		ctx.Writer.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	// Set the new token as the users `session_token` cookie
+	http.SetCookie(ctx.Writer, &http.Cookie{
+		Name:    "session_token",
+		Value:   tokenString,
+		Expires: expirationTime,
+	})
 }

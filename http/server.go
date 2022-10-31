@@ -7,30 +7,36 @@ import (
 )
 
 type FirstlyServer struct {
-	router *gin.Engine
+	claimer security.Claimer
+	hasher  security.Hasher
+	router  *gin.Engine
+	store   db.Store
 }
 
+var firstly = &FirstlyServer{}
+
 // NewFirstlyAPI creates a new Http Server and sets up routing.
-func NewFirstlyServer(store db.Store, hasher security.Hasher, claimer security.Claimer, router *gin.Engine) *FirstlyServer {
-	s := &FirstlyServer{
-		router: router,
-	}
+func NewFirstlyServer(claimer security.Claimer, hasher security.Hasher, router *gin.Engine, store db.Store) *FirstlyServer {
+	firstly.claimer = claimer
+	firstly.hasher = hasher
+	firstly.router = router
+	firstly.store = store
 
-	s.router.POST("/signin/", s.SigninHandler(store, hasher, claimer))
-	s.router.GET("/welcome/", s.WelcomeHandler(claimer))
-	s.router.POST("/refresh/", s.RefreshHandler(store, claimer))
+	firstly.router.POST("/signin/", signinHandler)
+	firstly.router.GET("/welcome/", welcomeHandler)
+	firstly.router.POST("/refresh/", refreshHandler)
 
-	s.router.POST("/account/", s.CreateAccountHandler(store, hasher, claimer))
-	s.router.GET("/account/", s.ListAccountsHandler(store))
-	s.router.PATCH("/account/", s.UpdateAccountHandler(store, hasher))
-	s.router.DELETE("/account/:id/", s.DeleteAccountHandler(store))
+	firstly.router.POST("/account/", createAccountHandler)
+	firstly.router.GET("/account/", listAccountsHandler)
+	firstly.router.PATCH("/account/", updateAccountHandler)
+	firstly.router.DELETE("/account/:id/", deleteAccountHandler)
 
-	s.router.GET("/image/", s.ListImagesHandler(store))
-	s.router.POST("/image/", s.CreateImageHandler(store))
-	s.router.DELETE("/image/:id/", s.DeleteImageHandler(store))
-	s.router.PATCH("/image/", s.UpdateImageHandler(store))
+	firstly.router.GET("/image/", claimsMiddleware(listImagesHandler))
+	firstly.router.POST("/image/", createImageHandler(store))
+	firstly.router.DELETE("/image/:id/", deleteImageHandler(store))
+	firstly.router.PATCH("/image/", updateImageHandler(store))
 
-	return s
+	return firstly
 }
 
 // Start runs the Http server on the supplied address.

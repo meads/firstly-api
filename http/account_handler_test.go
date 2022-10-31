@@ -116,6 +116,27 @@ func TestAccountHandler(t *testing.T) {
 			},
 		},
 		{
+			body:         bytes.NewBufferString("{\"username\":\"newuser\",\"phrase\":\"message\"}"),
+			method:       http.MethodPost,
+			name:         "create handler responds with Status Code 500 when get five minute expiration token returns an error",
+			responseCode: http.StatusInternalServerError,
+			route:        "/account/",
+			setupExpectations: func(store *db.MockStore, hasher *security.MockHasher, claimer *security.MockClaimer) {
+				store.EXPECT().GetAccountByUsername(gomock.Any(), "newuser").Return(db.Account{Deleted: true}, nil)
+				os.Setenv("SECRET", "test")
+				hash := []byte("generated_hash")
+				hasher.EXPECT().GenerateSalt().Return("salt").Times(1)
+				hasher.EXPECT().GeneratePasswordHash([]byte("message"), "salt").Return(hash, nil)
+				store.EXPECT().CreateAccount(
+					gomock.Any(),
+					db.CreateAccountParams{Username: "newuser", Phrase: hash, Salt: "salt"},
+				).Return(db.Account{Username: "newuser"}, nil)
+				tokenString := ""
+				expirationTime := time.Time{}
+				claimer.EXPECT().GetFiveMinuteExpirationToken("newuser").Return(tokenString, expirationTime, errors.New("oops"))
+			},
+		},
+		{
 			body:         bytes.NewBufferString(""),
 			name:         "delete handler responds with Status Code 200 given valid request",
 			method:       http.MethodDelete,
@@ -296,7 +317,7 @@ func TestAccountHandler(t *testing.T) {
 			mockClaimer := security.NewMockClaimer(ctrl)
 			test.setupExpectations(mockStore, mockHasher, mockClaimer)
 
-			NewFirstlyServer(mockStore, mockHasher, mockClaimer, router)
+			NewFirstlyServer(mockClaimer, mockHasher, router, mockStore)
 			responseRecorder := httptest.NewRecorder()
 
 			// Act

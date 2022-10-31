@@ -220,7 +220,7 @@ func TestImageHandler(t *testing.T) {
 
 			test.setupExpectations(mockStore)
 
-			NewFirstlyServer(mockStore, mockHasher, mockClaimer, router)
+			NewFirstlyServer(mockClaimer, mockHasher, router, mockStore)
 			responseRecorder := httptest.NewRecorder()
 
 			// Act

@@ -12,7 +12,7 @@ type ClaimToken struct {
 }
 
 func (token *ClaimToken) SignedString(key interface{}) (string, error) {
-	return token.SignedString(key)
+	return token.Token.SignedString(key)
 }
 
 type ClaimsValidator struct {
@@ -21,7 +21,7 @@ type ClaimsValidator struct {
 }
 
 type Claims struct {
-	token     ClaimToken
+	// token     ClaimToken
 	signer    jwt.SigningMethod
 	validator jwt.Claims
 }

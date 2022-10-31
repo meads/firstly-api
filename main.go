@@ -42,12 +42,12 @@ func main() {
 
 	fmt.Print("\nmigrations were a success. 🎉\n")
 
-	store := db.NewStore(conn)
-	hasher := security.NewHasher()
 	claimer := security.NewClaims()
+	hasher := security.NewHasher()
 	router := gin.Default()
+	store := db.NewStore(conn)
 
-	server := http_api.NewFirstlyServer(store, hasher, claimer, router)
+	server := http_api.NewFirstlyServer(claimer, hasher, router, store)
 
 	err = server.Start(":" + os.Getenv("PORT"))
 	if err != nil {
