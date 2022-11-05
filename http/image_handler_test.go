@@ -130,6 +130,77 @@ func TestImageHandler(t *testing.T) {
 			},
 		},
 		{
+			body:         bytes.NewBufferString("{\"data\":\"test\"}"),
+			name:         "list handler responds with Status Code 401 given no token cookie",
+			method:       http.MethodGet,
+			responseCode: http.StatusUnauthorized,
+			route:        "/image/",
+			setupExpectations: func(r *http.Request, claimer *security.MockClaimer, hasher *security.MockHasher, store *db.MockStore) {
+				// no cookie
+			},
+		},
+		{
+			body:         bytes.NewBufferString("{\"data\":\"test\"}"),
+			name:         "list handler responds with Status Code 401 given ErrSignatureInvalid",
+			method:       http.MethodGet,
+			responseCode: http.StatusUnauthorized,
+			route:        "/image/",
+			setupExpectations: func(r *http.Request, claimer *security.MockClaimer, hasher *security.MockHasher, store *db.MockStore) {
+				tokenString := "invalid"
+				claimer.EXPECT().GetFromTokenString(tokenString).Return(nil, nil, jwt.ErrSignatureInvalid)
+
+				// Finally, we set the client cookie for "token" as the JWT we just generated
+				// we also set an expiry time which is the same as the token itself
+				r.AddCookie(&http.Cookie{
+					Name:  "token",
+					Value: tokenString,
+				})
+			},
+		},
+		{
+			body:         bytes.NewBufferString("{\"data\":\"test\"}"),
+			name:         "list handler responds with Status Code 400 given some other error with GetTokenFromString",
+			method:       http.MethodGet,
+			responseCode: http.StatusUnauthorized,
+			route:        "/image/",
+			setupExpectations: func(r *http.Request, claimer *security.MockClaimer, hasher *security.MockHasher, store *db.MockStore) {
+				tokenString := "mocktoken"
+				usernameClaims := security.NewUsernameClaims()
+				usernameClaims.Username = "valid"
+				claimToken := &security.ClaimToken{
+					Token: &jwt.Token{
+						Valid: false,
+					},
+				}
+				claimer.EXPECT().GetFromTokenString(tokenString).Return(claimToken, usernameClaims, nil)
+
+				// Finally, we set the client cookie for "token" as the JWT we just generated
+				// we also set an expiry time which is the same as the token itself
+				r.AddCookie(&http.Cookie{
+					Name:  "token",
+					Value: tokenString,
+				})
+			},
+		},
+		{
+			body:         bytes.NewBufferString("{\"data\":\"test\"}"),
+			name:         "list handler responds with Status Code 401 given the token is not valid",
+			method:       http.MethodGet,
+			responseCode: http.StatusBadRequest,
+			route:        "/image/",
+			setupExpectations: func(r *http.Request, claimer *security.MockClaimer, hasher *security.MockHasher, store *db.MockStore) {
+				tokenString := "invalid"
+				claimer.EXPECT().GetFromTokenString(tokenString).Return(nil, nil, errors.New("oops"))
+
+				// Finally, we set the client cookie for "token" as the JWT we just generated
+				// we also set an expiry time which is the same as the token itself
+				r.AddCookie(&http.Cookie{
+					Name:  "token",
+					Value: tokenString,
+				})
+			},
+		},
+		{
 			body:         bytes.NewBufferString(""),
 			name:         "list handler responds with Status Code 400 given limit param is invalid int",
 			method:       http.MethodGet,
