@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/assert/v2"
 	"github.com/golang/mock/gomock"
@@ -148,42 +149,44 @@ func TestJWTWelcomeHandler(t *testing.T) {
 		responseCode      int
 		route             string
 		expectedBody      string
-		setupExpectations func(claimer security.MockClaimer, r *http.Request, rr *httptest.ResponseRecorder)
+		setupExpectations func(claimer *security.MockClaimer, r *http.Request, rr *httptest.ResponseRecorder)
 	}{
 		{
 			name:         "welcome handler given no token cookie will respond with status unauthorized",
 			responseCode: http.StatusUnauthorized,
 			route:        "/welcome/",
 			expectedBody: "",
-			setupExpectations: func(claimer security.MockClaimer, r *http.Request, rr *httptest.ResponseRecorder) {
+			setupExpectations: func(claimer *security.MockClaimer, r *http.Request, rr *httptest.ResponseRecorder) {
 				cookies := r.Cookies()
 				if len(cookies) > 0 {
 					t.Fatal("expected no cookies in request scenario")
 				}
 			},
 		},
-		// {
-		// 	name:         "welcome handler given valid token cookie will respond with status ok",
-		// 	responseCode: http.StatusOK,
-		// 	route:        "/welcome/",
-		// 	expectedBody: "Welcome valid!",
-		// 	setupExpectations: func(claimer security.MockClaimer, r *http.Request, rr *httptest.ResponseRecorder) {
-		// 		tokenString := "mocktoken"
-		// 		claimsValidator := security.ClaimsValidator{}
-		// 		claimToken := &security.ClaimToken{}
-		// 		claimer.EXPECT().ParseWithClaims(tokenString, claimsValidator, func(*jwt.Token) (interface{}, error) {
-		// 			return gomock.Any(), nil
-		// 		}).Return(
-		// 			claimToken, nil,
-		// 		)
-		// 		// Finally, we set the client cookie for "token" as the JWT we just generated
-		// 		// we also set an expiry time which is the same as the token itself
-		// 		r.AddCookie(&http.Cookie{
-		// 			Name:  "token",
-		// 			Value: tokenString,
-		// 		})
-		// 	},
-		// },
+		{
+			name:         "welcome handler given valid token cookie will respond with status ok",
+			responseCode: http.StatusOK,
+			route:        "/welcome/",
+			expectedBody: "Welcome valid!",
+			setupExpectations: func(claimer *security.MockClaimer, r *http.Request, rr *httptest.ResponseRecorder) {
+				tokenString := "mocktoken"
+				usernameClaims := security.NewUsernameClaims()
+				usernameClaims.Username = "valid"
+				claimToken := &security.ClaimToken{
+					Token: &jwt.Token{
+						Valid: true,
+					},
+				}
+				claimer.EXPECT().GetFromTokenString(tokenString).Return(claimToken, usernameClaims, nil)
+
+				// Finally, we set the client cookie for "token" as the JWT we just generated
+				// we also set an expiry time which is the same as the token itself
+				r.AddCookie(&http.Cookie{
+					Name:  "token",
+					Value: tokenString,
+				})
+			},
+		},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
@@ -200,7 +203,7 @@ func TestJWTWelcomeHandler(t *testing.T) {
 			responseRecorder := httptest.NewRecorder()
 
 			request := httptest.NewRequest(http.MethodGet, test.route, nil)
-			test.setupExpectations(*mockClaimer, request, responseRecorder)
+			test.setupExpectations(mockClaimer, request, responseRecorder)
 
 			// Act
 			router.ServeHTTP(responseRecorder, request)

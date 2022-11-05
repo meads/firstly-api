@@ -11,12 +11,32 @@ import (
 	"testing"
 	"time"
 
+	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/assert/v2"
 	"github.com/golang/mock/gomock"
 	"github.com/meads/firstly-api/db"
 	"github.com/meads/firstly-api/security"
 )
+
+func passClaimsMiddleware(r *http.Request, claimer *security.MockClaimer, hasher *security.MockHasher, store *db.MockStore) {
+	tokenString := "mocktoken"
+	usernameClaims := security.NewUsernameClaims()
+	usernameClaims.Username = "valid"
+	claimToken := &security.ClaimToken{
+		Token: &jwt.Token{
+			Valid: true,
+		},
+	}
+	claimer.EXPECT().GetFromTokenString(tokenString).Return(claimToken, usernameClaims, nil)
+
+	// Finally, we set the client cookie for "token" as the JWT we just generated
+	// we also set an expiry time which is the same as the token itself
+	r.AddCookie(&http.Cookie{
+		Name:  "token",
+		Value: tokenString,
+	})
+}
 
 func TestImageHandler(t *testing.T) {
 
@@ -27,7 +47,7 @@ func TestImageHandler(t *testing.T) {
 		responseCode      int
 		route             string
 		isList            bool
-		setupExpectations func(store *db.MockStore)
+		setupExpectations func(r *http.Request, claimer *security.MockClaimer, hasher *security.MockHasher, store *db.MockStore)
 	}{
 		{
 			body:         bytes.NewBufferString("{\"data\":\"test\"}"),
@@ -35,7 +55,8 @@ func TestImageHandler(t *testing.T) {
 			name:         "create handler responds with Status Code 200 when valid data supplied",
 			responseCode: http.StatusOK,
 			route:        "/image/",
-			setupExpectations: func(store *db.MockStore) {
+			setupExpectations: func(r *http.Request, claimer *security.MockClaimer, hasher *security.MockHasher, store *db.MockStore) {
+				passClaimsMiddleware(r, claimer, hasher, store)
 				store.EXPECT().CreateImage(gomock.Any(), "test").Return(
 					db.Image{
 						ID:      1,
@@ -51,7 +72,8 @@ func TestImageHandler(t *testing.T) {
 			method:       http.MethodPost,
 			responseCode: http.StatusBadRequest,
 			route:        "/image/",
-			setupExpectations: func(store *db.MockStore) {
+			setupExpectations: func(r *http.Request, claimer *security.MockClaimer, hasher *security.MockHasher, store *db.MockStore) {
+				passClaimsMiddleware(r, claimer, hasher, store)
 			},
 		},
 		{
@@ -60,7 +82,8 @@ func TestImageHandler(t *testing.T) {
 			method:       http.MethodPost,
 			responseCode: http.StatusInternalServerError,
 			route:        "/image/",
-			setupExpectations: func(store *db.MockStore) {
+			setupExpectations: func(r *http.Request, claimer *security.MockClaimer, hasher *security.MockHasher, store *db.MockStore) {
+				passClaimsMiddleware(r, claimer, hasher, store)
 				store.EXPECT().CreateImage(gomock.Any(), "server error").Return(db.Image{}, errors.New("oops"))
 			},
 		},
@@ -70,25 +93,30 @@ func TestImageHandler(t *testing.T) {
 			method:       http.MethodDelete,
 			responseCode: http.StatusOK,
 			route:        "/image/69/",
-			setupExpectations: func(store *db.MockStore) {
+			setupExpectations: func(r *http.Request, claimer *security.MockClaimer, hasher *security.MockHasher, store *db.MockStore) {
+				passClaimsMiddleware(r, claimer, hasher, store)
 				store.EXPECT().DeleteImage(gomock.Any(), int64(69)).Return(nil)
 			},
 		},
 		{
-			body:              bytes.NewBufferString(""),
-			name:              "delete handler responds with Status Code 400 given param id not supplied",
-			method:            http.MethodDelete,
-			responseCode:      http.StatusBadRequest,
-			route:             "/image//",
-			setupExpectations: func(store *db.MockStore) {},
+			body:         bytes.NewBufferString(""),
+			name:         "delete handler responds with Status Code 400 given param id not supplied",
+			method:       http.MethodDelete,
+			responseCode: http.StatusBadRequest,
+			route:        "/image//",
+			setupExpectations: func(r *http.Request, claimer *security.MockClaimer, hasher *security.MockHasher, store *db.MockStore) {
+				passClaimsMiddleware(r, claimer, hasher, store)
+			},
 		},
 		{
-			body:              bytes.NewBufferString(""),
-			name:              "delete handler responds with Status Code 400 given param id is not a valid integer",
-			method:            http.MethodDelete,
-			responseCode:      http.StatusBadRequest,
-			route:             "/image/invalid/",
-			setupExpectations: func(store *db.MockStore) {},
+			body:         bytes.NewBufferString(""),
+			name:         "delete handler responds with Status Code 400 given param id is not a valid integer",
+			method:       http.MethodDelete,
+			responseCode: http.StatusBadRequest,
+			route:        "/image/invalid/",
+			setupExpectations: func(r *http.Request, claimer *security.MockClaimer, hasher *security.MockHasher, store *db.MockStore) {
+				passClaimsMiddleware(r, claimer, hasher, store)
+			},
 		},
 		{
 			body:         bytes.NewBufferString(""),
@@ -96,25 +124,30 @@ func TestImageHandler(t *testing.T) {
 			method:       http.MethodDelete,
 			responseCode: http.StatusInternalServerError,
 			route:        "/image/69/",
-			setupExpectations: func(store *db.MockStore) {
+			setupExpectations: func(r *http.Request, claimer *security.MockClaimer, hasher *security.MockHasher, store *db.MockStore) {
+				passClaimsMiddleware(r, claimer, hasher, store)
 				store.EXPECT().DeleteImage(gomock.Any(), int64(69)).Return(errors.New("oops"))
 			},
 		},
 		{
-			body:              bytes.NewBufferString(""),
-			name:              "list handler responds with Status Code 400 given limit param is invalid int",
-			method:            http.MethodGet,
-			responseCode:      http.StatusBadRequest,
-			route:             "/image/?limit=invalid",
-			setupExpectations: func(store *db.MockStore) {},
+			body:         bytes.NewBufferString(""),
+			name:         "list handler responds with Status Code 400 given limit param is invalid int",
+			method:       http.MethodGet,
+			responseCode: http.StatusBadRequest,
+			route:        "/image/?limit=invalid",
+			setupExpectations: func(r *http.Request, claimer *security.MockClaimer, hasher *security.MockHasher, store *db.MockStore) {
+				passClaimsMiddleware(r, claimer, hasher, store)
+			},
 		},
 		{
-			body:              bytes.NewBufferString(""),
-			name:              "list handler responds with Status Code 400 given offset param is invalid int",
-			method:            http.MethodGet,
-			responseCode:      http.StatusBadRequest,
-			route:             "/image/?offset=invalid",
-			setupExpectations: func(store *db.MockStore) {},
+			body:         bytes.NewBufferString(""),
+			name:         "list handler responds with Status Code 400 given offset param is invalid int",
+			method:       http.MethodGet,
+			responseCode: http.StatusBadRequest,
+			route:        "/image/?offset=invalid",
+			setupExpectations: func(r *http.Request, claimer *security.MockClaimer, hasher *security.MockHasher, store *db.MockStore) {
+				passClaimsMiddleware(r, claimer, hasher, store)
+			},
 		},
 		{
 			body:         bytes.NewBufferString(""),
@@ -122,7 +155,8 @@ func TestImageHandler(t *testing.T) {
 			method:       http.MethodGet,
 			responseCode: http.StatusInternalServerError,
 			route:        "/image/",
-			setupExpectations: func(store *db.MockStore) {
+			setupExpectations: func(r *http.Request, claimer *security.MockClaimer, hasher *security.MockHasher, store *db.MockStore) {
+				passClaimsMiddleware(r, claimer, hasher, store)
 				params := db.ListImagesParams{Limit: 50, Offset: 0}
 				store.EXPECT().ListImages(gomock.Any(), params).Return([]db.Image{}, errors.New("oops."))
 			},
@@ -134,7 +168,8 @@ func TestImageHandler(t *testing.T) {
 			responseCode: http.StatusOK,
 			route:        "/image/",
 			isList:       true,
-			setupExpectations: func(store *db.MockStore) {
+			setupExpectations: func(r *http.Request, claimer *security.MockClaimer, hasher *security.MockHasher, store *db.MockStore) {
+				passClaimsMiddleware(r, claimer, hasher, store)
 				params := db.ListImagesParams{Limit: 50, Offset: 0}
 				store.EXPECT().ListImages(gomock.Any(), params).Return([]db.Image{
 					{
@@ -152,7 +187,8 @@ func TestImageHandler(t *testing.T) {
 			name:         "update handler responds with Status Code 200 when valid data supplied",
 			responseCode: http.StatusOK,
 			route:        "/image/",
-			setupExpectations: func(store *db.MockStore) {
+			setupExpectations: func(r *http.Request, claimer *security.MockClaimer, hasher *security.MockHasher, store *db.MockStore) {
+				passClaimsMiddleware(r, claimer, hasher, store)
 				params := db.UpdateImageParams{ID: int64(69), Memo: "memo test"}
 				store.EXPECT().GetImage(gomock.Any(), params.ID).Return(db.Image{
 					ID:   int64(69),
@@ -162,12 +198,14 @@ func TestImageHandler(t *testing.T) {
 			},
 		},
 		{
-			body:              bytes.NewBufferString("{\"id\":69}"),
-			method:            http.MethodPatch,
-			name:              "update handler responds with Status Code 400 when invalid data supplied",
-			responseCode:      http.StatusBadRequest,
-			route:             "/image/",
-			setupExpectations: func(store *db.MockStore) {},
+			body:         bytes.NewBufferString("{\"id\":69}"),
+			method:       http.MethodPatch,
+			name:         "update handler responds with Status Code 400 when invalid data supplied",
+			responseCode: http.StatusBadRequest,
+			route:        "/image/",
+			setupExpectations: func(r *http.Request, claimer *security.MockClaimer, hasher *security.MockHasher, store *db.MockStore) {
+				passClaimsMiddleware(r, claimer, hasher, store)
+			},
 		},
 		{
 			body:         bytes.NewBufferString("{\"id\":68, \"memo\":\"memo test\"}"),
@@ -175,7 +213,8 @@ func TestImageHandler(t *testing.T) {
 			name:         "update handler responds with Status Code 404 when record not found",
 			responseCode: http.StatusNotFound,
 			route:        "/image/",
-			setupExpectations: func(store *db.MockStore) {
+			setupExpectations: func(r *http.Request, claimer *security.MockClaimer, hasher *security.MockHasher, store *db.MockStore) {
+				passClaimsMiddleware(r, claimer, hasher, store)
 				params := db.UpdateImageParams{ID: int64(68), Memo: "memo test"}
 				store.EXPECT().GetImage(gomock.Any(), params.ID).Return(db.Image{}, sql.ErrNoRows)
 			},
@@ -186,7 +225,8 @@ func TestImageHandler(t *testing.T) {
 			name:         "update handler responds with Status Code 500 when server error on get before update",
 			responseCode: http.StatusInternalServerError,
 			route:        "/image/",
-			setupExpectations: func(store *db.MockStore) {
+			setupExpectations: func(r *http.Request, claimer *security.MockClaimer, hasher *security.MockHasher, store *db.MockStore) {
+				passClaimsMiddleware(r, claimer, hasher, store)
 				params := db.UpdateImageParams{ID: int64(68), Memo: "memo test"}
 				store.EXPECT().GetImage(gomock.Any(), params.ID).Return(db.Image{}, errors.New("oops"))
 			},
@@ -197,7 +237,8 @@ func TestImageHandler(t *testing.T) {
 			name:         "update handler responds with Status Code 500 when server error on update",
 			responseCode: http.StatusInternalServerError,
 			route:        "/image/",
-			setupExpectations: func(store *db.MockStore) {
+			setupExpectations: func(r *http.Request, claimer *security.MockClaimer, hasher *security.MockHasher, store *db.MockStore) {
+				passClaimsMiddleware(r, claimer, hasher, store)
 				params := db.UpdateImageParams{ID: int64(69), Memo: "memo test"}
 				store.EXPECT().GetImage(gomock.Any(), params.ID).Return(db.Image{
 					ID:   int64(69),
@@ -214,17 +255,18 @@ func TestImageHandler(t *testing.T) {
 			gin.SetMode(gin.TestMode)
 			ctrl := gomock.NewController(t)
 
-			mockStore := db.NewMockStore(ctrl)
-			mockHasher := security.NewMockHasher(ctrl)
 			mockClaimer := security.NewMockClaimer(ctrl)
-
-			test.setupExpectations(mockStore)
+			mockHasher := security.NewMockHasher(ctrl)
+			mockStore := db.NewMockStore(ctrl)
 
 			NewFirstlyServer(mockClaimer, mockHasher, router, mockStore)
 			responseRecorder := httptest.NewRecorder()
 
 			// Act
 			request := httptest.NewRequest(test.method, test.route, test.body)
+
+			test.setupExpectations(request, mockClaimer, mockHasher, mockStore)
+
 			router.ServeHTTP(responseRecorder, request)
 
 			result := responseRecorder.Result()

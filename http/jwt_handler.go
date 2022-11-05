@@ -3,12 +3,10 @@ package http
 import (
 	"fmt"
 	"net/http"
-	"os"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
-	"github.com/meads/firstly-api/security"
 )
 
 // Create a struct that models the structure of a user, both in the request body, and in the DB
@@ -27,13 +25,7 @@ func claimsMiddleware(h gin.HandlerFunc) gin.HandlerFunc {
 		}
 
 		// Get the JWT string from the cookie
-		tokenString := c.Value
-		claims := &security.ClaimsValidator{}
-
-		tkn, err := firstly.claimer.ParseWithClaims(tokenString, *claims, func(token *jwt.Token) (interface{}, error) {
-			return []byte(os.Getenv("SECRET")), nil
-		})
-
+		claimToken, _, err := firstly.claimer.GetFromTokenString(c.Value)
 		if err != nil {
 			if err == jwt.ErrSignatureInvalid {
 				ctx.Writer.WriteHeader(http.StatusUnauthorized)
@@ -42,7 +34,7 @@ func claimsMiddleware(h gin.HandlerFunc) gin.HandlerFunc {
 			ctx.Writer.WriteHeader(http.StatusBadRequest)
 			return
 		}
-		if !tkn.Valid {
+		if !claimToken.Valid {
 			ctx.Writer.WriteHeader(http.StatusUnauthorized)
 			return
 		}
@@ -104,14 +96,7 @@ func welcomeHandler(ctx *gin.Context) {
 		ctx.Writer.WriteHeader(http.StatusUnauthorized)
 		return
 	}
-
-	// Get the JWT string from the cookie
-	tokenString := c.Value
-	claims := &security.ClaimsValidator{}
-
-	tkn, err := firstly.claimer.ParseWithClaims(tokenString, *claims, func(token *jwt.Token) (interface{}, error) {
-		return []byte(os.Getenv("SECRET")), nil
-	})
+	token, usernameClaims, err := firstly.claimer.GetFromTokenString(c.Value)
 
 	if err != nil {
 		if err == jwt.ErrSignatureInvalid {
@@ -121,12 +106,12 @@ func welcomeHandler(ctx *gin.Context) {
 		ctx.Writer.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	if !tkn.Valid {
+	if !token.Valid {
 		ctx.Writer.WriteHeader(http.StatusUnauthorized)
 		return
 	}
 	// Return the welcome message to the user, along with their username
-	ctx.Writer.Write([]byte(fmt.Sprintf("cWelcome %s!", claims.Username)))
+	ctx.Writer.Write([]byte(fmt.Sprintf("Welcome %s!", usernameClaims.Username)))
 }
 
 func refreshHandler(ctx *gin.Context) {
@@ -140,13 +125,9 @@ func refreshHandler(ctx *gin.Context) {
 		ctx.Writer.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	tokenString := c.Value
-	claims := &security.ClaimsValidator{}
 
-	tkn, err := firstly.claimer.ParseWithClaims(tokenString, *claims, func(token *jwt.Token) (interface{}, error) {
-		return []byte(os.Getenv("SECRET")), nil
-	})
-	if !tkn.Valid {
+	claimToken, usernameClaims, err := firstly.claimer.GetFromTokenString(c.Value)
+	if !claimToken.Valid {
 		ctx.Writer.WriteHeader(http.StatusUnauthorized)
 		return
 	}
@@ -163,13 +144,13 @@ func refreshHandler(ctx *gin.Context) {
 	// We ensure that a new token is not issued until enough time has elapsed
 	// In this case, a new token will only be issued if the old token is within
 	// 30 seconds of expiry. Otherwise, return a bad request status
-	if time.Unix(claims.ExpiresAt, 0).Sub(time.Now()) > 30*time.Second {
+	if time.Unix(usernameClaims.ExpiresAt, 0).Sub(time.Now()) > 30*time.Second {
 		ctx.Writer.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
 	// Now, create a new token for the current use, with a renewed expiration time
-	tokenString, expirationTime, err := firstly.claimer.GetFiveMinuteExpirationToken(claims.Username)
+	tokenString, expirationTime, err := firstly.claimer.GetFiveMinuteExpirationToken(usernameClaims.Username)
 	if err != nil {
 		ctx.Writer.WriteHeader(http.StatusInternalServerError)
 		return

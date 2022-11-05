@@ -65,8 +65,24 @@ func (mr *MockClaimerMockRecorder) GetFiveMinuteExpirationToken(arg0 interface{}
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFiveMinuteExpirationToken", reflect.TypeOf((*MockClaimer)(nil).GetFiveMinuteExpirationToken), arg0)
 }
 
+// GetFromTokenString mocks base method.
+func (m *MockClaimer) GetFromTokenString(arg0 string) (*ClaimToken, *UsernameClaims, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetFromTokenString", arg0)
+	ret0, _ := ret[0].(*ClaimToken)
+	ret1, _ := ret[1].(*UsernameClaims)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// GetFromTokenString indicates an expected call of GetFromTokenString.
+func (mr *MockClaimerMockRecorder) GetFromTokenString(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFromTokenString", reflect.TypeOf((*MockClaimer)(nil).GetFromTokenString), arg0)
+}
+
 // ParseWithClaims mocks base method.
-func (m *MockClaimer) ParseWithClaims(arg0 string, arg1 ClaimsValidator, arg2 jwt_go.Keyfunc) (*ClaimToken, error) {
+func (m *MockClaimer) ParseWithClaims(arg0 string, arg1 *UsernameClaims, arg2 jwt_go.Keyfunc) (*ClaimToken, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ParseWithClaims", arg0, arg1, arg2)
 	ret0, _ := ret[0].(*ClaimToken)

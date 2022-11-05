@@ -42,7 +42,7 @@ func main() {
 
 	fmt.Print("\nmigrations were a success. 🎉\n")
 
-	claimer := security.NewClaims()
+	claimer := security.NewClaimsValidator()
 	hasher := security.NewHasher()
 	router := gin.Default()
 	store := db.NewStore(conn)

@@ -15,31 +15,45 @@ func (token *ClaimToken) SignedString(key interface{}) (string, error) {
 	return token.Token.SignedString(key)
 }
 
-type ClaimsValidator struct {
+type UsernameClaims struct {
 	Username string `json:"username"`
 	*jwt.StandardClaims
 }
 
-type Claims struct {
-	// token     ClaimToken
+func NewUsernameClaims() *UsernameClaims {
+	return &UsernameClaims{
+		StandardClaims: &jwt.StandardClaims{},
+	}
+}
+
+type ClaimsValidator struct {
 	signer    jwt.SigningMethod
 	validator jwt.Claims
 }
 
 type Claimer interface {
-	// NewWithClaims(method MethodSigner, claims ClaimValidator) *ClaimToken
-	GetFiveMinuteExpirationToken(username string) (string, time.Time, error)
 	GetClaimToken() *ClaimToken
-	ParseWithClaims(tokenString string, claims ClaimsValidator, keyFunc jwt.Keyfunc) (*ClaimToken, error)
+	GetFiveMinuteExpirationToken(username string) (string, time.Time, error)
+	GetFromTokenString(tokenString string) (*ClaimToken, *UsernameClaims, error)
+	ParseWithClaims(tokenString string, claims *UsernameClaims, keyFunc jwt.Keyfunc) (*ClaimToken, error)
 }
 
-func NewClaims() Claimer {
-	return &Claims{
+func NewClaimsValidator() Claimer {
+	return &ClaimsValidator{
 		signer: jwt.SigningMethodHS256,
 	}
 }
 
-func (c *Claims) GetClaimToken() *ClaimToken {
+func (c *ClaimsValidator) GetFromTokenString(tokenString string) (*ClaimToken, *UsernameClaims, error) {
+	// Get the JWT string from the cookie
+	usernameClaims := NewUsernameClaims()
+	claimToken, err := c.ParseWithClaims(tokenString, usernameClaims, func(token *jwt.Token) (interface{}, error) {
+		return []byte(os.Getenv("SECRET")), nil
+	})
+	return claimToken, usernameClaims, err
+}
+
+func (c *ClaimsValidator) GetClaimToken() *ClaimToken {
 	return &ClaimToken{
 		&jwt.Token{
 			Header: map[string]interface{}{
@@ -52,15 +66,15 @@ func (c *Claims) GetClaimToken() *ClaimToken {
 	}
 }
 
-func (c *Claims) ParseWithClaims(tokenString string, claims ClaimsValidator, keyFunc jwt.Keyfunc) (*ClaimToken, error) {
-	t, err := jwt.ParseWithClaims(tokenString, &claims, keyFunc)
+func (c *ClaimsValidator) ParseWithClaims(tokenString string, claims *UsernameClaims, keyFunc jwt.Keyfunc) (*ClaimToken, error) {
+	t, err := jwt.ParseWithClaims(tokenString, claims, keyFunc)
 	return &ClaimToken{t}, err
 }
 
-func (c *Claims) GetFiveMinuteExpirationToken(username string) (string, time.Time, error) {
+func (c *ClaimsValidator) GetFiveMinuteExpirationToken(username string) (string, time.Time, error) {
 	expirationTime := time.Now().Add(5 * time.Minute)
 	// Create the JWT claims, which includes the username and expiry time
-	claimsValidator := &ClaimsValidator{
+	claimsValidator := &UsernameClaims{
 		Username: username,
 		StandardClaims: &jwt.StandardClaims{
 			// In JWT, the expiry time is expressed as unix milliseconds
