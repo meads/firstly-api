@@ -101,7 +101,7 @@ func (q *Queries) GetAccountByUsername(ctx context.Context, username string) (Ac
 }
 
 const listAccounts = `-- name: ListAccounts :many
-SELECT id, username, phrase, salt, created, updated, deleted FROM account LIMIT $1 OFFSET $2
+SELECT id, username, created, deleted FROM account LIMIT $1 OFFSET $2
 `
 
 type ListAccountsParams struct {
@@ -109,22 +109,26 @@ type ListAccountsParams struct {
 	Offset int32 `json:"offset"`
 }
 
-func (q *Queries) ListAccounts(ctx context.Context, arg ListAccountsParams) ([]Account, error) {
+type ListAccountsRow struct {
+	ID       int64  `json:"id"`
+	Username string `json:"username"`
+	Created  string `json:"created"`
+	Deleted  bool   `json:"deleted"`
+}
+
+func (q *Queries) ListAccounts(ctx context.Context, arg ListAccountsParams) ([]ListAccountsRow, error) {
 	rows, err := q.db.QueryContext(ctx, listAccounts, arg.Limit, arg.Offset)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	items := []Account{}
+	items := []ListAccountsRow{}
 	for rows.Next() {
-		var i Account
+		var i ListAccountsRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.Username,
-			&i.Phrase,
-			&i.Salt,
 			&i.Created,
-			&i.Updated,
 			&i.Deleted,
 		); err != nil {
 			return nil, err

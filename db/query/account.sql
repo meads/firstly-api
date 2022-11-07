@@ -10,7 +10,7 @@ SELECT * FROM account
 WHERE username = $1 LIMIT 1;
 
 -- name: ListAccounts :many
-SELECT * FROM account LIMIT $1 OFFSET $2;
+SELECT id, username, created, deleted FROM account LIMIT $1 OFFSET $2;
 
 -- name: CreateAccount :one
 INSERT INTO account (

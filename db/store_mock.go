@@ -153,10 +153,10 @@ func (mr *MockStoreMockRecorder) GetImage(arg0, arg1 interface{}) *gomock.Call {
 }
 
 // ListAccounts mocks base method.
-func (m *MockStore) ListAccounts(arg0 context.Context, arg1 ListAccountsParams) ([]Account, error) {
+func (m *MockStore) ListAccounts(arg0 context.Context, arg1 ListAccountsParams) ([]ListAccountsRow, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListAccounts", arg0, arg1)
-	ret0, _ := ret[0].([]Account)
+	ret0, _ := ret[0].([]ListAccountsRow)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

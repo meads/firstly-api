@@ -17,7 +17,7 @@ type Querier interface {
 	GetAccount(ctx context.Context, id int64) (Account, error)
 	GetAccountByUsername(ctx context.Context, username string) (Account, error)
 	GetImage(ctx context.Context, id int64) (Image, error)
-	ListAccounts(ctx context.Context, arg ListAccountsParams) ([]Account, error)
+	ListAccounts(ctx context.Context, arg ListAccountsParams) ([]ListAccountsRow, error)
 	ListImages(ctx context.Context, arg ListImagesParams) ([]Image, error)
 	SoftDeleteAccount(ctx context.Context, id int64) error
 	SoftDeleteImage(ctx context.Context, id int64) error

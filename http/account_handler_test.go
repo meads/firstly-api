@@ -196,7 +196,7 @@ func TestAccountHandler(t *testing.T) {
 			route:        "/account/",
 			setupExpectations: func(store *db.MockStore, hasher *security.MockHasher, claimer *security.MockClaimer) {
 				params := db.ListAccountsParams{Limit: 50, Offset: 0}
-				store.EXPECT().ListAccounts(gomock.Any(), params).Return([]db.Account{}, errors.New("oops."))
+				store.EXPECT().ListAccounts(gomock.Any(), params).Return([]db.ListAccountsRow{}, errors.New("oops."))
 			},
 		},
 		{
@@ -208,7 +208,7 @@ func TestAccountHandler(t *testing.T) {
 			isList:       true,
 			setupExpectations: func(store *db.MockStore, hasher *security.MockHasher, claimer *security.MockClaimer) {
 				params := db.ListAccountsParams{Limit: 50, Offset: 0}
-				store.EXPECT().ListAccounts(gomock.Any(), params).Return([]db.Account{
+				store.EXPECT().ListAccounts(gomock.Any(), params).Return([]db.ListAccountsRow{
 					{ID: 69, Username: "foo", Created: "", Deleted: false},
 				}, nil)
 			},
@@ -235,7 +235,6 @@ func TestAccountHandler(t *testing.T) {
 			responseCode: http.StatusBadRequest,
 			route:        "/account/",
 			setupExpectations: func(store *db.MockStore, hasher *security.MockHasher, claimer *security.MockClaimer) {
-
 			},
 		},
 		{

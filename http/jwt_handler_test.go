@@ -113,6 +113,38 @@ func TestJWTSignInHandler(t *testing.T) {
 				})
 			},
 		},
+		{
+			body:         bytes.NewBufferString("{\"phrase\":\"valid\",\"username\":\"valid\"}"),
+			method:       http.MethodPost,
+			name:         "signin handler given an error with call to GetFiveMinuteExpirationToken is encountered, 500 status code is the response",
+			responseCode: http.StatusInternalServerError,
+			route:        "/signin/",
+			setupExpectations: func(store *db.MockStore, hasher *security.MockHasher, claimer *security.MockClaimer, rr *httptest.ResponseRecorder, r *http.Request) {
+				expectedAccount := db.Account{
+					Username: "valid",
+					Phrase:   []byte("valid"),
+					Salt:     "salt",
+				}
+				store.EXPECT().GetAccountByUsername(gomock.Any(), expectedAccount.Username).
+					Return(expectedAccount, nil)
+				hasher.EXPECT().IsValidPassword(expectedAccount.Phrase, expectedAccount.Salt, "valid").
+					Return(true, nil)
+
+				// Create the JWT claims, which includes the username and expiry time
+				tokenString := "mocktoken"
+				expirationTime := time.Now().Add(5 * time.Minute)
+				claimer.EXPECT().GetFiveMinuteExpirationToken(expectedAccount.Username).
+					Return("", time.Time{}, errors.New("oops"))
+
+				// Finally, we set the client cookie for "token" as the JWT we just generated
+				// we also set an expiry time which is the same as the token itself
+				r.AddCookie(&http.Cookie{
+					Name:    "token",
+					Value:   tokenString,
+					Expires: expirationTime,
+				})
+			},
+		},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
