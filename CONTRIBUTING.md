@@ -10,15 +10,10 @@ $ make build
 ```
 ## test
 ```bash
-$ make test
-```
-## clean
-```bash
-$ make clean
+$ make verify
 ```
 
 ## deploy
 ```bash
 $ make deploy
 ```
-

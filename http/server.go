@@ -27,9 +27,9 @@ func NewFirstlyServer(claimer security.Claimer, hasher security.Hasher, router *
 	firstly.router.POST("/refresh/", refreshHandler)
 
 	firstly.router.POST("/account/", createAccountHandler)
-	firstly.router.GET("/account/", listAccountsHandler)
-	firstly.router.PATCH("/account/", updateAccountHandler)
-	firstly.router.DELETE("/account/:id/", deleteAccountHandler)
+	firstly.router.GET("/account/", claimsMiddleware(listAccountsHandler))
+	firstly.router.PATCH("/account/", claimsMiddleware(updateAccountHandler))
+	firstly.router.DELETE("/account/:id/", claimsMiddleware(deleteAccountHandler))
 
 	firstly.router.GET("/image/", claimsMiddleware(listImagesHandler))
 	firstly.router.POST("/image/", claimsMiddleware(createImageHandler(store)))

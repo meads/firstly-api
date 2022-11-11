@@ -1,16 +1,30 @@
-// Create Account - returns initial token=
-curl -v -d '{"username":"bob","phrase":"130137"}' http://localhost:5000/account/
 
-// Sign in - returns Set-Token header populated with token=
-curl -v --cookie "token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImJvYiIsImV4cCI6MTY2NzE1ODQxMn0.d5WA6FOCl_kU4PjP1x0fpsumIPWpSQEn4Fo3MZVuCok" \ 
- -d '{"username":"bob","phrase":"13013"}' http://localhost:5000/signin/
+DELETE /account/ 
+GET    /account/
+PATCH  /account/
+POST   /account/
+    // Create Account - returns initial token=
+    curl -v -d '{"username":"bob","phrase":"130137"}' http://localhost:5000/account/
 
-// Welcome - can be used if the session cookie is still valid which will issue a new token cookie if needed.
+DELETE /image/
+GET    /image/
+    // Image - Fetch images list; should check that the jwt is still valid before requesting data using the claimer.
+    curl -v -X GET --cookie \ 
+      "token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImJvYiIsImV4cCI6MTY2NzE1ODQxMn0.d5WA6FOCl_kU4PjP1x0fpsumIPWpSQEn4Fo3MZVuCok" \
+      http://localhost:5000/image/
 
-// Image - Fetch images list; should check that the jwt is still valid before requesting data using the claimer.
+PATCH  /image/
+POST   /image/
+    // Image - Create image
+    curl -v --cookie \ 
+     "token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImJvYiIsImV4cCI6MTY2NzE1ODQxMn0.d5WA6FOCl_kU4PjP1x0fpsumIPWpSQEn4Fo3MZVuCok" \
+     -d '{"data":"somefoo"}' http://localhost:5000/image/
 
-// Image - Create image
-curl -v --cookie "token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImJvYiIsImV4cCI6MTY2NzE1ODQxMn0.d5WA6FOCl_kU4PjP1x0fpsumIPWpSQEn4Fo3MZVuCok" \
- -d '{"data":"somefoo"}' http://localhost:5000/image/
-    
+POST   /refresh/
+POST   /signin/
+    // Sign in - returns Set-Token header populated with token=
+    curl -v --cookie "token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImJvYiIsImV4cCI6MTY2NzE1ODQxMn0.d5WA6FOCl_kU4PjP1x0fpsumIPWpSQEn4Fo3MZVuCok" \ 
+    -d '{"username":"bob","phrase":"13013"}' http://localhost:5000/signin/
 
+GET    /welcome/
+    // Welcome - can be used if the session cookie is still valid which will issue a new token cookie if needed.
