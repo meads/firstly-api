@@ -2,20 +2,21 @@ GO_BUILD_ENV := CGO_ENABLED=0 GOOS=linux GOARCH=amd64
 DOCKER_BUILD=$(shell pwd)/.docker_build
 DOCKER_CMD=$(DOCKER_BUILD)/firstly-api
 
-clean:
-	@rm -rf $(DOCKER_BUILD)
-	@mkdir -p $(DOCKER_BUILD)
+# clean:
+# 	@rm -rf $(DOCKER_BUILD)
+# 	@mkdir -p $(DOCKER_BUILD)
 
-build: clean
-	$(GO_BUILD_ENV) go build -v -o $(DOCKER_CMD) .
+# build: clean
+# 	$(GO_BUILD_ENV) go build -v -o $(DOCKER_CMD) .
 
 test:
-	@go test -v -coverprofile cover.out ./...
-	@go tool cover -html=cover.out
+	@go test -v ./...
+# 	@go test -v -coverprofile cover.out ./...
+# 	@go tool cover -html=cover.out
 
-login:
-	@heroku login
-	@heroku container:login
+# login:
+# 	@heroku login
+# 	@heroku container:login
 
 login-docker:
 	@docker login --username=resetheadhat@gmail.com --password=$$(heroku auth:token) registry.heroku.com
@@ -32,23 +33,25 @@ local-db-shell:
 local-db-psql:
 	@docker exec -it firstly-api_db_1 psql postgresql://postgres:password@localhost:5432/postgres
 
-scale-zero:
-	@heroku ps:scale web=0
+# scale-zero:
+# 	@heroku ps:scale web=0
 
 sqlc:
-	@sqlc version
-	@sqlc compile
-	@sqlc generate
+	@./bin/sqlc version
+	@./bin/sqlc compile
+	@./bin/sqlc generate
 
 tidy:
 	@go mod tidy
 
 mockgen:
-	@mockgen -package db -destination ./db/store_mock.go github.com/meads/firstly-api/db Store
-	@mockgen -package security -destination ./security/hmac_mock.go github.com/meads/firstly-api/security Hasher
-	@mockgen -package security -destination ./security/claims_mock.go github.com/meads/firstly-api/security Claimer
+# 	go tool mockgen -source=your_interface.go -destination=mocks/mock_your_interface.go -package=mocks
 
-verify: tidy sqlc mockgen build test
+	@go tool mockgen -package db -destination ./db/store_mock.go github.com/meads/firstly-api/db Store
+	@go tool mockgen -package security -destination ./security/hmac_mock.go github.com/meads/firstly-api/security Hasher
+	@go tool mockgen -package security -destination ./security/claims_mock.go github.com/meads/firstly-api/security Claimer
+
+verify: tidy sqlc mockgen test
 
 migrate-drop-recreate:
 	@go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
@@ -60,8 +63,7 @@ migrate-drop-recreate-local:
 	@migrate -path db/migration -database  postgres://postgres:password@localhost:5432/firstly?sslmode=disable drop
 	@migrate -path db/migration -database  postgres://postgres:password@localhost:5432/firstly?sslmode=disable up
 
-deploy:
-	@git push origin main
-	@heroku container:push web
-	@heroku container:release web
-
+# deploy:
+# 	@git push origin main
+# 	@heroku container:push web
+# 	@heroku container:release web

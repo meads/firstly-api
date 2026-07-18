@@ -2,7 +2,6 @@ package http
 
 import (
 	"database/sql"
-	"errors"
 	"net/http"
 	"strconv"
 
@@ -14,7 +13,7 @@ type createImageRequest struct {
 	Data string `json:"data" binding:"required"`
 }
 
-func createImageHandler(store db.Store) func(*gin.Context) {
+func createImageHandler(store db.Querier) func(*gin.Context) {
 	return func(ctx *gin.Context) {
 		var req createImageRequest
 		if err := ctx.BindJSON(&req); err != nil {
@@ -32,22 +31,31 @@ func createImageHandler(store db.Store) func(*gin.Context) {
 	}
 }
 
-func deleteImageHandler(store db.Store) func(*gin.Context) {
+func deleteImageHandler(store db.Querier) func(*gin.Context) {
 	return func(ctx *gin.Context) {
 		idParam := ctx.Param("id")
 		if idParam == "" {
-			ctx.AbortWithError(http.StatusBadRequest, errors.New("id parameter is required"))
+			ctx.JSON(http.StatusBadRequest, gin.H{
+				"error": "id parameter is required",
+			})
 			return
 		}
 		id, err := strconv.ParseInt(idParam, 10, 64)
 		if err != nil {
-			ctx.AbortWithError(http.StatusBadRequest, errors.New("id parameter must be a valid integer"))
+			ctx.JSON(http.StatusBadRequest, gin.H{
+				"error": "id parameter must be a valid integer",
+			})
 			return
 		}
 
 		err = store.DeleteImage(ctx, id)
 		if err != nil {
-			ctx.AbortWithError(http.StatusInternalServerError, err)
+			// log.Println("Database failed:", err)
+
+			ctx.JSON(http.StatusInternalServerError, gin.H{
+				"error": "Internal Server Error",
+			})
+
 			return
 		}
 
@@ -70,21 +78,33 @@ var getLimitAndOffset = func(ctx *gin.Context) (string, string) {
 
 func listImagesHandler(ctx *gin.Context) {
 	limit, offset := getLimitAndOffset(ctx)
+
 	i, err := strconv.ParseInt(limit, 10, 32)
 	if err != nil {
-		ctx.AbortWithError(http.StatusBadRequest, errors.New("error parsing limit as int"))
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"error": "error parsing limit as int",
+		})
+
 		return
 	}
 
 	j, err := strconv.ParseInt(offset, 10, 32)
 	if err != nil {
-		ctx.AbortWithError(http.StatusBadRequest, errors.New("error parsing offset as int"))
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"error": "error parsing offset as int",
+		})
+
 		return
 	}
 
 	images, err := firstly.store.ListImages(ctx, db.ListImagesParams{Limit: int32(i), Offset: int32(j)})
 	if err != nil {
-		ctx.AbortWithError(http.StatusInternalServerError, err)
+		// log.Println("Database failed:", err)
+
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Internal Server Error",
+		})
+
 		return
 	}
 
@@ -97,7 +117,7 @@ type updateImageRequest struct {
 	Memo string `json:"memo" binding:"required"`
 }
 
-func updateImageHandler(store db.Store) func(ctx *gin.Context) {
+func updateImageHandler(store db.Querier) func(ctx *gin.Context) {
 	return func(ctx *gin.Context) {
 		var req updateImageRequest
 		if err := ctx.BindJSON(&req); err != nil {

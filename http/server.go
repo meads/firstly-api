@@ -10,13 +10,13 @@ type FirstlyServer struct {
 	claimer security.Claimer
 	hasher  security.Hasher
 	router  *gin.Engine
-	store   db.Store
+	store   db.Querier
 }
 
 var firstly = &FirstlyServer{}
 
 // NewFirstlyAPI creates a new Http Server and sets up routing.
-func NewFirstlyServer(claimer security.Claimer, hasher security.Hasher, router *gin.Engine, store db.Store) *FirstlyServer {
+func NewFirstlyServer(claimer security.Claimer, hasher security.Hasher, router *gin.Engine, store db.Querier) *FirstlyServer {
 	firstly.claimer = claimer
 	firstly.hasher = hasher
 	firstly.router = router

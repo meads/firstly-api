@@ -39,9 +39,13 @@ func createAccountHandler(ctx *gin.Context) {
 
 	phrase, err := firstly.hasher.GeneratePasswordHash([]byte(req.Phrase), param.Salt)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, errorResponse(errors.New("account creation failed")))
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
+	// if err != nil {
+	// 	ctx.JSON(http.StatusInternalServerError, errorResponse(errors.New("account creation failed")))
+	// 	return
+	// }
 	param.Phrase = phrase
 
 	account, err := firstly.store.CreateAccount(ctx, param)
@@ -74,18 +78,26 @@ type loginAccountRequest struct {
 func deleteAccountHandler(ctx *gin.Context) {
 	idParam := ctx.Param("id")
 	if idParam == "" {
-		ctx.AbortWithError(http.StatusBadRequest, errors.New("id parameter is required"))
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"error": "id parameter is required",
+		})
+
 		return
 	}
 	id, err := strconv.ParseInt(idParam, 10, 64)
 	if err != nil {
-		ctx.AbortWithError(http.StatusBadRequest, errors.New("id parameter must be a valid integer"))
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"error": "id parameter must be a valid integer",
+		})
+
 		return
 	}
 
 	err = firstly.store.DeleteAccount(ctx, id)
 	if err != nil {
-		ctx.AbortWithError(http.StatusInternalServerError, err)
+		// log.Println("Database failed:", err)
+		ctx.JSON(http.StatusInternalServerError, err)
+
 		return
 	}
 
@@ -108,24 +120,34 @@ func listAccountsHandler(ctx *gin.Context) {
 	limit, offset := getLimitAndOffset(ctx)
 	i, err := strconv.ParseInt(limit, 10, 32)
 	if err != nil {
-		ctx.AbortWithError(http.StatusBadRequest, errors.New("error parsing limit as int"))
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"error": "error parsing limit as int",
+		})
+
 		return
 	}
 
 	j, err := strconv.ParseInt(offset, 10, 32)
 	if err != nil {
-		ctx.AbortWithError(http.StatusBadRequest, errors.New("error parsing offset as int"))
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"error": "error parsing offset as int",
+		})
+
 		return
 	}
 
-	images, err := firstly.store.ListAccounts(ctx, db.ListAccountsParams{Limit: int32(i), Offset: int32(j)})
+	accounts, err := firstly.store.ListAccounts(ctx, db.ListAccountsParams{Limit: int32(i), Offset: int32(j)})
 	if err != nil {
-		ctx.AbortWithError(http.StatusInternalServerError, err)
+		// log.Println("Database failed:", err)
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Internal Server Error",
+		})
+
 		return
 	}
 
 	ctx.Header("Access-Control-Allow-Origin", "*")
-	ctx.JSON(http.StatusOK, images)
+	ctx.JSON(http.StatusOK, accounts)
 }
 
 type updateAccountRequest struct {

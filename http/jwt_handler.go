@@ -1,6 +1,7 @@
 package http
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"time"
@@ -20,7 +21,8 @@ func claimsMiddleware(h gin.HandlerFunc) gin.HandlerFunc {
 		// We can obtain the session token from the requests cookies, which come with every request
 		c, err := ctx.Request.Cookie("token")
 		if err != nil {
-			ctx.Writer.WriteHeader(http.StatusUnauthorized)
+			// ctx.Writer.WriteHeader(http.StatusUnauthorized)
+			ctx.JSON(http.StatusUnauthorized, errorResponse(err))
 			return
 		}
 
@@ -28,14 +30,19 @@ func claimsMiddleware(h gin.HandlerFunc) gin.HandlerFunc {
 		claimToken, _, err := firstly.claimer.GetFromTokenString(c.Value)
 		if err != nil {
 			if err == jwt.ErrSignatureInvalid {
-				ctx.Writer.WriteHeader(http.StatusUnauthorized)
+				ctx.JSON(http.StatusUnauthorized, errorResponse(err))
 				return
 			}
-			ctx.Writer.WriteHeader(http.StatusBadRequest)
+
+			//
+			ctx.JSON(http.StatusUnauthorized, errorResponse(err))
+
 			return
 		}
+
+		// check the token validity
 		if !claimToken.Valid {
-			ctx.Writer.WriteHeader(http.StatusUnauthorized)
+			ctx.JSON(http.StatusUnauthorized, errorResponse(errors.New("invalid token")))
 			return
 		}
 

@@ -13,7 +13,10 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/assert/v2"
-	"github.com/golang/mock/gomock"
+
+	// "github.com/golang/mock/gomock"
+	"go.uber.org/mock/gomock"
+
 	"github.com/meads/firstly-api/db"
 	"github.com/meads/firstly-api/security"
 )
