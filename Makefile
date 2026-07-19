@@ -1,6 +1,8 @@
-GO_BUILD_ENV := CGO_ENABLED=0 GOOS=linux GOARCH=amd64
-DOCKER_BUILD=$(shell pwd)/.docker_build
-DOCKER_CMD=$(DOCKER_BUILD)/firstly-api
+# GO_BUILD_ENV := CGO_ENABLED=0 GOOS=linux GOARCH=amd64
+# DOCKER_BUILD=$(shell pwd)/.docker_build
+# DOCKER_CMD=$(DOCKER_BUILD)/firstly-api
+DATABASE_URL := $(shell grep -iR '^DATABASE_URL*' .env | cut -d= -f2-)
+DOCKER_USERNAME := $(shell grep -iR '^DOCKER_USERNAME*' .env | cut -d= -f2-)
 
 # clean:
 # 	@rm -rf $(DOCKER_BUILD)
@@ -10,60 +12,52 @@ DOCKER_CMD=$(DOCKER_BUILD)/firstly-api
 # 	$(GO_BUILD_ENV) go build -v -o $(DOCKER_CMD) .
 
 test:
-	@go test -v ./...
-# 	@go test -v -coverprofile cover.out ./...
-# 	@go tool cover -html=cover.out
+	@go test -v ./... | sed ''/PASS/s//$$(printf "\033[32mPASS\033[0m")/g'' | sed ''/FAIL/s//$$(printf "\033[31mFAIL\033[0m")/g''
+
+test-coverage:
+	@go test -v -coverprofile cover.out ./...
+	@go tool cover -html=cover.out
 
 # login:
 # 	@heroku login
 # 	@heroku container:login
 
-login-docker:
-	@docker login --username=resetheadhat@gmail.com --password=$$(heroku auth:token) registry.heroku.com
-
-local:
-	@docker-compose up
-
-local-build: build 
-	@docker-compose build
+# login-docker:
+# 	@docker login --username=$(DOCKER_USERNAME) --password=$$(heroku auth:token) registry.heroku.com
 
 local-db-shell:
-	@docker exec -it firstly-api_db_1 /bin/bash
+	@docker exec -it firstly-api-db-1 /bin/bash
 
 local-db-psql:
-	@docker exec -it firstly-api_db_1 psql postgresql://postgres:password@localhost:5432/postgres
+	@docker exec -it firstly-api-db-1 psql $(DATABASE_URL)
 
 # scale-zero:
-# 	@heroku ps:scale web=0
+# 	@heroku ps:scale api=0
 
 sqlc:
-	@./bin/sqlc version
-	@./bin/sqlc compile
-	@./bin/sqlc generate
+	@sqlc version
+	@sqlc compile
+	@sqlc generate
 
 tidy:
 	@go mod tidy
 
 mockgen:
-# 	go tool mockgen -source=your_interface.go -destination=mocks/mock_your_interface.go -package=mocks
-
-	@go tool mockgen -package db -destination ./db/querier_mock.go github.com/meads/firstly-api/db Querier
-	@go tool mockgen -package security -destination ./security/hmac_mock.go github.com/meads/firstly-api/security Hasher
-	@go tool mockgen -package security -destination ./security/claims_mock.go github.com/meads/firstly-api/security Claimer
+	@mockgen -package db -destination ./db/querier_mock.go github.com/meads/firstly-api/db Querier
+	@mockgen -package security -destination ./security/hmac_mock.go github.com/meads/firstly-api/security Hasher
+	@mockgen -package security -destination ./security/claims_mock.go github.com/meads/firstly-api/security Claimer
 
 verify: tidy sqlc mockgen test
 
 migrate-drop-recreate:
-	@go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
-	@migrate -path db/migration -database $$(grep -iR '^DATABASE_URL*' .env | cut -d= -f2 | while read f ; do echo $${f:1}; done) drop
-	@migrate -path db/migration -database $$(grep -iR '^DATABASE_URL*' .env | cut -d= -f2 | while read f ; do echo $${f:1}; done) up
+	@migrate -path db/migration -database $(DATABASE_URL) drop
+	@migrate -path db/migration -database $(DATABASE_URL) up
 
 migrate-drop-recreate-local:
-	@go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
-	@migrate -path db/migration -database  postgres://postgres:password@localhost:5432/firstly?sslmode=disable drop
-	@migrate -path db/migration -database  postgres://postgres:password@localhost:5432/firstly?sslmode=disable up
+	@migrate -path db/migration -database  $(DATABASE_URL) drop
+	@migrate -path db/migration -database  $(DATABASE_URL) up
 
-# deploy:
-# 	@git push origin main
-# 	@heroku container:push web
-# 	@heroku container:release web
+deploy:
+	@git push origin main
+# 	@heroku container:push api
+# 	@heroku container:release api

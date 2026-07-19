@@ -3,4 +3,3 @@
 www/node_modules/
 .vscode
 cover.out
-bin/sqlc
