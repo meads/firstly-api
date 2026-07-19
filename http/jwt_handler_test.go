@@ -27,7 +27,7 @@ func TestJWTSignInHandler(t *testing.T) {
 		name              string
 		responseCode      int
 		route             string
-		setupExpectations func(store *db.MockStore, hasher *security.MockHasher, claimer *security.MockClaimer, rr *httptest.ResponseRecorder, r *http.Request)
+		setupExpectations func(store *db.MockQuerier, hasher *security.MockHasher, claimer *security.MockClaimer, rr *httptest.ResponseRecorder, r *http.Request)
 	}{
 		{
 			body:         bytes.NewBufferString("{\"phrase\":\"blah\",\"invalid\":\"test\"}"),
@@ -35,7 +35,7 @@ func TestJWTSignInHandler(t *testing.T) {
 			name:         "signin returns status code bad request when invalid json supplied",
 			responseCode: http.StatusBadRequest,
 			route:        "/signin/",
-			setupExpectations: func(store *db.MockStore, hasher *security.MockHasher, claimer *security.MockClaimer, rr *httptest.ResponseRecorder, r *http.Request) {
+			setupExpectations: func(store *db.MockQuerier, hasher *security.MockHasher, claimer *security.MockClaimer, rr *httptest.ResponseRecorder, r *http.Request) {
 				store.EXPECT().GetAccountByUsername(gomock.Any(), gomock.Any()).Times(0)
 				hasher.EXPECT().IsValidPassword(gomock.Any(), gomock.Any(), gomock.Any()).Times(0)
 			},
@@ -46,7 +46,7 @@ func TestJWTSignInHandler(t *testing.T) {
 			name:         "signin returns status code bad request when invalid username supplied",
 			responseCode: http.StatusBadRequest,
 			route:        "/signin/",
-			setupExpectations: func(store *db.MockStore, hasher *security.MockHasher, claimer *security.MockClaimer, rr *httptest.ResponseRecorder, r *http.Request) {
+			setupExpectations: func(store *db.MockQuerier, hasher *security.MockHasher, claimer *security.MockClaimer, rr *httptest.ResponseRecorder, r *http.Request) {
 				store.EXPECT().GetAccountByUsername(gomock.Any(), "invalid").Return(db.Account{}, errors.New("oops"))
 				hasher.EXPECT().IsValidPassword(gomock.Any(), gomock.Any(), gomock.Any()).Times(0)
 			},
@@ -57,7 +57,7 @@ func TestJWTSignInHandler(t *testing.T) {
 			name:         "signin returns status code unauthorized when call fails to validate phrase",
 			responseCode: http.StatusInternalServerError,
 			route:        "/signin/",
-			setupExpectations: func(store *db.MockStore, hasher *security.MockHasher, claimer *security.MockClaimer, rr *httptest.ResponseRecorder, r *http.Request) {
+			setupExpectations: func(store *db.MockQuerier, hasher *security.MockHasher, claimer *security.MockClaimer, rr *httptest.ResponseRecorder, r *http.Request) {
 				expectedAccount := db.Account{
 					Phrase: []byte("invalid"),
 					Salt:   "salt",
@@ -75,7 +75,7 @@ func TestJWTSignInHandler(t *testing.T) {
 			name:         "signin returns status code unauthorized when invalid phrase supplied",
 			responseCode: http.StatusUnauthorized,
 			route:        "/signin/",
-			setupExpectations: func(store *db.MockStore, hasher *security.MockHasher, claimer *security.MockClaimer, rr *httptest.ResponseRecorder, r *http.Request) {
+			setupExpectations: func(store *db.MockQuerier, hasher *security.MockHasher, claimer *security.MockClaimer, rr *httptest.ResponseRecorder, r *http.Request) {
 				expectedAccount := db.Account{
 					Phrase: []byte("valid"),
 					Salt:   "salt",
@@ -90,7 +90,7 @@ func TestJWTSignInHandler(t *testing.T) {
 			name:         "signin handler given valid credentials sets the Set-Cookie header with valid jwt claims token",
 			responseCode: http.StatusOK,
 			route:        "/signin/",
-			setupExpectations: func(store *db.MockStore, hasher *security.MockHasher, claimer *security.MockClaimer, rr *httptest.ResponseRecorder, r *http.Request) {
+			setupExpectations: func(store *db.MockQuerier, hasher *security.MockHasher, claimer *security.MockClaimer, rr *httptest.ResponseRecorder, r *http.Request) {
 				expectedAccount := db.Account{
 					Username: "valid",
 					Phrase:   []byte("valid"),
@@ -122,7 +122,7 @@ func TestJWTSignInHandler(t *testing.T) {
 			name:         "signin handler given an error with call to GetFiveMinuteExpirationToken is encountered, 500 status code is the response",
 			responseCode: http.StatusInternalServerError,
 			route:        "/signin/",
-			setupExpectations: func(store *db.MockStore, hasher *security.MockHasher, claimer *security.MockClaimer, rr *httptest.ResponseRecorder, r *http.Request) {
+			setupExpectations: func(store *db.MockQuerier, hasher *security.MockHasher, claimer *security.MockClaimer, rr *httptest.ResponseRecorder, r *http.Request) {
 				expectedAccount := db.Account{
 					Username: "valid",
 					Phrase:   []byte("valid"),
@@ -156,15 +156,15 @@ func TestJWTSignInHandler(t *testing.T) {
 			gin.SetMode(gin.TestMode)
 			ctrl := gomock.NewController(t)
 
-			mockStore := db.NewMockStore(ctrl)
+			mockQuerier := db.NewMockQuerier(ctrl)
 			mockHasher := security.NewMockHasher(ctrl)
 			mockClaimer := security.NewMockClaimer(ctrl)
 
-			NewFirstlyServer(mockClaimer, mockHasher, router, mockStore)
+			NewFirstlyServer(mockClaimer, mockHasher, router, mockQuerier)
 			responseRecorder := httptest.NewRecorder()
 
 			request := httptest.NewRequest(test.method, test.route, test.body)
-			test.setupExpectations(mockStore, mockHasher, mockClaimer, responseRecorder, request)
+			test.setupExpectations(mockQuerier, mockHasher, mockClaimer, responseRecorder, request)
 
 			// Act
 			router.ServeHTTP(responseRecorder, request)
@@ -230,11 +230,11 @@ func TestJWTWelcomeHandler(t *testing.T) {
 			gin.SetMode(gin.TestMode)
 			ctrl := gomock.NewController(t)
 
-			mockStore := db.NewMockStore(ctrl)
+			mockQuerier := db.NewMockQuerier(ctrl)
 			mockHasher := security.NewMockHasher(ctrl)
 			mockClaimer := security.NewMockClaimer(ctrl)
 
-			NewFirstlyServer(mockClaimer, mockHasher, router, mockStore)
+			NewFirstlyServer(mockClaimer, mockHasher, router, mockQuerier)
 			responseRecorder := httptest.NewRecorder()
 
 			request := httptest.NewRequest(http.MethodGet, test.route, nil)

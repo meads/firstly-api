@@ -30,7 +30,7 @@ func TestAccountHandler(t *testing.T) {
 		responseCode      int
 		route             string
 		isList            bool
-		setupExpectations func(r *http.Request, claimer *security.MockClaimer, hasher *security.MockHasher, store *db.MockStore)
+		setupExpectations func(r *http.Request, claimer *security.MockClaimer, hasher *security.MockHasher, querier *db.MockQuerier)
 	}{
 		{
 			body:         bytes.NewBufferString("{\"username\":\"newuser\",\"phrase\":\"message\"}"),
@@ -38,13 +38,13 @@ func TestAccountHandler(t *testing.T) {
 			name:         "create handler responds with Status Code 200 when valid data supplied",
 			responseCode: http.StatusOK,
 			route:        "/account/",
-			setupExpectations: func(r *http.Request, claimer *security.MockClaimer, hasher *security.MockHasher, store *db.MockStore) {
-				store.EXPECT().GetAccountByUsername(gomock.Any(), "newuser").Return(db.Account{Deleted: true}, nil)
+			setupExpectations: func(r *http.Request, claimer *security.MockClaimer, hasher *security.MockHasher, querier *db.MockQuerier) {
+				querier.EXPECT().GetAccountByUsername(gomock.Any(), "newuser").Return(db.Account{Deleted: true}, nil)
 				os.Setenv("SECRET", "test")
 				hash := []byte("generated_hash")
 				hasher.EXPECT().GenerateSalt().Return("salt").Times(1)
 				hasher.EXPECT().GeneratePasswordHash([]byte("message"), "salt").Return(hash, nil)
-				store.EXPECT().CreateAccount(
+				querier.EXPECT().CreateAccount(
 					gomock.Any(),
 					db.CreateAccountParams{Username: "newuser", Phrase: hash, Salt: "salt"},
 				).Return(db.Account{Username: "newuser"}, nil)
@@ -60,7 +60,7 @@ func TestAccountHandler(t *testing.T) {
 			method:       http.MethodPost,
 			responseCode: http.StatusBadRequest,
 			route:        "/account/",
-			setupExpectations: func(r *http.Request, claimer *security.MockClaimer, hasher *security.MockHasher, store *db.MockStore) {
+			setupExpectations: func(r *http.Request, claimer *security.MockClaimer, hasher *security.MockHasher, querier *db.MockQuerier) {
 			},
 		},
 		{
@@ -69,8 +69,8 @@ func TestAccountHandler(t *testing.T) {
 			method:       http.MethodPost,
 			responseCode: http.StatusInternalServerError,
 			route:        "/account/",
-			setupExpectations: func(r *http.Request, claimer *security.MockClaimer, hasher *security.MockHasher, store *db.MockStore) {
-				store.EXPECT().GetAccountByUsername(gomock.Any(), "newuser").Return(db.Account{ID: 0}, nil)
+			setupExpectations: func(r *http.Request, claimer *security.MockClaimer, hasher *security.MockHasher, querier *db.MockQuerier) {
+				querier.EXPECT().GetAccountByUsername(gomock.Any(), "newuser").Return(db.Account{ID: 0}, nil)
 				hasher.EXPECT().GenerateSalt().Return("somesalt")
 				os.Unsetenv("SECRET")
 				hasher.EXPECT().GeneratePasswordHash(gomock.Any(), "somesalt").Return(
@@ -85,8 +85,8 @@ func TestAccountHandler(t *testing.T) {
 			method:       http.MethodPost,
 			responseCode: http.StatusInternalServerError,
 			route:        "/account/",
-			setupExpectations: func(r *http.Request, claimer *security.MockClaimer, hasher *security.MockHasher, store *db.MockStore) {
-				store.EXPECT().GetAccountByUsername(gomock.Any(), "newuser").Return(db.Account{}, errors.New("oops"))
+			setupExpectations: func(r *http.Request, claimer *security.MockClaimer, hasher *security.MockHasher, querier *db.MockQuerier) {
+				querier.EXPECT().GetAccountByUsername(gomock.Any(), "newuser").Return(db.Account{}, errors.New("oops"))
 			},
 		},
 		{
@@ -95,13 +95,13 @@ func TestAccountHandler(t *testing.T) {
 			method:       http.MethodPost,
 			responseCode: http.StatusInternalServerError,
 			route:        "/account/",
-			setupExpectations: func(r *http.Request, claimer *security.MockClaimer, hasher *security.MockHasher, store *db.MockStore) {
-				store.EXPECT().GetAccountByUsername(gomock.Any(), "newuser").Return(db.Account{ID: 0}, nil)
+			setupExpectations: func(r *http.Request, claimer *security.MockClaimer, hasher *security.MockHasher, querier *db.MockQuerier) {
+				querier.EXPECT().GetAccountByUsername(gomock.Any(), "newuser").Return(db.Account{ID: 0}, nil)
 				os.Setenv("SECRET", "test")
 				hash := []byte("generated_hash")
 				hasher.EXPECT().GenerateSalt().Return("salt").Times(1)
 				hasher.EXPECT().GeneratePasswordHash([]byte("message"), "salt").Return(hash, nil)
-				store.EXPECT().CreateAccount(
+				querier.EXPECT().CreateAccount(
 					gomock.Any(),
 					db.CreateAccountParams{Username: "newuser", Phrase: []byte("generated_hash"), Salt: "salt"}).
 					Return(db.Account{}, errors.New("oops"))
@@ -113,8 +113,8 @@ func TestAccountHandler(t *testing.T) {
 			method:       http.MethodPost,
 			responseCode: http.StatusBadRequest,
 			route:        "/account/",
-			setupExpectations: func(r *http.Request, claimer *security.MockClaimer, hasher *security.MockHasher, store *db.MockStore) {
-				store.EXPECT().GetAccountByUsername(gomock.Any(), "invalid").
+			setupExpectations: func(r *http.Request, claimer *security.MockClaimer, hasher *security.MockHasher, querier *db.MockQuerier) {
+				querier.EXPECT().GetAccountByUsername(gomock.Any(), "invalid").
 					Return(db.Account{ID: 1}, nil)
 			},
 		},
@@ -124,13 +124,13 @@ func TestAccountHandler(t *testing.T) {
 			name:         "create handler responds with Status Code 500 when get five minute expiration token returns an error",
 			responseCode: http.StatusInternalServerError,
 			route:        "/account/",
-			setupExpectations: func(r *http.Request, claimer *security.MockClaimer, hasher *security.MockHasher, store *db.MockStore) {
-				store.EXPECT().GetAccountByUsername(gomock.Any(), "newuser").Return(db.Account{Deleted: true}, nil)
+			setupExpectations: func(r *http.Request, claimer *security.MockClaimer, hasher *security.MockHasher, querier *db.MockQuerier) {
+				querier.EXPECT().GetAccountByUsername(gomock.Any(), "newuser").Return(db.Account{Deleted: true}, nil)
 				os.Setenv("SECRET", "test")
 				hash := []byte("generated_hash")
 				hasher.EXPECT().GenerateSalt().Return("salt").Times(1)
 				hasher.EXPECT().GeneratePasswordHash([]byte("message"), "salt").Return(hash, nil)
-				store.EXPECT().CreateAccount(
+				querier.EXPECT().CreateAccount(
 					gomock.Any(),
 					db.CreateAccountParams{Username: "newuser", Phrase: hash, Salt: "salt"},
 				).Return(db.Account{Username: "newuser"}, nil)
@@ -145,9 +145,9 @@ func TestAccountHandler(t *testing.T) {
 			method:       http.MethodDelete,
 			responseCode: http.StatusOK,
 			route:        "/account/69/",
-			setupExpectations: func(r *http.Request, claimer *security.MockClaimer, hasher *security.MockHasher, store *db.MockStore) {
-				passClaimsMiddleware(r, claimer, hasher, store)
-				store.EXPECT().DeleteAccount(gomock.Any(), int64(69)).Return(nil)
+			setupExpectations: func(r *http.Request, claimer *security.MockClaimer, hasher *security.MockHasher, querier *db.MockQuerier) {
+				passClaimsMiddleware(r, claimer, hasher, querier)
+				querier.EXPECT().DeleteAccount(gomock.Any(), int64(69)).Return(nil)
 			},
 		},
 		{
@@ -156,8 +156,8 @@ func TestAccountHandler(t *testing.T) {
 			method:       http.MethodDelete,
 			responseCode: http.StatusBadRequest,
 			route:        "/account//",
-			setupExpectations: func(r *http.Request, claimer *security.MockClaimer, hasher *security.MockHasher, store *db.MockStore) {
-				passClaimsMiddleware(r, claimer, hasher, store)
+			setupExpectations: func(r *http.Request, claimer *security.MockClaimer, hasher *security.MockHasher, querier *db.MockQuerier) {
+				passClaimsMiddleware(r, claimer, hasher, querier)
 			},
 		},
 		{
@@ -166,8 +166,8 @@ func TestAccountHandler(t *testing.T) {
 			method:       http.MethodDelete,
 			responseCode: http.StatusBadRequest,
 			route:        "/account/invalid/",
-			setupExpectations: func(r *http.Request, claimer *security.MockClaimer, hasher *security.MockHasher, store *db.MockStore) {
-				passClaimsMiddleware(r, claimer, hasher, store)
+			setupExpectations: func(r *http.Request, claimer *security.MockClaimer, hasher *security.MockHasher, querier *db.MockQuerier) {
+				passClaimsMiddleware(r, claimer, hasher, querier)
 			},
 		},
 		{
@@ -176,9 +176,9 @@ func TestAccountHandler(t *testing.T) {
 			method:       http.MethodDelete,
 			responseCode: http.StatusInternalServerError,
 			route:        "/account/69/",
-			setupExpectations: func(r *http.Request, claimer *security.MockClaimer, hasher *security.MockHasher, store *db.MockStore) {
-				passClaimsMiddleware(r, claimer, hasher, store)
-				store.EXPECT().DeleteAccount(gomock.Any(), int64(69)).Return(errors.New("oops"))
+			setupExpectations: func(r *http.Request, claimer *security.MockClaimer, hasher *security.MockHasher, querier *db.MockQuerier) {
+				passClaimsMiddleware(r, claimer, hasher, querier)
+				querier.EXPECT().DeleteAccount(gomock.Any(), int64(69)).Return(errors.New("oops"))
 			},
 		},
 		{
@@ -187,8 +187,8 @@ func TestAccountHandler(t *testing.T) {
 			method:       http.MethodGet,
 			responseCode: http.StatusBadRequest,
 			route:        "/account/?limit=invalid",
-			setupExpectations: func(r *http.Request, claimer *security.MockClaimer, hasher *security.MockHasher, store *db.MockStore) {
-				passClaimsMiddleware(r, claimer, hasher, store)
+			setupExpectations: func(r *http.Request, claimer *security.MockClaimer, hasher *security.MockHasher, querier *db.MockQuerier) {
+				passClaimsMiddleware(r, claimer, hasher, querier)
 			},
 		},
 		{
@@ -197,8 +197,8 @@ func TestAccountHandler(t *testing.T) {
 			method:       http.MethodGet,
 			responseCode: http.StatusBadRequest,
 			route:        "/account/?offset=invalid",
-			setupExpectations: func(r *http.Request, claimer *security.MockClaimer, hasher *security.MockHasher, store *db.MockStore) {
-				passClaimsMiddleware(r, claimer, hasher, store)
+			setupExpectations: func(r *http.Request, claimer *security.MockClaimer, hasher *security.MockHasher, querier *db.MockQuerier) {
+				passClaimsMiddleware(r, claimer, hasher, querier)
 			},
 		},
 		{
@@ -207,10 +207,10 @@ func TestAccountHandler(t *testing.T) {
 			method:       http.MethodGet,
 			responseCode: http.StatusInternalServerError,
 			route:        "/account/",
-			setupExpectations: func(r *http.Request, claimer *security.MockClaimer, hasher *security.MockHasher, store *db.MockStore) {
-				passClaimsMiddleware(r, claimer, hasher, store)
+			setupExpectations: func(r *http.Request, claimer *security.MockClaimer, hasher *security.MockHasher, querier *db.MockQuerier) {
+				passClaimsMiddleware(r, claimer, hasher, querier)
 				params := db.ListAccountsParams{Limit: 50, Offset: 0}
-				store.EXPECT().ListAccounts(gomock.Any(), params).Return([]db.ListAccountsRow{}, errors.New("oops."))
+				querier.EXPECT().ListAccounts(gomock.Any(), params).Return([]db.ListAccountsRow{}, errors.New("oops."))
 			},
 		},
 		{
@@ -220,10 +220,10 @@ func TestAccountHandler(t *testing.T) {
 			responseCode: http.StatusOK,
 			route:        "/account/",
 			isList:       true,
-			setupExpectations: func(r *http.Request, claimer *security.MockClaimer, hasher *security.MockHasher, store *db.MockStore) {
-				passClaimsMiddleware(r, claimer, hasher, store)
+			setupExpectations: func(r *http.Request, claimer *security.MockClaimer, hasher *security.MockHasher, querier *db.MockQuerier) {
+				passClaimsMiddleware(r, claimer, hasher, querier)
 				params := db.ListAccountsParams{Limit: 50, Offset: 0}
-				store.EXPECT().ListAccounts(gomock.Any(), params).Return([]db.ListAccountsRow{
+				querier.EXPECT().ListAccounts(gomock.Any(), params).Return([]db.ListAccountsRow{
 					{ID: 69, Username: "foo", Created: "", Deleted: false},
 				}, nil)
 			},
@@ -234,14 +234,14 @@ func TestAccountHandler(t *testing.T) {
 			name:         "update handler responds with Status Code 200 when valid data supplied",
 			responseCode: http.StatusOK,
 			route:        "/account/",
-			setupExpectations: func(r *http.Request, claimer *security.MockClaimer, hasher *security.MockHasher, store *db.MockStore) {
-				passClaimsMiddleware(r, claimer, hasher, store)
-				store.EXPECT().AccountExists(gomock.Any(), int64(69)).Return(true, nil)
-				store.EXPECT().GetAccount(gomock.Any(), int64(69)).Return(db.Account{ID: 69, Phrase: []byte("newpass"), Salt: "salt the snail"}, nil)
+			setupExpectations: func(r *http.Request, claimer *security.MockClaimer, hasher *security.MockHasher, querier *db.MockQuerier) {
+				passClaimsMiddleware(r, claimer, hasher, querier)
+				querier.EXPECT().AccountExists(gomock.Any(), int64(69)).Return(true, nil)
+				querier.EXPECT().GetAccount(gomock.Any(), int64(69)).Return(db.Account{ID: 69, Phrase: []byte("newpass"), Salt: "salt the snail"}, nil)
 				hasher.EXPECT().GenerateSalt().Times(0)
 				hasher.EXPECT().GeneratePasswordHash([]byte("newpass"), "salt the snail").Return([]byte("newhash"), nil)
 				params := db.UpdateAccountParams{ID: int64(69), Phrase: []byte("newhash")}
-				store.EXPECT().UpdateAccount(gomock.Any(), params).Return(nil)
+				querier.EXPECT().UpdateAccount(gomock.Any(), params).Return(nil)
 			},
 		},
 		{
@@ -250,8 +250,8 @@ func TestAccountHandler(t *testing.T) {
 			name:         "update handler responds with Status Code 400 when invalid data supplied",
 			responseCode: http.StatusBadRequest,
 			route:        "/account/",
-			setupExpectations: func(r *http.Request, claimer *security.MockClaimer, hasher *security.MockHasher, store *db.MockStore) {
-				passClaimsMiddleware(r, claimer, hasher, store)
+			setupExpectations: func(r *http.Request, claimer *security.MockClaimer, hasher *security.MockHasher, querier *db.MockQuerier) {
+				passClaimsMiddleware(r, claimer, hasher, querier)
 			},
 		},
 		{
@@ -260,9 +260,9 @@ func TestAccountHandler(t *testing.T) {
 			name:         "update handler responds with Status Code 404 when record not found",
 			responseCode: http.StatusNotFound,
 			route:        "/account/",
-			setupExpectations: func(r *http.Request, claimer *security.MockClaimer, hasher *security.MockHasher, store *db.MockStore) {
-				passClaimsMiddleware(r, claimer, hasher, store)
-				store.EXPECT().AccountExists(gomock.Any(), int64(68)).Return(false, nil)
+			setupExpectations: func(r *http.Request, claimer *security.MockClaimer, hasher *security.MockHasher, querier *db.MockQuerier) {
+				passClaimsMiddleware(r, claimer, hasher, querier)
+				querier.EXPECT().AccountExists(gomock.Any(), int64(68)).Return(false, nil)
 			},
 		},
 		{
@@ -271,10 +271,10 @@ func TestAccountHandler(t *testing.T) {
 			name:         "update handler responds with Status Code 500 when server error on get before update",
 			responseCode: http.StatusInternalServerError,
 			route:        "/account/",
-			setupExpectations: func(r *http.Request, claimer *security.MockClaimer, hasher *security.MockHasher, store *db.MockStore) {
-				passClaimsMiddleware(r, claimer, hasher, store)
-				store.EXPECT().AccountExists(gomock.Any(), int64(69)).Return(true, nil)
-				store.EXPECT().GetAccount(gomock.Any(), int64(69)).
+			setupExpectations: func(r *http.Request, claimer *security.MockClaimer, hasher *security.MockHasher, querier *db.MockQuerier) {
+				passClaimsMiddleware(r, claimer, hasher, querier)
+				querier.EXPECT().AccountExists(gomock.Any(), int64(69)).Return(true, nil)
+				querier.EXPECT().GetAccount(gomock.Any(), int64(69)).
 					Return(db.Account{}, errors.New("oops"))
 			},
 		},
@@ -284,10 +284,10 @@ func TestAccountHandler(t *testing.T) {
 			name:         "update handler responds with Status Code 500 when server error on update hash",
 			responseCode: http.StatusInternalServerError,
 			route:        "/account/",
-			setupExpectations: func(r *http.Request, claimer *security.MockClaimer, hasher *security.MockHasher, store *db.MockStore) {
-				passClaimsMiddleware(r, claimer, hasher, store)
-				store.EXPECT().AccountExists(gomock.Any(), int64(69)).Return(true, nil)
-				store.EXPECT().GetAccount(gomock.Any(), int64(69)).Return(
+			setupExpectations: func(r *http.Request, claimer *security.MockClaimer, hasher *security.MockHasher, querier *db.MockQuerier) {
+				passClaimsMiddleware(r, claimer, hasher, querier)
+				querier.EXPECT().AccountExists(gomock.Any(), int64(69)).Return(true, nil)
+				querier.EXPECT().GetAccount(gomock.Any(), int64(69)).Return(
 					db.Account{ID: 69, Salt: "somesalt", Phrase: []byte("newpass")}, nil)
 				hasher.EXPECT().GenerateSalt().Times(0)
 				os.Unsetenv("SECRET")
@@ -303,14 +303,14 @@ func TestAccountHandler(t *testing.T) {
 			name:         "update handler responds with Status Code 500 when server error on update",
 			responseCode: http.StatusInternalServerError,
 			route:        "/account/",
-			setupExpectations: func(r *http.Request, claimer *security.MockClaimer, hasher *security.MockHasher, store *db.MockStore) {
-				passClaimsMiddleware(r, claimer, hasher, store)
-				store.EXPECT().AccountExists(gomock.Any(), int64(69)).Return(true, nil)
-				store.EXPECT().GetAccount(gomock.Any(), int64(69)).Return(db.Account{ID: 69, Phrase: []byte("newpass"), Salt: "salt the snail"}, nil)
+			setupExpectations: func(r *http.Request, claimer *security.MockClaimer, hasher *security.MockHasher, querier *db.MockQuerier) {
+				passClaimsMiddleware(r, claimer, hasher, querier)
+				querier.EXPECT().AccountExists(gomock.Any(), int64(69)).Return(true, nil)
+				querier.EXPECT().GetAccount(gomock.Any(), int64(69)).Return(db.Account{ID: 69, Phrase: []byte("newpass"), Salt: "salt the snail"}, nil)
 				hasher.EXPECT().GenerateSalt().Times(0)
 				hasher.EXPECT().GeneratePasswordHash([]byte("newpass"), "salt the snail").Return([]byte("newhash"), nil)
 				params := db.UpdateAccountParams{ID: 69, Phrase: []byte("newhash")}
-				store.EXPECT().UpdateAccount(gomock.Any(), params).Return(errors.New("oops"))
+				querier.EXPECT().UpdateAccount(gomock.Any(), params).Return(errors.New("oops"))
 			},
 		},
 		{
@@ -319,10 +319,10 @@ func TestAccountHandler(t *testing.T) {
 			name:         "update handler responds with Status Code 500 when server error on update account exists",
 			responseCode: http.StatusInternalServerError,
 			route:        "/account/",
-			setupExpectations: func(r *http.Request, claimer *security.MockClaimer, hasher *security.MockHasher, store *db.MockStore) {
-				passClaimsMiddleware(r, claimer, hasher, store)
-				store.EXPECT().AccountExists(gomock.Any(), int64(69)).Return(false, errors.New("oops"))
-				store.EXPECT().GetAccount(gomock.Any(), gomock.Any()).Times(0)
+			setupExpectations: func(r *http.Request, claimer *security.MockClaimer, hasher *security.MockHasher, querier *db.MockQuerier) {
+				passClaimsMiddleware(r, claimer, hasher, querier)
+				querier.EXPECT().AccountExists(gomock.Any(), int64(69)).Return(false, errors.New("oops"))
+				querier.EXPECT().GetAccount(gomock.Any(), gomock.Any()).Times(0)
 			},
 		},
 	}
@@ -333,16 +333,16 @@ func TestAccountHandler(t *testing.T) {
 			gin.SetMode(gin.TestMode)
 			ctrl := gomock.NewController(t)
 
-			mockStore := db.NewMockStore(ctrl)
+			mockQuerier := db.NewMockQuerier(ctrl)
 			mockHasher := security.NewMockHasher(ctrl)
 			mockClaimer := security.NewMockClaimer(ctrl)
 
-			NewFirstlyServer(mockClaimer, mockHasher, router, mockStore)
+			NewFirstlyServer(mockClaimer, mockHasher, router, mockQuerier)
 			responseRecorder := httptest.NewRecorder()
 
 			// Act
 			request := httptest.NewRequest(test.method, test.route, test.body)
-			test.setupExpectations(request, mockClaimer, mockHasher, mockStore)
+			test.setupExpectations(request, mockClaimer, mockHasher, mockQuerier)
 			router.ServeHTTP(responseRecorder, request)
 
 			result := responseRecorder.Result()

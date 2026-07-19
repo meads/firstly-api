@@ -32,7 +32,7 @@ $ make deploy
 $ make verify
 ```
 
-token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImJvYiIsImV4cCI6MTc4NDQxMjY2NX0._ze28nnVOdyVFDuiNWJ504cjP0gOd76TihuokRVJMlw;
+token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImJvYiIsImV4cCI6MTc4NDQxOTY0NX0.VLD006AUNa_4x-OmqdXECZb6J1yAuouw3JmO1dOwjqw;
 
 POST   /account/
     // Create Account - returns initial token=
@@ -40,12 +40,12 @@ POST   /account/
 
 GET    /account/
     curl -X GET -v --cookie \
-    "token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImJvYiIsImV4cCI6MTc4NDQxODEwMn0.i4FUmqPrVg4a74fpmuVrXgSYXG39uphSBhnyfYO7-gM" \
+    "token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImJvYiIsImV4cCI6MTc4NDQxOTY0NX0.VLD006AUNa_4x-OmqdXECZb6J1yAuouw3JmO1dOwjqw" \
       http://localhost:8080/account/
 
 DELETE /account/:id/
     curl -X DELETE -v --cookie \
-    "token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImJvYiIsImV4cCI6MTc4NDQxODEwMn0.i4FUmqPrVg4a74fpmuVrXgSYXG39uphSBhnyfYO7-gM" \
+    "token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImJvYiIsImV4cCI6MTc4NDQxOTY0NX0.VLD006AUNa_4x-OmqdXECZb6J1yAuouw3JmO1dOwjqw" \
       http://localhost:8080/account/1/
 
 PATCH  /account/

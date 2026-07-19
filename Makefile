@@ -47,7 +47,7 @@ tidy:
 mockgen:
 # 	go tool mockgen -source=your_interface.go -destination=mocks/mock_your_interface.go -package=mocks
 
-	@go tool mockgen -package db -destination ./db/store_mock.go github.com/meads/firstly-api/db Store
+	@go tool mockgen -package db -destination ./db/querier_mock.go github.com/meads/firstly-api/db Querier
 	@go tool mockgen -package security -destination ./security/hmac_mock.go github.com/meads/firstly-api/security Hasher
 	@go tool mockgen -package security -destination ./security/claims_mock.go github.com/meads/firstly-api/security Claimer
 

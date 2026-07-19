@@ -63,7 +63,7 @@ func main() {
 	claimer := security.NewClaimsValidator()
 	hasher := security.NewHasher()
 	router := gin.Default()
-	store := db.NewStore(conn)
+	store := db.New(conn)
 
 	server := http_api.NewFirstlyServer(claimer, hasher, router, store)
 
