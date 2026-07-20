@@ -73,36 +73,82 @@ POSTGRES_DB=
 DOCKER_USERNAME=
 ```
 
+## generate
+
+Go module housekeeping is performed. Generates the data access code from the 
+db project using sqlc and generates the mocks used in tests for the data access code using 
+mockgen.
+
+```bash
+$ make generate
+```
+
+## test
+
+Run the unit tests for the entire application.
+
+```bash
+$ make test
+```
+
+## test coverage
+
+Run the unit tests for the entire application and generate a coverage report.
+```bash
+$ make test-cover
+```
+
+## verify
+
+Quickly run both generating code and test recipes
+```bash
+$ make verify
+```
+
 ## build
+
+Build the docker containers with the appropriate files and environment 
+configurations. 
 
 ```bash
 $ docker compose build
 ```
 
+## run local
+
+Run local instances of the docker compose containers
+
+```bash
+$ docker compose up
+```
+
+## cleanup local
+
+Remove all containers and start fresh.
+```bash
+$ docker compose down
+```
+
 ## deploy
 
 ```bash
+# TODO: create deploy flow
 $ make deploy
 ```
 
-## test
-
-```bash
-$ make verify
-```
 
 ```bash
 
 # POST   /account/
 # Create Account - returns initial token=
-curl -X POST -v -d '{"username":"bob","phrase":"13013"}' http://localhost:8080/account/
+curl -X POST -v -d '{"username":"bob","password":"13013"}' http://localhost:8080/account/
 
 # GET    /account/
-curl -X GET -v --cookie "token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImJvYiIsImV4cCI6MTc4NDQxOTY0NX0.VLD006AUNa_4x-OmqdXECZb6J1yAuouw3JmO1dOwjqw" \
+curl -X GET -v --cookie "token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImJvYiIsImV4cCI6MTc4NDU2NzI5N30.uDB9pOj_h16Rhb4ZM6s-l8cVEBK6La3RqsENJJGKGao" \
       http://localhost:8080/account/
 
 # DELETE /account/:id/
-curl -X DELETE -v --cookie "token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImJvYiIsImV4cCI6MTc4NDQxOTY0NX0.VLD006AUNa_4x-OmqdXECZb6J1yAuouw3JmO1dOwjqw" \
+curl -X DELETE -v --cookie "token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImJvYiIsImV4cCI6MTc4NDU2NzI5N30.uDB9pOj_h16Rhb4ZM6s-l8cVEBK6La3RqsENJJGKGao" \
       http://localhost:8080/account/1/
 
 # PATCH  /account/
@@ -112,8 +158,8 @@ curl -X DELETE -v --cookie "token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2Vyb
 # POST   /refresh/
 # POST   /signin/
 # Sign in - returns Set-Token header populated with token=
-curl -v --cookie "token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImJvYiIsImV4cCI6MTY2NzE1ODQxMn0.d5WA6FOCl_kU4PjP1x0fpsumIPWpSQEn4Fo3MZVuCok" \
-    -d '{"username":"bob","phrase":"13013"}' http://localhost:8080/signin/
+curl -X POST -v --cookie "token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImJvYiIsImV4cCI6MTc4NDU2NzI5N30.uDB9pOj_h16Rhb4ZM6s-l8cVEBK6La3RqsENJJGKGao" \
+    -d '{"username":"bob","password":"13013"}' http://localhost:8080/signin/
 
 # GET    /welcome/
 # Welcome - can be used if the session cookie is still valid which will issue a new token cookie if needed.

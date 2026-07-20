@@ -12,7 +12,7 @@ import (
 
 type createAccountRequest struct {
 	Username string `json:"username" binding:"required"`
-	Phrase   string `json:"phrase" binding:"required"`
+	Password string `json:"password" binding:"required"`
 }
 
 func createAccountHandler(ctx *gin.Context) {
@@ -37,7 +37,7 @@ func createAccountHandler(ctx *gin.Context) {
 	param.Username = req.Username
 	param.Salt = firstly.hasher.GenerateSalt()
 
-	phrase, err := firstly.hasher.GeneratePasswordHash([]byte(req.Phrase), param.Salt)
+	password, err := firstly.hasher.GeneratePasswordHash([]byte(req.Password), param.Salt)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -46,7 +46,7 @@ func createAccountHandler(ctx *gin.Context) {
 	// 	ctx.JSON(http.StatusInternalServerError, errorResponse(errors.New("account creation failed")))
 	// 	return
 	// }
-	param.Phrase = phrase
+	param.Password = password
 
 	account, err := firstly.store.CreateAccount(ctx, param)
 	if err != nil {
@@ -153,7 +153,7 @@ func listAccountsHandler(ctx *gin.Context) {
 type updateAccountRequest struct {
 	ID       int64  `json:"id" binding:"required"`
 	Username string `json:"username" binding:"required"`
-	Phrase   string `json:"phrase" binding:"required"`
+	Password string `json:"password" binding:"required"`
 }
 
 func updateAccountHandler(ctx *gin.Context) {
@@ -182,18 +182,18 @@ func updateAccountHandler(ctx *gin.Context) {
 		return
 	}
 
-	// update the phrase for the account using the current salt for the account
-	newPhrase, err := firstly.hasher.GeneratePasswordHash([]byte(req.Phrase), account.Salt)
+	// update the password for the account using the current salt for the account
+	newPassword, err := firstly.hasher.GeneratePasswordHash([]byte(req.Password), account.Salt)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
 
-	// initialize the parameters for the update using the known account id and new phrase
+	// initialize the parameters for the update using the known account id and new password
 	// TODO: add more combinations to the hmac.
 	var updateParams db.UpdateAccountParams
 	updateParams.ID = account.ID
-	updateParams.Phrase = newPhrase
+	updateParams.Password = newPassword
 
 	err = firstly.store.UpdateAccount(ctx, updateParams)
 	if err != nil {
@@ -201,7 +201,7 @@ func updateAccountHandler(ctx *gin.Context) {
 		return
 	}
 
-	account.Phrase = []byte(req.Phrase)
+	account.Password = []byte(req.Password)
 
 	ctx.JSON(http.StatusOK, struct{ username string }{username: account.Username})
 }

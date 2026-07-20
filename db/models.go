@@ -7,7 +7,7 @@ package db
 type Account struct {
 	ID       int64  `json:"id"`
 	Username string `json:"username"`
-	Phrase   []byte `json:"phrase"`
+	Password []byte `json:"password"`
 	Salt     string `json:"salt"`
 	Created  string `json:"created"`
 	Updated  string `json:"updated"`

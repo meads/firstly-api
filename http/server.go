@@ -23,7 +23,7 @@ func NewFirstlyServer(claimer security.Claimer, hasher security.Hasher, router *
 	firstly.store = store
 
 	firstly.router.POST("/signin/", signinHandler)
-	firstly.router.GET("/welcome/", welcomeHandler)
+	// firstly.router.GET("/welcome/", welcomeHandler)
 	firstly.router.POST("/refresh/", refreshHandler)
 
 	firstly.router.POST("/account/", createAccountHandler)

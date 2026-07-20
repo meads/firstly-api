@@ -53,7 +53,7 @@ func TestAccountHandler(t *testing.T) {
 		setupExpectations func(r *http.Request, claimer *security.MockClaimer, hasher *security.MockHasher, querier *db.MockQuerier)
 	}{
 		{
-			body:         bytes.NewBufferString("{\"username\":\"newuser\",\"phrase\":\"message\"}"),
+			body:         bytes.NewBufferString("{\"username\":\"newuser\",\"password\":\"message\"}"),
 			method:       http.MethodPost,
 			name:         "create handler responds with Status Code 200 when valid data supplied",
 			responseCode: http.StatusOK,
@@ -66,7 +66,7 @@ func TestAccountHandler(t *testing.T) {
 				hasher.EXPECT().GeneratePasswordHash([]byte("message"), "salt").Return(hash, nil)
 				querier.EXPECT().CreateAccount(
 					gomock.Any(),
-					db.CreateAccountParams{Username: "newuser", Phrase: hash, Salt: "salt"},
+					db.CreateAccountParams{Username: "newuser", Password: hash, Salt: "salt"},
 				).Return(db.Account{Username: "newuser"}, nil)
 				tokenString := "mocktoken"
 				expirationTime := time.Now().Add(5 * time.Minute)
@@ -76,7 +76,7 @@ func TestAccountHandler(t *testing.T) {
 		},
 		{
 			name:         "create handler responds with Status Code 400 given invalid params are supplied",
-			body:         bytes.NewBufferString("{\"username\":\"\",\"phrase\":\"\"}"),
+			body:         bytes.NewBufferString("{\"username\":\"\",\"password\":\"\"}"),
 			method:       http.MethodPost,
 			responseCode: http.StatusBadRequest,
 			route:        "/account/",
@@ -84,8 +84,8 @@ func TestAccountHandler(t *testing.T) {
 			},
 		},
 		{
-			name:         "create handler responds with Status Code 500 given there is an error hashing the phrase, no env var set",
-			body:         bytes.NewBufferString("{\"username\":\"newuser\",\"phrase\":\"message\"}"),
+			name:         "create handler responds with Status Code 500 given there is an error hashing the password, no env var set",
+			body:         bytes.NewBufferString("{\"username\":\"newuser\",\"password\":\"message\"}"),
 			method:       http.MethodPost,
 			responseCode: http.StatusInternalServerError,
 			route:        "/account/",
@@ -101,7 +101,7 @@ func TestAccountHandler(t *testing.T) {
 		},
 		{
 			name:         "create handler responds with Status Code 500 given there is some server error with get account",
-			body:         bytes.NewBufferString("{\"username\":\"newuser\",\"phrase\":\"message\"}"),
+			body:         bytes.NewBufferString("{\"username\":\"newuser\",\"password\":\"message\"}"),
 			method:       http.MethodPost,
 			responseCode: http.StatusInternalServerError,
 			route:        "/account/",
@@ -111,7 +111,7 @@ func TestAccountHandler(t *testing.T) {
 		},
 		{
 			name:         "create handler responds with Status Code 500 given there is some server error before create",
-			body:         bytes.NewBufferString("{\"username\":\"newuser\",\"phrase\":\"message\"}"),
+			body:         bytes.NewBufferString("{\"username\":\"newuser\",\"password\":\"message\"}"),
 			method:       http.MethodPost,
 			responseCode: http.StatusInternalServerError,
 			route:        "/account/",
@@ -123,13 +123,13 @@ func TestAccountHandler(t *testing.T) {
 				hasher.EXPECT().GeneratePasswordHash([]byte("message"), "salt").Return(hash, nil)
 				querier.EXPECT().CreateAccount(
 					gomock.Any(),
-					db.CreateAccountParams{Username: "newuser", Phrase: []byte("generated_hash"), Salt: "salt"}).
+					db.CreateAccountParams{Username: "newuser", Password: []byte("generated_hash"), Salt: "salt"}).
 					Return(db.Account{}, errors.New("oops"))
 			},
 		},
 		{
 			name:         "create handler responds with Status Code 400 given a user already exists with username x",
-			body:         bytes.NewBufferString("{\"username\":\"invalid\",\"phrase\":\"valid\"}"),
+			body:         bytes.NewBufferString("{\"username\":\"invalid\",\"password\":\"valid\"}"),
 			method:       http.MethodPost,
 			responseCode: http.StatusBadRequest,
 			route:        "/account/",
@@ -139,7 +139,7 @@ func TestAccountHandler(t *testing.T) {
 			},
 		},
 		{
-			body:         bytes.NewBufferString("{\"username\":\"newuser\",\"phrase\":\"message\"}"),
+			body:         bytes.NewBufferString("{\"username\":\"newuser\",\"password\":\"message\"}"),
 			method:       http.MethodPost,
 			name:         "create handler responds with Status Code 500 when get five minute expiration token returns an error",
 			responseCode: http.StatusInternalServerError,
@@ -152,7 +152,7 @@ func TestAccountHandler(t *testing.T) {
 				hasher.EXPECT().GeneratePasswordHash([]byte("message"), "salt").Return(hash, nil)
 				querier.EXPECT().CreateAccount(
 					gomock.Any(),
-					db.CreateAccountParams{Username: "newuser", Phrase: hash, Salt: "salt"},
+					db.CreateAccountParams{Username: "newuser", Password: hash, Salt: "salt"},
 				).Return(db.Account{Username: "newuser"}, nil)
 				tokenString := ""
 				expirationTime := time.Time{}
@@ -249,7 +249,7 @@ func TestAccountHandler(t *testing.T) {
 			},
 		},
 		{
-			body:         bytes.NewBufferString("{\"id\":69,\"username\":\"user\",\"phrase\":\"newpass\"}"),
+			body:         bytes.NewBufferString("{\"id\":69,\"username\":\"user\",\"password\":\"newpass\"}"),
 			method:       http.MethodPatch,
 			name:         "update handler responds with Status Code 200 when valid data supplied",
 			responseCode: http.StatusOK,
@@ -257,10 +257,10 @@ func TestAccountHandler(t *testing.T) {
 			setupExpectations: func(r *http.Request, claimer *security.MockClaimer, hasher *security.MockHasher, querier *db.MockQuerier) {
 				passClaimsMiddleware(r, claimer, hasher, querier)
 				querier.EXPECT().AccountExists(gomock.Any(), int64(69)).Return(true, nil)
-				querier.EXPECT().GetAccount(gomock.Any(), int64(69)).Return(db.Account{ID: 69, Phrase: []byte("newpass"), Salt: "salt the snail"}, nil)
+				querier.EXPECT().GetAccount(gomock.Any(), int64(69)).Return(db.Account{ID: 69, Password: []byte("newpass"), Salt: "salt the snail"}, nil)
 				hasher.EXPECT().GenerateSalt().Times(0)
 				hasher.EXPECT().GeneratePasswordHash([]byte("newpass"), "salt the snail").Return([]byte("newhash"), nil)
-				params := db.UpdateAccountParams{ID: int64(69), Phrase: []byte("newhash")}
+				params := db.UpdateAccountParams{ID: int64(69), Password: []byte("newhash")}
 				querier.EXPECT().UpdateAccount(gomock.Any(), params).Return(nil)
 			},
 		},
@@ -275,7 +275,7 @@ func TestAccountHandler(t *testing.T) {
 			},
 		},
 		{
-			body:         bytes.NewBufferString("{\"id\":68,\"username\":\"user\",\"phrase\":\"newpass\"}"),
+			body:         bytes.NewBufferString("{\"id\":68,\"username\":\"user\",\"password\":\"newpass\"}"),
 			method:       http.MethodPatch,
 			name:         "update handler responds with Status Code 404 when record not found",
 			responseCode: http.StatusNotFound,
@@ -286,7 +286,7 @@ func TestAccountHandler(t *testing.T) {
 			},
 		},
 		{
-			body:         bytes.NewBufferString("{\"id\":69,\"username\":\"user\",\"phrase\":\"newpass\"}"),
+			body:         bytes.NewBufferString("{\"id\":69,\"username\":\"user\",\"password\":\"newpass\"}"),
 			method:       http.MethodPatch,
 			name:         "update handler responds with Status Code 500 when server error on get before update",
 			responseCode: http.StatusInternalServerError,
@@ -299,7 +299,7 @@ func TestAccountHandler(t *testing.T) {
 			},
 		},
 		{
-			body:         bytes.NewBufferString("{\"id\":69,\"username\":\"user\",\"phrase\":\"newpass\"}"),
+			body:         bytes.NewBufferString("{\"id\":69,\"username\":\"user\",\"password\":\"newpass\"}"),
 			method:       http.MethodPatch,
 			name:         "update handler responds with Status Code 500 when server error on update hash",
 			responseCode: http.StatusInternalServerError,
@@ -308,7 +308,7 @@ func TestAccountHandler(t *testing.T) {
 				passClaimsMiddleware(r, claimer, hasher, querier)
 				querier.EXPECT().AccountExists(gomock.Any(), int64(69)).Return(true, nil)
 				querier.EXPECT().GetAccount(gomock.Any(), int64(69)).Return(
-					db.Account{ID: 69, Salt: "somesalt", Phrase: []byte("newpass")}, nil)
+					db.Account{ID: 69, Salt: "somesalt", Password: []byte("newpass")}, nil)
 				hasher.EXPECT().GenerateSalt().Times(0)
 				os.Unsetenv("SECRET")
 				hasher.EXPECT().GeneratePasswordHash(gomock.Any(), "somesalt").Return(
@@ -318,7 +318,7 @@ func TestAccountHandler(t *testing.T) {
 			},
 		},
 		{
-			body:         bytes.NewBufferString("{\"id\":69,\"username\":\"user\",\"phrase\":\"newpass\"}"),
+			body:         bytes.NewBufferString("{\"id\":69,\"username\":\"user\",\"password\":\"newpass\"}"),
 			method:       http.MethodPatch,
 			name:         "update handler responds with Status Code 500 when server error on update",
 			responseCode: http.StatusInternalServerError,
@@ -326,15 +326,15 @@ func TestAccountHandler(t *testing.T) {
 			setupExpectations: func(r *http.Request, claimer *security.MockClaimer, hasher *security.MockHasher, querier *db.MockQuerier) {
 				passClaimsMiddleware(r, claimer, hasher, querier)
 				querier.EXPECT().AccountExists(gomock.Any(), int64(69)).Return(true, nil)
-				querier.EXPECT().GetAccount(gomock.Any(), int64(69)).Return(db.Account{ID: 69, Phrase: []byte("newpass"), Salt: "salt the snail"}, nil)
+				querier.EXPECT().GetAccount(gomock.Any(), int64(69)).Return(db.Account{ID: 69, Password: []byte("newpass"), Salt: "salt the snail"}, nil)
 				hasher.EXPECT().GenerateSalt().Times(0)
 				hasher.EXPECT().GeneratePasswordHash([]byte("newpass"), "salt the snail").Return([]byte("newhash"), nil)
-				params := db.UpdateAccountParams{ID: 69, Phrase: []byte("newhash")}
+				params := db.UpdateAccountParams{ID: 69, Password: []byte("newhash")}
 				querier.EXPECT().UpdateAccount(gomock.Any(), params).Return(errors.New("oops"))
 			},
 		},
 		{
-			body:         bytes.NewBufferString("{\"id\":69,\"username\":\"user\",\"phrase\":\"newpass\"}"),
+			body:         bytes.NewBufferString("{\"id\":69,\"username\":\"user\",\"password\":\"newpass\"}"),
 			method:       http.MethodPatch,
 			name:         "update handler responds with Status Code 500 when server error on update account exists",
 			responseCode: http.StatusInternalServerError,

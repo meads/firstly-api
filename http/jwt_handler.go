@@ -2,19 +2,12 @@ package http
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 )
-
-// Create a struct that models the structure of a user, both in the request body, and in the DB
-type signInRequest struct {
-	Phrase   string `json:"phrase" binding:"required"`
-	Username string `json:"username" binding:"required"`
-}
 
 func claimsMiddleware(h gin.HandlerFunc) gin.HandlerFunc {
 	return gin.HandlerFunc(func(ctx *gin.Context) {
@@ -50,6 +43,12 @@ func claimsMiddleware(h gin.HandlerFunc) gin.HandlerFunc {
 	})
 }
 
+// Create a struct that models the structure of a user, both in the request body, and in the DB
+type signInRequest struct {
+	Password string `json:"password" binding:"required"`
+	Username string `json:"username" binding:"required"`
+}
+
 func signinHandler(ctx *gin.Context) {
 	var req signInRequest
 
@@ -64,7 +63,7 @@ func signinHandler(ctx *gin.Context) {
 		return
 	}
 
-	valid, err := firstly.hasher.IsValidPassword(account.Phrase, account.Salt, req.Phrase)
+	valid, err := firstly.hasher.IsValidPassword(account.Password, account.Salt, req.Password)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -94,31 +93,6 @@ func signinHandler(ctx *gin.Context) {
 	})
 
 	ctx.Status(http.StatusOK)
-}
-
-func welcomeHandler(ctx *gin.Context) {
-	// We can obtain the session token from the requests cookies, which come with every request
-	c, err := ctx.Request.Cookie("token")
-	if err != nil {
-		ctx.Writer.WriteHeader(http.StatusUnauthorized)
-		return
-	}
-	token, usernameClaims, err := firstly.claimer.GetFromTokenString(c.Value)
-
-	if err != nil {
-		if err == jwt.ErrSignatureInvalid {
-			ctx.Writer.WriteHeader(http.StatusUnauthorized)
-			return
-		}
-		ctx.Writer.WriteHeader(http.StatusBadRequest)
-		return
-	}
-	if !token.Valid {
-		ctx.Writer.WriteHeader(http.StatusUnauthorized)
-		return
-	}
-	// Return the welcome message to the user, along with their username
-	ctx.Writer.Write([]byte(fmt.Sprintf("Welcome %s!", usernameClaims.Username)))
 }
 
 func refreshHandler(ctx *gin.Context) {

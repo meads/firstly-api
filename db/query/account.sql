@@ -14,7 +14,7 @@ SELECT id, username, created, deleted FROM account LIMIT $1 OFFSET $2;
 
 -- name: CreateAccount :one
 INSERT INTO account (
-  username, phrase, salt, created
+  username, "password", salt, created
 ) VALUES (
   $1, $2, $3, NOW()
 )
@@ -31,7 +31,7 @@ WHERE id = $1;
 
 -- name: UpdateAccount :exec
 UPDATE account
-SET phrase = $1, updated = NOW()
+SET "password" = $1, updated = NOW()
 WHERE id = $2
 RETURNING updated;
 

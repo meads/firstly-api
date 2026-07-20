@@ -11,7 +11,7 @@ import (
 
 type Hasher interface {
 	GenerateSalt() string
-	IsValidPassword(phrase []byte, salt, password string) (bool, error)
+	IsValidPassword(password []byte, salt, comparePassword string) (bool, error)
 	GeneratePasswordHash(phrase []byte, salt string) ([]byte, error)
 }
 
