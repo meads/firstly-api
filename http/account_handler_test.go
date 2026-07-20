@@ -11,6 +11,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/assert/v2"
 
@@ -20,6 +21,25 @@ import (
 	"github.com/meads/firstly-api/db"
 	"github.com/meads/firstly-api/security"
 )
+
+func passClaimsMiddleware(r *http.Request, claimer *security.MockClaimer, hasher *security.MockHasher, querier *db.MockQuerier) {
+	tokenString := "mocktoken"
+	usernameClaims := security.NewUsernameClaims()
+	usernameClaims.Username = "valid"
+	claimToken := &security.ClaimToken{
+		Token: &jwt.Token{
+			Valid: true,
+		},
+	}
+	claimer.EXPECT().GetFromTokenString(tokenString).Return(claimToken, usernameClaims, nil)
+
+	// Finally, we set the client cookie for "token" as the JWT we just generated
+	// we also set an expiry time which is the same as the token itself
+	r.AddCookie(&http.Cookie{
+		Name:  "token",
+		Value: tokenString,
+	})
+}
 
 func TestAccountHandler(t *testing.T) {
 

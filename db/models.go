@@ -13,12 +13,3 @@ type Account struct {
 	Updated  string `json:"updated"`
 	Deleted  bool   `json:"deleted"`
 }
-
-type Image struct {
-	ID      int64  `json:"id"`
-	Data    string `json:"data"`
-	Memo    string `json:"memo"`
-	Created string `json:"created"`
-	Updated string `json:"updated"`
-	Deleted bool   `json:"deleted"`
-}

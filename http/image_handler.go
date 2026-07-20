@@ -1,151 +1,151 @@
 package http
 
-import (
-	"database/sql"
-	"net/http"
-	"strconv"
+// import (
+// 	"database/sql"
+// 	"net/http"
+// 	"strconv"
 
-	"github.com/gin-gonic/gin"
-	db "github.com/meads/firstly-api/db"
-)
+// 	"github.com/gin-gonic/gin"
+// 	db "github.com/meads/firstly-api/db"
+// )
 
-type createImageRequest struct {
-	Data string `json:"data" binding:"required"`
-}
+// type createImageRequest struct {
+// 	Data string `json:"data" binding:"required"`
+// }
 
-func createImageHandler(store db.Querier) func(*gin.Context) {
-	return func(ctx *gin.Context) {
-		var req createImageRequest
-		if err := ctx.BindJSON(&req); err != nil {
-			ctx.JSON(http.StatusBadRequest, errorResponse(err))
-			return
-		}
+// func createImageHandler(store db.Querier) func(*gin.Context) {
+// 	return func(ctx *gin.Context) {
+// 		var req createImageRequest
+// 		if err := ctx.BindJSON(&req); err != nil {
+// 			ctx.JSON(http.StatusBadRequest, errorResponse(err))
+// 			return
+// 		}
 
-		image, err := store.CreateImage(ctx, req.Data)
-		if err != nil {
-			ctx.JSON(http.StatusInternalServerError, errorResponse(err))
-			return
-		}
+// 		image, err := store.CreateImage(ctx, req.Data)
+// 		if err != nil {
+// 			ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+// 			return
+// 		}
 
-		ctx.JSON(http.StatusOK, image)
-	}
-}
+// 		ctx.JSON(http.StatusOK, image)
+// 	}
+// }
 
-func deleteImageHandler(store db.Querier) func(*gin.Context) {
-	return func(ctx *gin.Context) {
-		idParam := ctx.Param("id")
-		if idParam == "" {
-			ctx.JSON(http.StatusBadRequest, gin.H{
-				"error": "id parameter is required",
-			})
-			return
-		}
-		id, err := strconv.ParseInt(idParam, 10, 64)
-		if err != nil {
-			ctx.JSON(http.StatusBadRequest, gin.H{
-				"error": "id parameter must be a valid integer",
-			})
-			return
-		}
+// func deleteImageHandler(store db.Querier) func(*gin.Context) {
+// 	return func(ctx *gin.Context) {
+// 		idParam := ctx.Param("id")
+// 		if idParam == "" {
+// 			ctx.JSON(http.StatusBadRequest, gin.H{
+// 				"error": "id parameter is required",
+// 			})
+// 			return
+// 		}
+// 		id, err := strconv.ParseInt(idParam, 10, 64)
+// 		if err != nil {
+// 			ctx.JSON(http.StatusBadRequest, gin.H{
+// 				"error": "id parameter must be a valid integer",
+// 			})
+// 			return
+// 		}
 
-		err = store.DeleteImage(ctx, id)
-		if err != nil {
-			// log.Println("Database failed:", err)
+// 		err = store.DeleteImage(ctx, id)
+// 		if err != nil {
+// 			// log.Println("Database failed:", err)
 
-			ctx.JSON(http.StatusInternalServerError, gin.H{
-				"error": "Internal Server Error",
-			})
+// 			ctx.JSON(http.StatusInternalServerError, gin.H{
+// 				"error": "Internal Server Error",
+// 			})
 
-			return
-		}
+// 			return
+// 		}
 
-		ctx.JSON(http.StatusOK, nil)
-	}
-}
+// 		ctx.JSON(http.StatusOK, nil)
+// 	}
+// }
 
-var getLimitAndOffset = func(ctx *gin.Context) (string, string) {
-	limit := ctx.Query("limit")
-	if limit == "0" || limit == "" {
-		limit = "50"
-	}
-	offset := ctx.Query("offset")
-	if offset == "" {
-		offset = "0"
-	}
+// var getLimitAndOffset = func(ctx *gin.Context) (string, string) {
+// 	limit := ctx.Query("limit")
+// 	if limit == "0" || limit == "" {
+// 		limit = "50"
+// 	}
+// 	offset := ctx.Query("offset")
+// 	if offset == "" {
+// 		offset = "0"
+// 	}
 
-	return limit, offset
-}
+// 	return limit, offset
+// }
 
-func listImagesHandler(ctx *gin.Context) {
-	limit, offset := getLimitAndOffset(ctx)
+// func listImagesHandler(ctx *gin.Context) {
+// 	limit, offset := getLimitAndOffset(ctx)
 
-	i, err := strconv.ParseInt(limit, 10, 32)
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"error": "error parsing limit as int",
-		})
+// 	i, err := strconv.ParseInt(limit, 10, 32)
+// 	if err != nil {
+// 		ctx.JSON(http.StatusBadRequest, gin.H{
+// 			"error": "error parsing limit as int",
+// 		})
 
-		return
-	}
+// 		return
+// 	}
 
-	j, err := strconv.ParseInt(offset, 10, 32)
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"error": "error parsing offset as int",
-		})
+// 	j, err := strconv.ParseInt(offset, 10, 32)
+// 	if err != nil {
+// 		ctx.JSON(http.StatusBadRequest, gin.H{
+// 			"error": "error parsing offset as int",
+// 		})
 
-		return
-	}
+// 		return
+// 	}
 
-	images, err := firstly.store.ListImages(ctx, db.ListImagesParams{Limit: int32(i), Offset: int32(j)})
-	if err != nil {
-		// log.Println("Database failed:", err)
+// 	images, err := firstly.store.ListImages(ctx, db.ListImagesParams{Limit: int32(i), Offset: int32(j)})
+// 	if err != nil {
+// 		// log.Println("Database failed:", err)
 
-		ctx.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Internal Server Error",
-		})
+// 		ctx.JSON(http.StatusInternalServerError, gin.H{
+// 			"error": "Internal Server Error",
+// 		})
 
-		return
-	}
+// 		return
+// 	}
 
-	ctx.Header("Access-Control-Allow-Origin", "*")
-	ctx.JSON(http.StatusOK, images)
-}
+// 	ctx.Header("Access-Control-Allow-Origin", "*")
+// 	ctx.JSON(http.StatusOK, images)
+// }
 
-type updateImageRequest struct {
-	ID   int64  `json:"id" binding:"required"`
-	Memo string `json:"memo" binding:"required"`
-}
+// type updateImageRequest struct {
+// 	ID   int64  `json:"id" binding:"required"`
+// 	Memo string `json:"memo" binding:"required"`
+// }
 
-func updateImageHandler(store db.Querier) func(ctx *gin.Context) {
-	return func(ctx *gin.Context) {
-		var req updateImageRequest
-		if err := ctx.BindJSON(&req); err != nil {
-			ctx.JSON(http.StatusBadRequest, errorResponse(err))
-			return
-		}
+// func updateImageHandler(store db.Querier) func(ctx *gin.Context) {
+// 	return func(ctx *gin.Context) {
+// 		var req updateImageRequest
+// 		if err := ctx.BindJSON(&req); err != nil {
+// 			ctx.JSON(http.StatusBadRequest, errorResponse(err))
+// 			return
+// 		}
 
-		image, err := store.GetImage(ctx, req.ID)
-		if err != nil {
-			if err == sql.ErrNoRows {
-				ctx.JSON(http.StatusNotFound, errorResponse(err))
-				return
-			}
-			ctx.JSON(http.StatusInternalServerError, errorResponse(err))
-			return
-		}
+// 		image, err := store.GetImage(ctx, req.ID)
+// 		if err != nil {
+// 			if err == sql.ErrNoRows {
+// 				ctx.JSON(http.StatusNotFound, errorResponse(err))
+// 				return
+// 			}
+// 			ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+// 			return
+// 		}
 
-		var updateParams db.UpdateImageParams
-		updateParams.ID = req.ID
-		updateParams.Memo = req.Memo
+// 		var updateParams db.UpdateImageParams
+// 		updateParams.ID = req.ID
+// 		updateParams.Memo = req.Memo
 
-		err = store.UpdateImage(ctx, updateParams)
-		if err != nil {
-			ctx.JSON(http.StatusInternalServerError, errorResponse(err))
-			return
-		}
+// 		err = store.UpdateImage(ctx, updateParams)
+// 		if err != nil {
+// 			ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+// 			return
+// 		}
 
-		image.Memo = req.Memo
-		ctx.JSON(http.StatusOK, image)
-	}
-}
+// 		image.Memo = req.Memo
+// 		ctx.JSON(http.StatusOK, image)
+// 	}
+// }

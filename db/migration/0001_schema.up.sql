@@ -1,11 +1,11 @@
-CREATE TABLE "image" (
-  "id"   BIGSERIAL  PRIMARY KEY,
-  "data" TEXT       NOT NULL,
-  "memo" TEXT       NOT NULL DEFAULT '',
-  "created" VARCHAR NOT NULL,
-  "updated" VARCHAR NOT NULL DEFAULT '',
-  "deleted" BOOLEAN NOT NULL DEFAULT FALSE
-);
+-- CREATE TABLE "image" (
+--   "id"   BIGSERIAL  PRIMARY KEY,
+--   "data" TEXT       NOT NULL,
+--   "memo" TEXT       NOT NULL DEFAULT '',
+--   "created" VARCHAR NOT NULL,
+--   "updated" VARCHAR NOT NULL DEFAULT '',
+--   "deleted" BOOLEAN NOT NULL DEFAULT FALSE
+-- );
 
 CREATE TABLE "account" (
   "id"       BIGSERIAL  PRIMARY KEY,

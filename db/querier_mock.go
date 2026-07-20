@@ -70,21 +70,6 @@ func (mr *MockQuerierMockRecorder) CreateAccount(ctx, arg any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateAccount", reflect.TypeOf((*MockQuerier)(nil).CreateAccount), ctx, arg)
 }
 
-// CreateImage mocks base method.
-func (m *MockQuerier) CreateImage(ctx context.Context, data string) (Image, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateImage", ctx, data)
-	ret0, _ := ret[0].(Image)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// CreateImage indicates an expected call of CreateImage.
-func (mr *MockQuerierMockRecorder) CreateImage(ctx, data any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateImage", reflect.TypeOf((*MockQuerier)(nil).CreateImage), ctx, data)
-}
-
 // DeleteAccount mocks base method.
 func (m *MockQuerier) DeleteAccount(ctx context.Context, id int64) error {
 	m.ctrl.T.Helper()
@@ -97,20 +82,6 @@ func (m *MockQuerier) DeleteAccount(ctx context.Context, id int64) error {
 func (mr *MockQuerierMockRecorder) DeleteAccount(ctx, id any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteAccount", reflect.TypeOf((*MockQuerier)(nil).DeleteAccount), ctx, id)
-}
-
-// DeleteImage mocks base method.
-func (m *MockQuerier) DeleteImage(ctx context.Context, id int64) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteImage", ctx, id)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// DeleteImage indicates an expected call of DeleteImage.
-func (mr *MockQuerierMockRecorder) DeleteImage(ctx, id any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteImage", reflect.TypeOf((*MockQuerier)(nil).DeleteImage), ctx, id)
 }
 
 // GetAccount mocks base method.
@@ -143,21 +114,6 @@ func (mr *MockQuerierMockRecorder) GetAccountByUsername(ctx, username any) *gomo
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAccountByUsername", reflect.TypeOf((*MockQuerier)(nil).GetAccountByUsername), ctx, username)
 }
 
-// GetImage mocks base method.
-func (m *MockQuerier) GetImage(ctx context.Context, id int64) (Image, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetImage", ctx, id)
-	ret0, _ := ret[0].(Image)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetImage indicates an expected call of GetImage.
-func (mr *MockQuerierMockRecorder) GetImage(ctx, id any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetImage", reflect.TypeOf((*MockQuerier)(nil).GetImage), ctx, id)
-}
-
 // ListAccounts mocks base method.
 func (m *MockQuerier) ListAccounts(ctx context.Context, arg ListAccountsParams) ([]ListAccountsRow, error) {
 	m.ctrl.T.Helper()
@@ -171,21 +127,6 @@ func (m *MockQuerier) ListAccounts(ctx context.Context, arg ListAccountsParams) 
 func (mr *MockQuerierMockRecorder) ListAccounts(ctx, arg any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListAccounts", reflect.TypeOf((*MockQuerier)(nil).ListAccounts), ctx, arg)
-}
-
-// ListImages mocks base method.
-func (m *MockQuerier) ListImages(ctx context.Context, arg ListImagesParams) ([]Image, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListImages", ctx, arg)
-	ret0, _ := ret[0].([]Image)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// ListImages indicates an expected call of ListImages.
-func (mr *MockQuerierMockRecorder) ListImages(ctx, arg any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListImages", reflect.TypeOf((*MockQuerier)(nil).ListImages), ctx, arg)
 }
 
 // SoftDeleteAccount mocks base method.
@@ -202,20 +143,6 @@ func (mr *MockQuerierMockRecorder) SoftDeleteAccount(ctx, id any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SoftDeleteAccount", reflect.TypeOf((*MockQuerier)(nil).SoftDeleteAccount), ctx, id)
 }
 
-// SoftDeleteImage mocks base method.
-func (m *MockQuerier) SoftDeleteImage(ctx context.Context, id int64) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SoftDeleteImage", ctx, id)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// SoftDeleteImage indicates an expected call of SoftDeleteImage.
-func (mr *MockQuerierMockRecorder) SoftDeleteImage(ctx, id any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SoftDeleteImage", reflect.TypeOf((*MockQuerier)(nil).SoftDeleteImage), ctx, id)
-}
-
 // UpdateAccount mocks base method.
 func (m *MockQuerier) UpdateAccount(ctx context.Context, arg UpdateAccountParams) error {
 	m.ctrl.T.Helper()
@@ -228,18 +155,4 @@ func (m *MockQuerier) UpdateAccount(ctx context.Context, arg UpdateAccountParams
 func (mr *MockQuerierMockRecorder) UpdateAccount(ctx, arg any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateAccount", reflect.TypeOf((*MockQuerier)(nil).UpdateAccount), ctx, arg)
-}
-
-// UpdateImage mocks base method.
-func (m *MockQuerier) UpdateImage(ctx context.Context, arg UpdateImageParams) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateImage", ctx, arg)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// UpdateImage indicates an expected call of UpdateImage.
-func (mr *MockQuerierMockRecorder) UpdateImage(ctx, arg any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateImage", reflect.TypeOf((*MockQuerier)(nil).UpdateImage), ctx, arg)
 }

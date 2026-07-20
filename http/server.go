@@ -31,10 +31,10 @@ func NewFirstlyServer(claimer security.Claimer, hasher security.Hasher, router *
 	firstly.router.PATCH("/account/", claimsMiddleware(updateAccountHandler))
 	firstly.router.DELETE("/account/:id/", claimsMiddleware(deleteAccountHandler))
 
-	firstly.router.GET("/image/", claimsMiddleware(listImagesHandler))
-	firstly.router.POST("/image/", claimsMiddleware(createImageHandler(store)))
-	firstly.router.DELETE("/image/:id/", claimsMiddleware(deleteImageHandler(store)))
-	firstly.router.PATCH("/image/", claimsMiddleware(updateImageHandler(store)))
+	// firstly.router.GET("/image/", claimsMiddleware(listImagesHandler))
+	// firstly.router.POST("/image/", claimsMiddleware(createImageHandler(store)))
+	// firstly.router.DELETE("/image/:id/", claimsMiddleware(deleteImageHandler(store)))
+	// firstly.router.PATCH("/image/", claimsMiddleware(updateImageHandler(store)))
 
 	return firstly
 }

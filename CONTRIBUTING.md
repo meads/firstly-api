@@ -120,15 +120,15 @@ curl -v --cookie "token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImJ
 
 # -----------------------------------------------------------------------------------------------------------------------
 
-# DELETE /image/
-# GET    /image/
-# Image - Fetch images list; should check that the jwt is still valid before requesting data using the claimer.
-curl -v -X GET --cookie "token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImJvYiIsImV4cCI6MTY2NzE1ODQxMn0.d5WA6FOCl_kU4PjP1x0fpsumIPWpSQEn4Fo3MZVuCok" \
-      http://localhost:8080/image/
+# # DELETE /image/
+# # GET    /image/
+# # Image - Fetch images list; should check that the jwt is still valid before requesting data using the claimer.
+# curl -v -X GET --cookie "token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImJvYiIsImV4cCI6MTY2NzE1ODQxMn0.d5WA6FOCl_kU4PjP1x0fpsumIPWpSQEn4Fo3MZVuCok" \
+#       http://localhost:8080/image/
 
-# PATCH  /image/
-# POST   /image/
-# Image - Create image
-curl -v --cookie "token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImJvYiIsImV4cCI6MTY2NzE1ODQxMn0.d5WA6FOCl_kU4PjP1x0fpsumIPWpSQEn4Fo3MZVuCok" \
-     -d '{"data":"somefoo"}' http://localhost:8080/image/
-```
+# # PATCH  /image/
+# # POST   /image/
+# # Image - Create image
+# curl -v --cookie "token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImJvYiIsImV4cCI6MTY2NzE1ODQxMn0.d5WA6FOCl_kU4PjP1x0fpsumIPWpSQEn4Fo3MZVuCok" \
+#      -d '{"data":"somefoo"}' http://localhost:8080/image/
+# ```
