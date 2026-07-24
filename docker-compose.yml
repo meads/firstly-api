@@ -17,9 +17,25 @@ services:
     environment:
       - DATABASE_URL=${DATABASE_URL}
       - SECRET=${SECRET}
+      - ALLOW_ORIGINS=${ALLOW_ORIGINS}
     depends_on:
       - db
     restart: always
     env_file:
       - .env
+  web:
+    image: nginx:alpine
+    restart: unless-stopped
+    volumes:
+      # Mount your local HTML/CSS/JS directory into the Nginx web root
+      - ./web:/usr/share/nginx/html:ro
+    ports:
+      # Maps port 3000 on your machine to port 80 in the container
+      - "3000:80"
+    networks:
+      - app-network
 
+# Ensure your custom network is defined at the bottom
+networks:
+  app-network:
+    driver: bridge

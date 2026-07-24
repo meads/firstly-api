@@ -59,18 +59,22 @@ Create a local .env file in the root directory and specify the values below.
 The .env file is excluded from the project via .gitignore file.
     
 ```env
-# database connection string
-DATABASE_URL=postgresql://username:password@db:5432/database?sslmode=disable
-# secret used for signing jwt tokens
+# variables for api service
+DATABASE_URL=postgresql://username:password@db:5432/databasename?sslmode=disable
+# used in creation of hmac for generating and validating password hashes
 SECRET=
+# origins to allow in cors requests using gin middleware comma separated. 
+# don't leave trailing commas
+ALLOW_ORIGINS=
 
-# database initialization values
+# variables for db service
 POSTGRES_USER=
 POSTGRES_PASSWORD=
 POSTGRES_DB=
 
-# username to login on dockerhub 
+# variables for makefile
 DOCKER_USERNAME=
+
 ```
 
 ## generate
@@ -140,25 +144,30 @@ $ make deploy
 ```bash
 
 # POST   /account/
-# Create Account - returns initial token=
+# Create Account - returns initial token in Authorization header
 curl -X POST -v -d '{"username":"bob","password":"13013"}' http://localhost:8080/account/
 
 # GET    /account/
-curl -X GET -v --cookie "token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImJvYiIsImV4cCI6MTc4NDU2NzI5N30.uDB9pOj_h16Rhb4ZM6s-l8cVEBK6La3RqsENJJGKGao" \
+curl -X GET -v -H "Authorization: Bearer [token here]" \
       http://localhost:8080/account/
 
 # DELETE /account/:id/
-curl -X DELETE -v --cookie "token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImJvYiIsImV4cCI6MTc4NDU2NzI5N30.uDB9pOj_h16Rhb4ZM6s-l8cVEBK6La3RqsENJJGKGao" \
+curl -X DELETE -v -H "Authorization: Bearer [token here]" \
       http://localhost:8080/account/1/
 
 # PATCH  /account/
+# -----------------------------------------------------------------------------------------------------------------------
+
+# GET /protected/
+# return api JSON data from a route that is protected by JWT validation middleware
+curl -X GET -H "Authorization: Bearer [token here]" -v http://localhost:8080/protected/
 
 # -----------------------------------------------------------------------------------------------------------------------
 
 # POST   /refresh/
 # POST   /signin/
 # Sign in - returns Set-Token header populated with token=
-curl -X POST -v --cookie "token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImJvYiIsImV4cCI6MTc4NDU2NzI5N30.uDB9pOj_h16Rhb4ZM6s-l8cVEBK6La3RqsENJJGKGao" \
+curl -X POST -v -H "Authorization: Bearer [token here]" \
     -d '{"username":"bob","password":"13013"}' http://localhost:8080/signin/
 
 # GET    /welcome/
@@ -169,12 +178,10 @@ curl -X POST -v --cookie "token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmF
 # # DELETE /image/
 # # GET    /image/
 # # Image - Fetch images list; should check that the jwt is still valid before requesting data using the claimer.
-# curl -v -X GET --cookie "token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImJvYiIsImV4cCI6MTY2NzE1ODQxMn0.d5WA6FOCl_kU4PjP1x0fpsumIPWpSQEn4Fo3MZVuCok" \
-#       http://localhost:8080/image/
+# curl -v -X GET  http://localhost:8080/image/
 
 # # PATCH  /image/
 # # POST   /image/
 # # Image - Create image
-# curl -v --cookie "token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImJvYiIsImV4cCI6MTY2NzE1ODQxMn0.d5WA6FOCl_kU4PjP1x0fpsumIPWpSQEn4Fo3MZVuCok" \
-#      -d '{"data":"somefoo"}' http://localhost:8080/image/
+# curl -v -d '{"data":"somefoo"}' http://localhost:8080/image/
 # ```

@@ -9,36 +9,36 @@ import (
 	"net/http/httptest"
 	"os"
 	"testing"
-	"time"
 
-	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/assert/v2"
-
-	// "github.com/golang/mock/gomock"
-	"go.uber.org/mock/gomock"
-
-	"github.com/meads/firstly-api/db"
+	db "github.com/meads/firstly-api/db"
 	"github.com/meads/firstly-api/security"
+	"go.uber.org/mock/gomock"
 )
+
+// "github.com/dgrijalva/jwt-go"
+
+// "github.com/golang/mock/gomock"
 
 func passClaimsMiddleware(r *http.Request, claimer *security.MockClaimer, hasher *security.MockHasher, querier *db.MockQuerier) {
 	tokenString := "mocktoken"
-	usernameClaims := security.NewUsernameClaims()
-	usernameClaims.Username = "valid"
-	claimToken := &security.ClaimToken{
-		Token: &jwt.Token{
-			Valid: true,
-		},
-	}
-	claimer.EXPECT().GetFromTokenString(tokenString).Return(claimToken, usernameClaims, nil)
+	os.Setenv("SECRET", "test")
+	r.Header.Add("Authorization", "Bearer mocktoken")
+	claimer.EXPECT().VerifyToken(tokenString, []byte(os.Getenv("SECRET"))).Return(nil, nil)
+	// usernameClaims := security.NewUsernameClaims()
+	// usernameClaims.Username = "valid"
+	// claimToken := &security.ClaimToken{
+	// 	Token: &jwt.Token{
+	// 		Valid: true,
+	// 	},
+	// }
+	// claimer.EXPECT().GetFromTokenString(tokenString).Return(claimToken, usernameClaims, nil)
 
-	// Finally, we set the client cookie for "token" as the JWT we just generated
-	// we also set an expiry time which is the same as the token itself
-	r.AddCookie(&http.Cookie{
-		Name:  "token",
-		Value: tokenString,
-	})
+	// r.AddCookie(&http.Cookie{
+	// 	Name:  "token",
+	// 	Value: tokenString,
+	// })
 }
 
 func TestAccountHandler(t *testing.T) {
@@ -69,9 +69,7 @@ func TestAccountHandler(t *testing.T) {
 					db.CreateAccountParams{Username: "newuser", Password: hash, Salt: "salt"},
 				).Return(db.Account{Username: "newuser"}, nil)
 				tokenString := "mocktoken"
-				expirationTime := time.Now().Add(5 * time.Minute)
-				claimer.EXPECT().GetFiveMinuteExpirationToken("newuser").Return(tokenString, expirationTime, nil)
-
+				claimer.EXPECT().GenerateToken("newuser").Return(tokenString, nil)
 			},
 		},
 		{
@@ -155,8 +153,7 @@ func TestAccountHandler(t *testing.T) {
 					db.CreateAccountParams{Username: "newuser", Password: hash, Salt: "salt"},
 				).Return(db.Account{Username: "newuser"}, nil)
 				tokenString := ""
-				expirationTime := time.Time{}
-				claimer.EXPECT().GetFiveMinuteExpirationToken("newuser").Return(tokenString, expirationTime, errors.New("oops"))
+				claimer.EXPECT().GenerateToken("newuser").Return(tokenString, errors.New("oops"))
 			},
 		},
 		{
@@ -310,7 +307,7 @@ func TestAccountHandler(t *testing.T) {
 				querier.EXPECT().GetAccount(gomock.Any(), int64(69)).Return(
 					db.Account{ID: 69, Salt: "somesalt", Password: []byte("newpass")}, nil)
 				hasher.EXPECT().GenerateSalt().Times(0)
-				os.Unsetenv("SECRET")
+				// os.Unsetenv("SECRET")
 				hasher.EXPECT().GeneratePasswordHash(gomock.Any(), "somesalt").Return(
 					nil,
 					errors.New("secret not set"),
@@ -349,6 +346,7 @@ func TestAccountHandler(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			// Arrange
+			os.Setenv("ALLOW_ORIGINS", "http://localhost:3000")
 			router := gin.Default()
 			gin.SetMode(gin.TestMode)
 			ctrl := gomock.NewController(t)

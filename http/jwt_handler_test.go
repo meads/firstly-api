@@ -10,12 +10,9 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/assert/v2"
-
-	// "github.com/golang/mock/gomock"
-	"go.uber.org/mock/gomock"
-
 	db "github.com/meads/firstly-api/db"
 	"github.com/meads/firstly-api/security"
+	"go.uber.org/mock/gomock"
 )
 
 func TestJWTSignInHandler(t *testing.T) {
@@ -102,8 +99,7 @@ func TestJWTSignInHandler(t *testing.T) {
 				// Create the JWT claims, which includes the username and expiry time
 				tokenString := "mocktoken"
 				expirationTime := time.Now().Add(5 * time.Minute)
-				claimer.EXPECT().GetFiveMinuteExpirationToken(expectedAccount.Username).
-					Return(tokenString, expirationTime, nil)
+				claimer.EXPECT().GenerateToken(expectedAccount.Username).Return(tokenString, nil)
 
 				// Finally, we set the client cookie for "token" as the JWT we just generated
 				// we also set an expiry time which is the same as the token itself
@@ -134,8 +130,7 @@ func TestJWTSignInHandler(t *testing.T) {
 				// Create the JWT claims, which includes the username and expiry time
 				tokenString := "mocktoken"
 				expirationTime := time.Now().Add(5 * time.Minute)
-				claimer.EXPECT().GetFiveMinuteExpirationToken(expectedAccount.Username).
-					Return("", time.Time{}, errors.New("oops"))
+				claimer.EXPECT().GenerateToken(expectedAccount.Username).Return("", errors.New("oops"))
 
 				// Finally, we set the client cookie for "token" as the JWT we just generated
 				// we also set an expiry time which is the same as the token itself

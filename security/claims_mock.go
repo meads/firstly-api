@@ -11,9 +11,7 @@ package security
 
 import (
 	reflect "reflect"
-	time "time"
 
-	jwt "github.com/dgrijalva/jwt-go"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -41,63 +39,32 @@ func (m *MockClaimer) EXPECT() *MockClaimerMockRecorder {
 	return m.recorder
 }
 
-// GetClaimToken mocks base method.
-func (m *MockClaimer) GetClaimToken() *ClaimToken {
+// GenerateToken mocks base method.
+func (m *MockClaimer) GenerateToken(username string) (string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetClaimToken")
-	ret0, _ := ret[0].(*ClaimToken)
-	return ret0
-}
-
-// GetClaimToken indicates an expected call of GetClaimToken.
-func (mr *MockClaimerMockRecorder) GetClaimToken() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetClaimToken", reflect.TypeOf((*MockClaimer)(nil).GetClaimToken))
-}
-
-// GetFiveMinuteExpirationToken mocks base method.
-func (m *MockClaimer) GetFiveMinuteExpirationToken(username string) (string, time.Time, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetFiveMinuteExpirationToken", username)
+	ret := m.ctrl.Call(m, "GenerateToken", username)
 	ret0, _ := ret[0].(string)
-	ret1, _ := ret[1].(time.Time)
-	ret2, _ := ret[2].(error)
-	return ret0, ret1, ret2
-}
-
-// GetFiveMinuteExpirationToken indicates an expected call of GetFiveMinuteExpirationToken.
-func (mr *MockClaimerMockRecorder) GetFiveMinuteExpirationToken(username any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFiveMinuteExpirationToken", reflect.TypeOf((*MockClaimer)(nil).GetFiveMinuteExpirationToken), username)
-}
-
-// GetFromTokenString mocks base method.
-func (m *MockClaimer) GetFromTokenString(tokenString string) (*ClaimToken, *UsernameClaims, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetFromTokenString", tokenString)
-	ret0, _ := ret[0].(*ClaimToken)
-	ret1, _ := ret[1].(*UsernameClaims)
-	ret2, _ := ret[2].(error)
-	return ret0, ret1, ret2
-}
-
-// GetFromTokenString indicates an expected call of GetFromTokenString.
-func (mr *MockClaimerMockRecorder) GetFromTokenString(tokenString any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFromTokenString", reflect.TypeOf((*MockClaimer)(nil).GetFromTokenString), tokenString)
-}
-
-// ParseWithClaims mocks base method.
-func (m *MockClaimer) ParseWithClaims(tokenString string, claims *UsernameClaims, keyFunc jwt.Keyfunc) (*ClaimToken, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ParseWithClaims", tokenString, claims, keyFunc)
-	ret0, _ := ret[0].(*ClaimToken)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// ParseWithClaims indicates an expected call of ParseWithClaims.
-func (mr *MockClaimerMockRecorder) ParseWithClaims(tokenString, claims, keyFunc any) *gomock.Call {
+// GenerateToken indicates an expected call of GenerateToken.
+func (mr *MockClaimerMockRecorder) GenerateToken(username any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ParseWithClaims", reflect.TypeOf((*MockClaimer)(nil).ParseWithClaims), tokenString, claims, keyFunc)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GenerateToken", reflect.TypeOf((*MockClaimer)(nil).GenerateToken), username)
+}
+
+// VerifyToken mocks base method.
+func (m *MockClaimer) VerifyToken(tokenString string, secretKey []byte) (*CustomClaims, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "VerifyToken", tokenString, secretKey)
+	ret0, _ := ret[0].(*CustomClaims)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// VerifyToken indicates an expected call of VerifyToken.
+func (mr *MockClaimerMockRecorder) VerifyToken(tokenString, secretKey any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "VerifyToken", reflect.TypeOf((*MockClaimer)(nil).VerifyToken), tokenString, secretKey)
 }

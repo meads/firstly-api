@@ -3,6 +3,7 @@ package http
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -42,10 +43,6 @@ func createAccountHandler(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
-	// if err != nil {
-	// 	ctx.JSON(http.StatusInternalServerError, errorResponse(errors.New("account creation failed")))
-	// 	return
-	// }
 	param.Password = password
 
 	account, err := firstly.store.CreateAccount(ctx, param)
@@ -54,20 +51,26 @@ func createAccountHandler(ctx *gin.Context) {
 		return
 	}
 
-	tokenString, expirationTime, err := firstly.claimer.GetFiveMinuteExpirationToken(account.Username)
+	tokenString, err := firstly.claimer.GenerateToken(account.Username)
 	if err != nil {
-		// If there is an error in creating the JWT return an internal server error
-		ctx.Writer.WriteHeader(http.StatusInternalServerError)
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
 
-	// Finally, we set the client cookie for "token" as the JWT we just generated
-	// we also set an expiry time which is the same as the token itself
-	http.SetCookie(ctx.Writer, &http.Cookie{
-		Name:    "token",
-		Value:   tokenString,
-		Expires: expirationTime,
-	})
+	// ctx.SetCookieData(&http.Cookie{
+	// 	Name:     "token",
+	// 	Value:    tokenString,
+	// 	Expires:  time.Now().Add(time.Minute * 5),
+	// 	Path:     "/",
+	// 	Domain:   "localhost",
+	// 	SameSite: http.SameSiteNoneMode,
+	// 	Secure:   true,
+	// 	HttpOnly: true,
+	// })
+
+	ctx.Writer.Header().Set("Authorization", fmt.Sprintf("Bearer %s", tokenString))
+
+	ctx.JSON(http.StatusOK, nil)
 }
 
 type loginAccountRequest struct {
@@ -95,7 +98,6 @@ func deleteAccountHandler(ctx *gin.Context) {
 
 	err = firstly.store.DeleteAccount(ctx, id)
 	if err != nil {
-		// log.Println("Database failed:", err)
 		ctx.JSON(http.StatusInternalServerError, err)
 
 		return

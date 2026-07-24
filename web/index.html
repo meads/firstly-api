@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firstly Web</title>
+    <style>
+        ul#data-list {border: 1px dashed;height: 75vh;overflow: scroll}
+    </style>
+</head>
+<body>
+    <h1>Demo: Add Account and Fetch Data</h1>
+
+    <h2>Add Account</h2>
+    <form id="account-form">
+        <input type="text" id="username" placeholder="Username" required>
+        <input type="password" id="password" placeholder="Password" required>
+        <button type="submit">Submit</button>
+    </form>
+
+    <button id="fetch-data">Fetch Data</button>
+    <button id="clear-data">Clear Data</button>
+
+    <ul id="data-list"></ul>
+
+
+<script>
+(function(){
+    var token = ''
+    document.addEventListener('DOMContentLoaded', function () {
+        // Clear the visible data from the UI
+        document.getElementById('clear-data').addEventListener('click', function() {
+            document.getElementById('data-list').innerHTML = "";
+        });
+
+        // Fetch and display data from a protected route
+        document.getElementById('fetch-data').addEventListener('click', async function () {
+            try {
+                const response = await fetch('http://localhost:8080/protected/', {
+                    mode:'cors',
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    credentials:"include",
+                })
+                
+                const data = await response.json()
+
+                if (!response.ok) {
+                    if (response.status == 401) {
+                        alert('unauthorized!')
+                    }
+
+                    throw new Error(`HTTP Error! Status: ${response.status} : ${data.error}`)
+                }
+
+                console.log('Success: ', data)
+
+                const dataList = document.getElementById('data-list');
+                dataList.innerHTML = ''; 
+
+                // Display each object
+                data.forEach(o => {
+                    const listItem = document.createElement('li');
+                    listItem.textContent = `${o.id} - ${o.location} - ${o.username} - ${o.visitedOn}`;
+                    dataList.appendChild(listItem);
+                });
+            } catch (error) {
+                console.error('Error sending POST request:', error);
+            }
+        });
+
+        // Add a new user
+        document.getElementById('account-form').addEventListener('submit', async function (e) {
+            e.preventDefault(); 
+
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            try {
+                const response = await fetch('http://localhost:8080/account/', {
+                    mode:'cors',
+                    credentials:"include",
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ username, password }),
+                })
+                
+                const data = await response.json()
+
+                if (!response.ok) {
+                    throw new Error(`HTTP Error! Status: ${response.status} : ${data.error}`)
+                }
+                authorizationHeader = response.headers.get("Authorization")
+                if (authorizationHeader) {
+                    if (authorizationHeader.indexOf("Bearer") > -1) {
+                        token = authorizationHeader.split(" ")[1]
+                    }
+                }
+
+                console.log('Success: ', data)
+            } catch (error) {
+                console.error('Error sending POST request:', error);
+            }
+        });
+    });
+}())
+</script>
+</body>
+</html>
