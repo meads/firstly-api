@@ -1,18 +1,16 @@
 package http
 
 import (
-	"log"
 	"os"
-	"strings"
 
-	cors "github.com/gin-contrib/cors"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	db "github.com/meads/firstly-api/db"
 	"github.com/meads/firstly-api/security"
 )
 
 type FirstlyServer struct {
-	claimer security.Claimer
+	tokener security.Tokener
 	hasher  security.Hasher
 	router  *gin.Engine
 	store   db.Querier
@@ -21,8 +19,8 @@ type FirstlyServer struct {
 var firstly = &FirstlyServer{}
 
 // NewFirstlyAPI creates a new Http Server and sets up routing.
-func NewFirstlyServer(claimer security.Claimer, hasher security.Hasher, router *gin.Engine, store db.Querier) *FirstlyServer {
-	firstly.claimer = claimer
+func NewFirstlyServer(tokener security.Tokener, hasher security.Hasher, router *gin.Engine, store db.Querier) *FirstlyServer {
+	firstly.tokener = tokener
 	firstly.hasher = hasher
 	firstly.router = router
 	firstly.store = store
@@ -31,40 +29,29 @@ func NewFirstlyServer(claimer security.Claimer, hasher security.Hasher, router *
 	firstly.router.SetTrustedProxies(nil)
 
 	// https://github.com/gin-gonic/gin/issues/3681
-	origins := os.Getenv("ALLOW_ORIGINS")
-	origins = strings.TrimSpace(origins)
-	var ALLOW_ORIGINS []string
-	if origins == "" {
-		log.Println("ALLOW_ORIGINS not set in config!")
-		os.Exit(1)
-	} else if strings.Contains(origins, ",") {
-		ALLOW_ORIGINS = strings.Split(origins, ",")
-	} else {
-		ALLOW_ORIGINS = []string{origins}
-	}
-
 	config := cors.DefaultConfig()
-	config.AllowOrigins = ALLOW_ORIGINS
+	ALLOW_ORIGINS := os.Getenv("ALLOW_ORIGINS")
+	if ALLOW_ORIGINS == "" {
+		ALLOW_ORIGINS = "http://localhost:3000"
+	}
+	config.AllowOrigins = []string{ALLOW_ORIGINS}
 	config.AllowCredentials = true
 	config.AllowHeaders = []string{"Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With"}
 	config.ExposeHeaders = []string{"Authorization"}
 	firstly.router.Use(cors.New(config))
 
-	firstly.router.POST("/signin/", signinHandler)
-	// firstly.router.GET("/welcome/", welcomeHandler)
-	firstly.router.POST("/refresh/", refreshHandler)
+	firstly.router.POST("/register/", registerUserHandler)
+	firstly.router.POST("/login/", loginHandler)
+	firstly.router.POST("/refresh/", renewAccessTokenHandler)
+	firstly.router.POST("/logout/:sessionid", logoutHandler)
+	firstly.router.POST("/revoke/:sessionid", revokeSessionHandler)
 
-	firstly.router.POST("/account/", createAccountHandler)
-	firstly.router.GET("/account/", claimsMiddleware(listAccountsHandler))
-	firstly.router.PATCH("/account/", claimsMiddleware(updateAccountHandler))
-	firstly.router.DELETE("/account/:id/", claimsMiddleware(deleteAccountHandler))
+	// firstly.router.GET("/users/:id", claimsMiddleware(getUserHandler))
+	firstly.router.GET("/users/", claimsMiddleware(listUsersHandler))
+	firstly.router.PATCH("/users/", claimsMiddleware(updateUserHandler))
+	firstly.router.DELETE("/users/:id/", claimsMiddleware(deleteUserHandler))
 
 	firstly.router.GET("/protected/", claimsMiddleware(listProtectedHandler))
-	// firstly.router.GET("/image/", claimsMiddleware(listImagesHandler))
-	// firstly.router.GET("/image/", claimsMiddleware(listImagesHandler))
-	// firstly.router.POST("/image/", claimsMiddleware(createImageHandler(store)))
-	// firstly.router.DELETE("/image/:id/", claimsMiddleware(deleteImageHandler(store)))
-	// firstly.router.PATCH("/image/", claimsMiddleware(updateImageHandler(store)))
 
 	return firstly
 }

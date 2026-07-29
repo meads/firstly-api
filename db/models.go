@@ -4,12 +4,23 @@
 
 package db
 
-type Account struct {
-	ID       int64  `json:"id"`
-	Username string `json:"username"`
-	Password []byte `json:"password"`
-	Salt     string `json:"salt"`
-	Created  string `json:"created"`
-	Updated  string `json:"updated"`
-	Deleted  bool   `json:"deleted"`
+import (
+	"database/sql"
+	"time"
+)
+
+type Session struct {
+	ID           string       `json:"id"`
+	Username     string       `json:"username"`
+	RefreshToken string       `json:"refreshToken"`
+	IsRevoked    bool         `json:"isRevoked"`
+	ExpiresAt    time.Time    `json:"expiresAt"`
+	CreatedAt    sql.NullTime `json:"createdAt"`
+}
+
+type User struct {
+	ID        int64        `json:"id"`
+	Username  string       `json:"username"`
+	Password  string       `json:"password"`
+	CreatedAt sql.NullTime `json:"createdAt"`
 }

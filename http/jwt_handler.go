@@ -1,13 +1,15 @@
 package http
 
 import (
+	"database/sql"
 	"errors"
 	"fmt"
 	"net/http"
-	"os"
 	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
+	db "github.com/meads/firstly-api/db"
 )
 
 func claimsMiddleware(h gin.HandlerFunc) gin.HandlerFunc {
@@ -22,9 +24,15 @@ func claimsMiddleware(h gin.HandlerFunc) gin.HandlerFunc {
 		if len(parts) == 2 {
 			tokenString = parts[1]
 		}
-		_, err := firstly.claimer.VerifyToken(tokenString, []byte(os.Getenv("SECRET")))
+		userClaims, err := firstly.tokener.VerifyToken(tokenString)
 		if err != nil {
 			ctx.JSON(http.StatusUnauthorized, errorResponse(err))
+			return
+		}
+
+		// _ = userClaims
+		if userClaims.Type != "access" {
+			ctx.JSON(http.StatusUnauthorized, errorResponse(errors.New("invalid token type")))
 			return
 		}
 
@@ -32,98 +40,159 @@ func claimsMiddleware(h gin.HandlerFunc) gin.HandlerFunc {
 	})
 }
 
-// Create a struct that models the structure of a user, both in the request body, and in the DB
-type signInRequest struct {
+type loginRequest struct {
 	Password string `json:"password" binding:"required"`
 	Username string `json:"username" binding:"required"`
 }
 
-func signinHandler(ctx *gin.Context) {
-	var req signInRequest
+type loginResponse struct {
+	SessionID             string    `json:"sessionId"`
+	AccessToken           string    `json:"accessToken"`
+	RefreshToken          string    `json:"refreshToken"`
+	AccessTokenExpiresAt  time.Time `json:"accessTokenExpiresAt"`
+	RefreshTokenExpiresAt time.Time `json:"refreshTokenExpiresAt"`
+	Username              string    `json:"username"`
+}
+
+type renewAccessTokenRequest struct {
+	RefreshToken string `json:"refreshToken" binding:"required"`
+}
+
+type renewAccessTokenResponse struct {
+	AccessToken          string    `json:"accessToken"`
+	AccessTokenExpiresAt time.Time `json:"accessTokenExpiresAt"`
+}
+
+func loginHandler(ctx *gin.Context) {
+	var req loginRequest
 
 	if err := ctx.BindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return
 	}
 
-	account, err := firstly.store.GetAccountByUsername(ctx, req.Username)
+	dbUser, err := firstly.store.GetUserByUsername(ctx, req.Username)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, errorResponse(err))
-		return
-	}
-
-	valid, err := firstly.hasher.IsValidPassword(account.Password, account.Salt, req.Password)
-	if err != nil {
+		if err == sql.ErrNoRows {
+			ctx.JSON(http.StatusUnauthorized, errorResponse(errors.New("user not found")))
+			return
+		}
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
 
-	// If a password exists for the given user
-	// AND, if it is the same as the password we received, the we can move ahead
-	// if NOT, then we return an "Unauthorized" status
-	if !valid {
-		ctx.Writer.WriteHeader(http.StatusUnauthorized)
+	err = firstly.hasher.ComparePassword(dbUser.Password, req.Password)
+	if err != nil {
+		ctx.JSON(http.StatusUnauthorized, errorResponse(errors.New("invalid username or password")))
 		return
 	}
 
-	tokenString, err := firstly.claimer.GenerateToken(account.Username)
+	accessToken, accessClaims, err := firstly.tokener.GenerateToken(dbUser.ID, dbUser.Username, "access", 5*time.Minute)
 	if err != nil {
-		// If there is an error in creating the JWT return an internal server error
 		ctx.Writer.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	ctx.Writer.Header().Add("Authorization", fmt.Sprintf("Bearer %s", tokenString))
+	refreshToken, refreshClaims, err := firstly.tokener.GenerateToken(dbUser.ID, dbUser.Username, "refresh", 24*time.Hour)
+	if err != nil {
+		ctx.Writer.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 
-	ctx.Status(http.StatusOK)
+	session, err := firstly.store.CreateSession(ctx, db.CreateSessionParams{
+		ID:           refreshClaims.RegisteredClaims.ID,
+		Username:     dbUser.Username,
+		RefreshToken: refreshToken,
+		IsRevoked:    false,
+		ExpiresAt:    refreshClaims.RegisteredClaims.ExpiresAt.Time,
+	})
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(errors.New("error creating session")))
+		return
+	}
+	// ctx.Writer.Header().Add("Authorization", fmt.Sprintf("Bearer %s", accessToken))
+
+	ctx.JSON(http.StatusOK, loginResponse{
+		SessionID:             session.ID,
+		AccessToken:           accessToken,
+		RefreshToken:          refreshToken,
+		AccessTokenExpiresAt:  accessClaims.RegisteredClaims.ExpiresAt.Time,
+		RefreshTokenExpiresAt: refreshClaims.RegisteredClaims.ExpiresAt.Time,
+		Username:              dbUser.Username,
+	})
 }
 
-func refreshHandler(ctx *gin.Context) {
-	// (BEGIN) The code uptil this point is the same as the first part of the `Welcome` route
-	// c, err := ctx.Request.Cookie("token")
-	// if err != nil {
-	// 	if err == http.ErrNoCookie {
-	// 		ctx.Writer.WriteHeader(http.StatusUnauthorized)
-	// 		return
-	// 	}
-	// 	ctx.Writer.WriteHeader(http.StatusBadRequest)
-	// 	return
-	// }
+func logoutHandler(ctx *gin.Context) {
+	idParam := ctx.Param("sessionid")
+	if idParam == "" {
+		ctx.JSON(http.StatusBadRequest, errorResponse(errors.New("missing session ID")))
+		return
+	}
 
-	// claimToken, usernameClaims, err := firstly.claimer.GetFromTokenString(c.Value)
-	// if !claimToken.Valid {
-	// 	ctx.Writer.WriteHeader(http.StatusUnauthorized)
-	// 	return
-	// }
-	// if err != nil {
-	// 	// if err == jwt.ErrSignatureInvalid {
-	// 	// 	ctx.Writer.WriteHeader(http.StatusUnauthorized)
-	// 	// 	return
-	// 	// }
-	// 	ctx.Writer.WriteHeader(http.StatusBadRequest)
-	// 	return
-	// }
-	// (END) The code uptil this point is the same as the first part of the `Welcome` route
+	err := firstly.store.DeleteSession(ctx, idParam)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(fmt.Errorf("error deleting session %w", err)))
+		return
+	}
 
-	// We ensure that a new token is not issued until enough time has elapsed
-	// In this case, a new token will only be issued if the old token is within
-	// 30 seconds of expiry. Otherwise, return a bad request status
-	// if time.Until(time.Unix(usernameClaims.ExpiresAt, 0)) > 30*time.Second {
-	// 	ctx.Writer.WriteHeader(http.StatusBadRequest)
-	// 	return
-	// }
+	ctx.Writer.WriteHeader(http.StatusNoContent)
+}
 
-	// Now, create a new token for the current use, with a renewed expiration time
-	// tokenString, expirationTime, err := firstly.claimer.GenerateToken()
-	// if err != nil {
-	// 	ctx.Writer.WriteHeader(http.StatusInternalServerError)
-	// 	return
-	// }
+func renewAccessTokenHandler(ctx *gin.Context) {
+	var req renewAccessTokenRequest
 
-	// Set the new token as the users `session_token` cookie
-	// http.SetCookie(ctx.Writer, &http.Cookie{
-	// 	Name:    "session_token",
-	// 	Value:   tokenString,
-	// 	Expires: expirationTime,
-	// })
+	if err := ctx.BindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, errorResponse(err))
+		return
+	}
+
+	refreshClaims, err := firstly.tokener.VerifyToken(req.RefreshToken)
+	if err != nil {
+		ctx.JSON(http.StatusUnauthorized, errorResponse(errors.New("error verifying refresh token")))
+		return
+	}
+
+	session, err := firstly.store.GetSession(ctx, refreshClaims.RegisteredClaims.ID)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(errors.New("error getting session")))
+		return
+	}
+
+	if session.IsRevoked {
+		ctx.JSON(http.StatusUnauthorized, errorResponse(errors.New("session revoked")))
+		return
+	}
+
+	if session.Username != refreshClaims.Username {
+		ctx.JSON(http.StatusUnauthorized, errorResponse(errors.New("invalid session")))
+		return
+	}
+
+	accessToken, accessClaims, err := firstly.tokener.GenerateToken(
+		refreshClaims.ID, refreshClaims.Username, "access", 15*time.Minute)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(errors.New("error creating token")))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, renewAccessTokenResponse{
+		AccessToken:          accessToken,
+		AccessTokenExpiresAt: accessClaims.RegisteredClaims.ExpiresAt.Time,
+	})
+}
+
+func revokeSessionHandler(ctx *gin.Context) {
+	idParam := ctx.Param("sessionid")
+	if idParam == "" {
+		ctx.JSON(http.StatusBadRequest, errorResponse(errors.New("missing session ID")))
+		return
+	}
+
+	err := firstly.store.RevokeSession(ctx, idParam)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(errors.New("error revoking session")))
+		return
+	}
+
+	ctx.Writer.WriteHeader(http.StatusNoContent)
 }

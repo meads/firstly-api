@@ -3,94 +3,77 @@ package security
 import (
 	"errors"
 	"fmt"
-	"os"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/google/uuid"
 )
 
-// type ClaimToken struct {
-// 	*jwt.Token
-// }
-
-// func (token *ClaimToken) SignedString(key interface{}) (string, error) {
-// 	return token.Token.SignedString(key)
-// }
-
-type CustomClaims struct {
+type UserClaims struct {
+	ID       int64  `json:"id"`
 	Username string `json:"username"`
+	Type     string `json:"type"`
 	*jwt.RegisteredClaims
 }
 
-// func NewUsernameClaims() *UsernameClaims {
-// 	return &UsernameClaims{
-// 		RegisteredClaims: &jwt.RegisteredClaims{},
-// 	}
-// }
-
-// type ClaimsValidator struct {
-// 	signer    jwt.SigningMethod
-// 	validator jwt.Claims
-// }
-
-type ClaimsValidator struct {
+func NewUserClaims(id int64, username string, usage string, duration time.Duration) (*UserClaims, error) {
+	tokenID, err := uuid.NewRandom()
+	if err != nil {
+		return nil, fmt.Errorf("Error generating token id: %w", err)
+	}
+	return &UserClaims{
+		ID:       id,
+		Username: username,
+		Type:     usage,
+		RegisteredClaims: &jwt.RegisteredClaims{
+			ID:        tokenID.String(),
+			Subject:   username,
+			IssuedAt:  jwt.NewNumericDate(time.Now()),
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(duration)),
+		},
+	}, nil
 }
 
-type Claimer interface {
-	// GetClaimToken() *ClaimToken
-	GenerateToken(username string) (string, error)
-	VerifyToken(tokenString string, secretKey []byte) (*CustomClaims, error)
-	// GetFiveMinuteExpirationToken(username string) (string, time.Time, error)
-	// GetFromTokenString(tokenString string) (*ClaimToken, *UsernameClaims, error)
-	// ParseWithClaims(tokenString string, claims *UsernameClaims, keyFunc jwt.Keyfunc) (*ClaimToken, error)
+type Tokener interface {
+	GenerateToken(id int64, username string, usage string, duration time.Duration) (string, *UserClaims, error)
+	VerifyToken(tokenString string) (*UserClaims, error)
 }
 
-// func NewClaimsValidator() Claimer {
-// 	return &ClaimsValidator{
-// 		signer: jwt.SigningMethodHS256,
-// 	}
-// }
-
-func NewClaimsValidator() Claimer {
-	return &ClaimsValidator{}
+type TokenManager struct {
+	secretKey string
 }
 
-// func (c *ClaimsValidator) GetFromTokenString(tokenString string) (*ClaimToken, *UsernameClaims, error) {
-// 	// Get the JWT string from the cookie
-// 	usernameClaims := NewUsernameClaims()
-// 	claimToken, err := c.ParseWithClaims(tokenString, usernameClaims, func(token *jwt.Token) (interface{}, error) {
-// 		return []byte(os.Getenv("SECRET")), nil
-// 	})
-// 	return claimToken, usernameClaims, err
-// }
+func NewTokenManager(secretKey string) Tokener {
+	return &TokenManager{
+		secretKey: secretKey,
+	}
+}
 
-// func (c *ClaimsValidator) GetClaimToken() *ClaimToken {
-// 	return &ClaimToken{
-// 		&jwt.Token{
-// 			Header: map[string]interface{}{
-// 				"typ": "JWT",
-// 				"alg": c.signer.Alg(),
-// 			},
-// 			Claims: c.validator,
-// 			Method: c.signer,
-// 		},
-// 	}
-// }
+func (c *TokenManager) GenerateToken(id int64, username string, usage string, duration time.Duration) (string, *UserClaims, error) {
+	claims, err := NewUserClaims(id, username, usage, duration)
+	if err != nil {
+		return "", nil, err
+	}
 
-// func (c *ClaimsValidator) ParseWithClaims(tokenString string, claims *UsernameClaims, keyFunc jwt.Keyfunc) (*ClaimToken, error) {
-// 	t, err := jwt.ParseWithClaims(tokenString, claims, keyFunc)
-// 	return &ClaimToken{t}, err
-// }
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	tokenStr, err := token.SignedString([]byte(c.secretKey))
+	if err != nil {
+		return "", nil, fmt.Errorf("error signing token: %w", err)
+	}
 
-func (c *ClaimsValidator) VerifyToken(tokenString string, secretKey []byte) (*CustomClaims, error) {
-	var claims CustomClaims
+	return tokenStr, claims, nil
+}
+
+func (c *TokenManager) VerifyToken(tokenStr string) (*UserClaims, error) {
+	claims := &UserClaims{}
 
 	// Parse directly into the custom claims struct
-	token, err := jwt.ParseWithClaims(tokenString, &claims, func(token *jwt.Token) (interface{}, error) {
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+	token, err := jwt.ParseWithClaims(tokenStr, claims, func(token *jwt.Token) (interface{}, error) {
+		_, ok := token.Method.(*jwt.SigningMethodHMAC)
+		if !ok {
+			return nil, fmt.Errorf("invalid token signing method")
 		}
-		return secretKey, nil
+		return []byte(c.secretKey), nil
 	})
 
 	if err != nil {
@@ -101,45 +84,8 @@ func (c *ClaimsValidator) VerifyToken(tokenString string, secretKey []byte) (*Cu
 	}
 
 	if token.Valid {
-		return &claims, nil
+		return claims, nil
 	}
 
 	return nil, fmt.Errorf("invalid token")
 }
-
-func (c *ClaimsValidator) GenerateToken(username string) (string, error) {
-	// Create claims instance
-	claims := &CustomClaims{
-		Username: username,
-		RegisteredClaims: &jwt.RegisteredClaims{
-			// In JWT, the expiry time is expressed as unix milliseconds
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(5 * time.Minute)),
-			IssuedAt:  jwt.NewNumericDate(time.Now()),
-		},
-	}
-
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString([]byte(os.Getenv("SECRET")))
-}
-
-// func (c *ClaimsValidator) GetFiveMinuteExpirationToken(username string) (string, time.Time, error) {
-// 	expirationTime := time.Now().Add(5 * time.Minute)
-// 	// Create the JWT claims, which includes the username and expiry time
-// 	claimsValidator := &UsernameClaims{
-// 		Username: username,
-// 		RegisteredClaims: &jwt.RegisteredClaims{
-// 			// In JWT, the expiry time is expressed as unix milliseconds
-// 			ExpiresAt: jwt.NewNumericDate(expirationTime),
-// 			IssuedAt:  jwt.NewNumericDate(time.Now()),
-// 		},
-// 	}
-
-// 	c.validator = claimsValidator
-
-// 	// Declare the token with the algorithm used for signing, and the claims
-// 	claimToken := c.GetClaimToken()
-
-// 	// Create the JWT string
-// 	tokenString, err := claimToken.SignedString([]byte(os.Getenv("SECRET")))
-// 	return tokenString, expirationTime, err
-// }

@@ -9,14 +9,17 @@ import (
 )
 
 type Querier interface {
-	AccountExists(ctx context.Context, id int64) (bool, error)
-	CreateAccount(ctx context.Context, arg CreateAccountParams) (Account, error)
-	DeleteAccount(ctx context.Context, id int64) error
-	GetAccount(ctx context.Context, id int64) (Account, error)
-	GetAccountByUsername(ctx context.Context, username string) (Account, error)
-	ListAccounts(ctx context.Context, arg ListAccountsParams) ([]ListAccountsRow, error)
-	SoftDeleteAccount(ctx context.Context, id int64) error
-	UpdateAccount(ctx context.Context, arg UpdateAccountParams) error
+	CreateSession(ctx context.Context, arg CreateSessionParams) (Session, error)
+	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
+	DeleteSession(ctx context.Context, id string) error
+	DeleteUser(ctx context.Context, id int64) error
+	GetSession(ctx context.Context, id string) (Session, error)
+	GetUser(ctx context.Context, id int64) (User, error)
+	GetUserByUsername(ctx context.Context, username string) (User, error)
+	ListUsers(ctx context.Context, arg ListUsersParams) ([]User, error)
+	RevokeSession(ctx context.Context, id string) error
+	UpdateUser(ctx context.Context, arg UpdateUserParams) error
+	UserExists(ctx context.Context, username string) (bool, error)
 }
 
 var _ Querier = (*Queries)(nil)

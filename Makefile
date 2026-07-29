@@ -2,7 +2,6 @@
 # DOCKER_BUILD=$(shell pwd)/.docker_build
 # DOCKER_CMD=$(DOCKER_BUILD)/firstly-api
 DATABASE_URL := $(shell grep -iR '^DATABASE_URL*' .env | cut -d= -f2-)
-DOCKER_USERNAME := $(shell grep -iR '^DOCKER_USERNAME*' .env | cut -d= -f2-)
 
 sqlc:
 	@sqlc version
@@ -14,13 +13,14 @@ tidy:
 
 mockgen:
 	@mockgen -package db -destination ./db/querier_mock.go github.com/meads/firstly-api/db Querier
-	@mockgen -package security -destination ./security/hmac_mock.go github.com/meads/firstly-api/security Hasher
-	@mockgen -package security -destination ./security/claims_mock.go github.com/meads/firstly-api/security Claimer
+	@mockgen -package security -destination ./security/bcrypt_mock.go github.com/meads/firstly-api/security Hasher
+	@mockgen -package security -destination ./security/claims_mock.go github.com/meads/firstly-api/security Tokener
 
 generate: tidy sqlc mockgen
 
 test:
-	@go test -v ./... | sed ''/PASS/s//$$(printf "\033[32mPASS\033[0m")/g'' | sed ''/FAIL/s//$$(printf "\033[31mFAIL\033[0m")/g''
+	@go test -v ./... \
+	| sed ''/PASS/s//$$(printf "\033[32mPASS\033[0m")/g'' | sed ''/FAIL/s//$$(printf "\033[31mFAIL\033[0m")/g''
 
 test-coverage:
 	@go test -v -coverprofile cover.out ./...
@@ -31,10 +31,6 @@ verify: generate test
 migrate-drop-recreate:
 	@migrate -path db/migration -database $(DATABASE_URL) drop
 	@migrate -path db/migration -database $(DATABASE_URL) up
-
-migrate-drop-recreate-local:
-	@migrate -path db/migration -database  $(DATABASE_URL) drop
-	@migrate -path db/migration -database  $(DATABASE_URL) up
 
 local-db-shell:
 	@docker exec -it firstly-api-db-1 /bin/bash

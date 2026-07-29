@@ -45,27 +45,25 @@ func dbConnect(retries int, dbUrl string) *sql.DB {
 
 func main() {
 	dbURL := os.Getenv("DATABASE_URL")
-
+	secretKey := os.Getenv("SECRET_KEY")
 	conn := dbConnect(10, dbURL)
 	defer conn.Close()
 
 	m, err := migrate.New("file://db/migration", dbURL)
-
 	if err != nil {
 		log.Fatalf("error calling New with sql-migration tool: %s", err)
 		return
 	}
-
 	m.Up()
 
 	fmt.Print("\nmigrations were a success. 🎉\n")
 
-	claimer := security.NewClaimsValidator()
+	tokener := security.NewTokenManager(secretKey)
 	hasher := security.NewHasher()
 	router := gin.Default()
 	store := db.New(conn)
 
-	server := http_api.NewFirstlyServer(claimer, hasher, router, store)
+	server := http_api.NewFirstlyServer(tokener, hasher, router, store)
 
 	err = server.Start(":" + os.Getenv("PORT"))
 	if err != nil {

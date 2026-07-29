@@ -40,119 +40,163 @@ func (m *MockQuerier) EXPECT() *MockQuerierMockRecorder {
 	return m.recorder
 }
 
-// AccountExists mocks base method.
-func (m *MockQuerier) AccountExists(ctx context.Context, id int64) (bool, error) {
+// CreateSession mocks base method.
+func (m *MockQuerier) CreateSession(ctx context.Context, arg CreateSessionParams) (Session, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "AccountExists", ctx, id)
+	ret := m.ctrl.Call(m, "CreateSession", ctx, arg)
+	ret0, _ := ret[0].(Session)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateSession indicates an expected call of CreateSession.
+func (mr *MockQuerierMockRecorder) CreateSession(ctx, arg any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateSession", reflect.TypeOf((*MockQuerier)(nil).CreateSession), ctx, arg)
+}
+
+// CreateUser mocks base method.
+func (m *MockQuerier) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateUser", ctx, arg)
+	ret0, _ := ret[0].(User)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateUser indicates an expected call of CreateUser.
+func (mr *MockQuerierMockRecorder) CreateUser(ctx, arg any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateUser", reflect.TypeOf((*MockQuerier)(nil).CreateUser), ctx, arg)
+}
+
+// DeleteSession mocks base method.
+func (m *MockQuerier) DeleteSession(ctx context.Context, id string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteSession", ctx, id)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteSession indicates an expected call of DeleteSession.
+func (mr *MockQuerierMockRecorder) DeleteSession(ctx, id any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteSession", reflect.TypeOf((*MockQuerier)(nil).DeleteSession), ctx, id)
+}
+
+// DeleteUser mocks base method.
+func (m *MockQuerier) DeleteUser(ctx context.Context, id int64) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteUser", ctx, id)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteUser indicates an expected call of DeleteUser.
+func (mr *MockQuerierMockRecorder) DeleteUser(ctx, id any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteUser", reflect.TypeOf((*MockQuerier)(nil).DeleteUser), ctx, id)
+}
+
+// GetSession mocks base method.
+func (m *MockQuerier) GetSession(ctx context.Context, id string) (Session, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetSession", ctx, id)
+	ret0, _ := ret[0].(Session)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetSession indicates an expected call of GetSession.
+func (mr *MockQuerierMockRecorder) GetSession(ctx, id any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSession", reflect.TypeOf((*MockQuerier)(nil).GetSession), ctx, id)
+}
+
+// GetUser mocks base method.
+func (m *MockQuerier) GetUser(ctx context.Context, id int64) (User, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetUser", ctx, id)
+	ret0, _ := ret[0].(User)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetUser indicates an expected call of GetUser.
+func (mr *MockQuerierMockRecorder) GetUser(ctx, id any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUser", reflect.TypeOf((*MockQuerier)(nil).GetUser), ctx, id)
+}
+
+// GetUserByUsername mocks base method.
+func (m *MockQuerier) GetUserByUsername(ctx context.Context, username string) (User, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetUserByUsername", ctx, username)
+	ret0, _ := ret[0].(User)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetUserByUsername indicates an expected call of GetUserByUsername.
+func (mr *MockQuerierMockRecorder) GetUserByUsername(ctx, username any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserByUsername", reflect.TypeOf((*MockQuerier)(nil).GetUserByUsername), ctx, username)
+}
+
+// ListUsers mocks base method.
+func (m *MockQuerier) ListUsers(ctx context.Context, arg ListUsersParams) ([]User, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListUsers", ctx, arg)
+	ret0, _ := ret[0].([]User)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListUsers indicates an expected call of ListUsers.
+func (mr *MockQuerierMockRecorder) ListUsers(ctx, arg any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListUsers", reflect.TypeOf((*MockQuerier)(nil).ListUsers), ctx, arg)
+}
+
+// RevokeSession mocks base method.
+func (m *MockQuerier) RevokeSession(ctx context.Context, id string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RevokeSession", ctx, id)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// RevokeSession indicates an expected call of RevokeSession.
+func (mr *MockQuerierMockRecorder) RevokeSession(ctx, id any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RevokeSession", reflect.TypeOf((*MockQuerier)(nil).RevokeSession), ctx, id)
+}
+
+// UpdateUser mocks base method.
+func (m *MockQuerier) UpdateUser(ctx context.Context, arg UpdateUserParams) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateUser", ctx, arg)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateUser indicates an expected call of UpdateUser.
+func (mr *MockQuerierMockRecorder) UpdateUser(ctx, arg any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUser", reflect.TypeOf((*MockQuerier)(nil).UpdateUser), ctx, arg)
+}
+
+// UserExists mocks base method.
+func (m *MockQuerier) UserExists(ctx context.Context, username string) (bool, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UserExists", ctx, username)
 	ret0, _ := ret[0].(bool)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// AccountExists indicates an expected call of AccountExists.
-func (mr *MockQuerierMockRecorder) AccountExists(ctx, id any) *gomock.Call {
+// UserExists indicates an expected call of UserExists.
+func (mr *MockQuerierMockRecorder) UserExists(ctx, username any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AccountExists", reflect.TypeOf((*MockQuerier)(nil).AccountExists), ctx, id)
-}
-
-// CreateAccount mocks base method.
-func (m *MockQuerier) CreateAccount(ctx context.Context, arg CreateAccountParams) (Account, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateAccount", ctx, arg)
-	ret0, _ := ret[0].(Account)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// CreateAccount indicates an expected call of CreateAccount.
-func (mr *MockQuerierMockRecorder) CreateAccount(ctx, arg any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateAccount", reflect.TypeOf((*MockQuerier)(nil).CreateAccount), ctx, arg)
-}
-
-// DeleteAccount mocks base method.
-func (m *MockQuerier) DeleteAccount(ctx context.Context, id int64) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteAccount", ctx, id)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// DeleteAccount indicates an expected call of DeleteAccount.
-func (mr *MockQuerierMockRecorder) DeleteAccount(ctx, id any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteAccount", reflect.TypeOf((*MockQuerier)(nil).DeleteAccount), ctx, id)
-}
-
-// GetAccount mocks base method.
-func (m *MockQuerier) GetAccount(ctx context.Context, id int64) (Account, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetAccount", ctx, id)
-	ret0, _ := ret[0].(Account)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetAccount indicates an expected call of GetAccount.
-func (mr *MockQuerierMockRecorder) GetAccount(ctx, id any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAccount", reflect.TypeOf((*MockQuerier)(nil).GetAccount), ctx, id)
-}
-
-// GetAccountByUsername mocks base method.
-func (m *MockQuerier) GetAccountByUsername(ctx context.Context, username string) (Account, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetAccountByUsername", ctx, username)
-	ret0, _ := ret[0].(Account)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetAccountByUsername indicates an expected call of GetAccountByUsername.
-func (mr *MockQuerierMockRecorder) GetAccountByUsername(ctx, username any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAccountByUsername", reflect.TypeOf((*MockQuerier)(nil).GetAccountByUsername), ctx, username)
-}
-
-// ListAccounts mocks base method.
-func (m *MockQuerier) ListAccounts(ctx context.Context, arg ListAccountsParams) ([]ListAccountsRow, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListAccounts", ctx, arg)
-	ret0, _ := ret[0].([]ListAccountsRow)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// ListAccounts indicates an expected call of ListAccounts.
-func (mr *MockQuerierMockRecorder) ListAccounts(ctx, arg any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListAccounts", reflect.TypeOf((*MockQuerier)(nil).ListAccounts), ctx, arg)
-}
-
-// SoftDeleteAccount mocks base method.
-func (m *MockQuerier) SoftDeleteAccount(ctx context.Context, id int64) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SoftDeleteAccount", ctx, id)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// SoftDeleteAccount indicates an expected call of SoftDeleteAccount.
-func (mr *MockQuerierMockRecorder) SoftDeleteAccount(ctx, id any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SoftDeleteAccount", reflect.TypeOf((*MockQuerier)(nil).SoftDeleteAccount), ctx, id)
-}
-
-// UpdateAccount mocks base method.
-func (m *MockQuerier) UpdateAccount(ctx context.Context, arg UpdateAccountParams) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateAccount", ctx, arg)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// UpdateAccount indicates an expected call of UpdateAccount.
-func (mr *MockQuerierMockRecorder) UpdateAccount(ctx, arg any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateAccount", reflect.TypeOf((*MockQuerier)(nil).UpdateAccount), ctx, arg)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UserExists", reflect.TypeOf((*MockQuerier)(nil).UserExists), ctx, username)
 }

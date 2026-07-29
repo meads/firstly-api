@@ -1,0 +1,9 @@
+
+CREATE TABLE IF NOT EXISTS sessions (
+    id varchar(255) PRIMARY KEY NOT NULL,
+    username VARCHAR(50) NOT NULL,
+    refresh_token VARCHAR(512) NOT NULL,
+    is_revoked BOOLEAN DEFAULT FALSE NOT NULL,
+    expires_at TIMESTAMP NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);

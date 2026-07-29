@@ -59,12 +59,13 @@ Create a local .env file in the root directory and specify the values below.
 The .env file is excluded from the project via .gitignore file.
     
 ```env
-# variables for api service
+# api database connection string
 DATABASE_URL=postgresql://username:password@db:5432/databasename?sslmode=disable
-# used in creation of hmac for generating and validating password hashes
+
+# used for jwt signing
 SECRET=
-# origins to allow in cors requests using gin middleware comma separated. 
-# don't leave trailing commas
+
+# used for configuring gin router cors middleware
 ALLOW_ORIGINS=
 
 # variables for db service
@@ -72,8 +73,6 @@ POSTGRES_USER=
 POSTGRES_PASSWORD=
 POSTGRES_DB=
 
-# variables for makefile
-DOCKER_USERNAME=
 
 ```
 
@@ -85,6 +84,13 @@ mockgen.
 
 ```bash
 $ make generate
+```
+
+To generate new dml sql scripts use golang-migrate/migrate tool. This will add files to the
+db/migration directory following the migrate tools naming convention. 
+
+```bash
+$ migrate create -ext sql -dir db/migration create_example_table
 ```
 
 ## test
@@ -143,35 +149,39 @@ $ make deploy
 
 ```bash
 
-# POST   /account/
-# Create Account - returns initial token in Authorization header
-curl -X POST -v -d '{"username":"bob","password":"13013"}' http://localhost:8080/account/
+# POST   /register/
+# Create User - returns initial token in Authorization header
+curl -X POST -v -d '{"username":"bob","password":"13013"}' http://localhost:8080/register/
 
-# GET    /account/
-curl -X GET -v -H "Authorization: Bearer [token here]" \
-      http://localhost:8080/account/
+# Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwidXNlcm5hbWUiOiJib2IiLCJ0eXBlIjoiYWNjZXNzIiwic3ViIjoiYm9iIiwiZXhwIjoxNzg1MTgzNjc1LCJpYXQiOjE3ODUxODMzNzUsImp0aSI6IjdjZmJiNTU2LTcyYzktNGMzYy04NWQ2LWRhNjkyNzdhODZjNyJ9.qmHS78GyVOXIR-WJ546qqOzOXosBLbK8Bi2O7q_YLQM
 
-# DELETE /account/:id/
-curl -X DELETE -v -H "Authorization: Bearer [token here]" \
-      http://localhost:8080/account/1/
+# Create session - returns sessionId, accessToken, refreshToken, accessTokenExpiresAt, refreshTokenExpiresAt, username in body
+curl -X POST -v -d '{"username":"bob","password":"13013"}' http://localhost:8080/login/
+# {"sessionId":"4346a042-5dde-468b-8ad1-9b10c4d71d8e","accessToken":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwidXNlcm5hbWUiOiJib2IiLCJ0eXBlIjoiYWNjZXNzIiwic3ViIjoiYm9iIiwiZXhwIjoxNzg1MTgzNzI3LCJpYXQiOjE3ODUxODM0MjcsImp0aSI6IjBkYzEyODg5LThiNTAtNDQzMi04ZGY0LTZkMWM1N2I5MDVhYyJ9.g6oKiiLayHDS_uVzKMJB7cvPrO702osiFjk1yVwZBfE","refreshToken":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwidXNlcm5hbWUiOiJib2IiLCJ0eXBlIjoicmVmcmVzaCIsInN1YiI6ImJvYiIsImV4cCI6MTc4NTI2OTgyNywiaWF0IjoxNzg1MTgzNDI3LCJqdGkiOiI0MzQ2YTA0Mi01ZGRlLTQ2OGItOGFkMS05YjEwYzRkNzFkOGUifQ.QQnlW3Xq5OzZk5LvBQeqU3IMJuVn6lc8ldbMeJQf_W4","accessTokenExpiresAt":"2026-07-27T20:22:07Z","refreshTokenExpiresAt":"2026-07-28T20:17:07Z","username":"bob"}
 
-# PATCH  /account/
+# Create new access token from the supplied refreshToken - returns accessToken, accessTokenExpiresAt in body
+curl -X POST -v -d '{"refreshToken":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwidXNlcm5hbWUiOiJib2IiLCJ0eXBlIjoicmVmcmVzaCIsInN1YiI6ImJvYiIsImV4cCI6MTc4NTI3Mzg0OSwiaWF0IjoxNzg1MTg3NDQ5LCJqdGkiOiI1ZTY3YWJmMC0zYzkzLTQ1YjUtOWJjNS1iODUxMWM4OGUwMTUifQ.lDUod1IhID-nBP3qxrX8mlGAS85cAqIdeElPhvkUYJA"}' http://localhost:8080/refresh/
+
+# {"accessToken":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwidXNlcm5hbWUiOiJib2IiLCJzdWIiOiJib2IiLCJleHAiOjE3ODUwOTI3ODQsImlhdCI6MTc4NTA5MTg4NCwianRpIjoiMGFiNTkzNGUtZmFjYi00NDY4LTgzOGQtZDY1NThiZDUzYmFmIn0.v7UdI4_Z9BdQqCU_YxSEsaCF2jGGBwBnu4c1As_GYoc","accessTokenExpiresAt":"2026-07-26T19:06:24Z"}
+
+curl -X POST -v http://localhost:8080/logout/6f5f326f-63cf-4b7f-9891-21dd3a516b76
+
+curl -X POST -v http://localhost:8080/revoke/4346a042-5dde-468b-8ad1-9b10c4d71d8e
+
+# GET    /users/
+curl -X GET -v -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwidXNlcm5hbWUiOiJib2IiLCJzdWIiOiJib2IiLCJleHAiOjE3ODUwOTQ0NDAsImlhdCI6MTc4NTA5MzU0MCwianRpIjoiZDc0NDc5NzgtMTM2OC00M2ZhLThhNzUtMDcxMDgwMDQ4OTQ3In0.qpRYE7glGnW9fZlI6kvmgm2VVZOlWugD5jEIklCVt1c" \
+      http://localhost:8080/users/
+
+# DELETE /users/:id/
+curl -X DELETE -v -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwidXNlcm5hbWUiOiJib2IiLCJzdWIiOiJib2IiLCJleHAiOjE3ODUwOTM0ODksImlhdCI6MTc4NTA5MzE4OSwianRpIjoiYjYzYzJmNzYtYjcyMy00ZjhmLWJjYjgtZWUwMTMxODhlYTU2In0.VnQSQuJpAI9u8qgADmYArgzKF6AnqIeaQ8uA_8BtC7A" \
+      http://localhost:8080/users/1/
+
+# PATCH  /users/
 # -----------------------------------------------------------------------------------------------------------------------
 
 # GET /protected/
 # return api JSON data from a route that is protected by JWT validation middleware
-curl -X GET -H "Authorization: Bearer [token here]" -v http://localhost:8080/protected/
-
-# -----------------------------------------------------------------------------------------------------------------------
-
-# POST   /refresh/
-# POST   /signin/
-# Sign in - returns Set-Token header populated with token=
-curl -X POST -v -H "Authorization: Bearer [token here]" \
-    -d '{"username":"bob","password":"13013"}' http://localhost:8080/signin/
-
-# GET    /welcome/
-# Welcome - can be used if the session cookie is still valid which will issue a new token cookie if needed.
+curl -X GET -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwidXNlcm5hbWUiOiJib2IiLCJ0eXBlIjoiYWNjZXNzIiwic3ViIjoiYm9iIiwiZXhwIjoxNzg1MTg4NDA0LCJpYXQiOjE3ODUxODc1MDQsImp0aSI6IjUwM2JjYTgwLThmYzItNDc4OS04MGY4LTVhN2NjMmY5ZjU1OSJ9.M3XdWfvaYqmkAtEPbNgFbBFpojOA7bcZFZgX_GCH-AI" -v http://localhost:8080/protected/
 
 # -----------------------------------------------------------------------------------------------------------------------
 

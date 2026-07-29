@@ -3,86 +3,168 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Firstly Web</title>
+    <title>Notes App</title>
     <style>
-        ul#data-list {border: 1px dashed;height: 75vh;overflow: scroll}
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --bg: #f3f4f6;
+            --text: #1f2937;
+            --sidebar-width: 280px;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, sans-serif; }
+        body { background: var(--bg); color: var(--text); height: 100vh; overflow: hidden; }
+        
+        .view { display: none; height: 100vh; width: 100vw; }
+        .view.active { display: flex; }
+
+        /* Auth Styles */
+        .auth-container { margin: auto; background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 100%; max-width: 400px; }
+        .auth-container h2 { margin-bottom: 1.5rem; text-align: center; }
+        .form-group { margin-bottom: 1rem; }
+        .form-group label { display: block; margin-bottom: 0.5rem; font-size: 0.875rem; font-weight: 500; }
+        .form-group input, .form-group textarea { width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 4px; font-family: inherit; }
+        .form-group textarea { resize: none; height: 100px; }
+        .btn { width: 100%; padding: 0.75rem; background: var(--primary); color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; margin-top: 0.5rem; }
+        .btn:hover { background: var(--primary-hover); }
+        .switch-auth { text-align: center; margin-top: 1rem; font-size: 0.875rem; color: #4b5563; cursor: pointer; }
+
+        /* Asymmetric Dashboard Layout */
+        #dashboard-view { display: none; }
+        #dashboard-view.active { display: grid; grid-template-columns: var(--sidebar-width) 1fr; }
+        aside { background: white; border-right: 1px solid #e5e7eb; display: flex; flex-direction: column; height: 100vh; }
+        
+        /* Sidebar Header with Add Button */
+        aside header { padding: 1rem 1.5rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e5e7eb; }
+        aside header span { font-weight: bold; }
+        .add-btn { background: var(--primary); color: white; border: none; border-radius: 4px; width: 32px; height: 32px; font-size: 1.25rem; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        
+        .sidebar-list { overflow-y: auto; flex: 1; list-style: none; }
+        .sidebar-item { padding: 1rem 1.5rem; border-bottom: 1px solid #f3f4f6; cursor: pointer; }
+        .sidebar-item:hover, .sidebar-item.selected { background: #e0e7ff; color: var(--primary); }
+        
+        /* Main Dashboard Panel */
+        main { padding: 2rem; overflow-y: auto; background: #fafafa; display: flex; flex-direction: column; }
+        main header { margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e5e7eb; padding-bottom: 1rem; }
+        .logout-btn { width: auto; padding: 0.5rem 1rem; margin: 0; background: #ef4444; }
+        .logout-btn:hover { background: #dc2626; }
+
+        /* Sub-views inside Main panel */
+        .content-panel { display: none; }
+        .content-panel.active { display: block; }
+        .form-actions { display: flex; gap: 1rem; margin-top: 1rem; }
+        .cancel-btn { background: #6b7280; }
+        .cancel-btn:hover { background: #4b5563; }
+
+        /* Responsive Breakpoint */
+        @media (max-width: 768px) {
+            #dashboard-view.active { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
+            aside { height: 250px; }
+        }
     </style>
 </head>
 <body>
-    <h1>Demo: Add Account and Fetch Data</h1>
 
-    <h2>Add Account</h2>
-    <form id="account-form">
-        <input type="text" id="username" placeholder="Username" required>
-        <input type="password" id="password" placeholder="Password" required>
-        <button type="submit">Submit</button>
-    </form>
+    <!-- Login View -->
+    <div id="login-view" class="view active">
+        <div class="auth-container">
+            <h2>Sign In</h2>
+            <form onsubmit="handleLogin(event)">
+                <div class="form-group"><label>Username</label><input type="text" required id="txt-username-log"></div>
+                <!-- <div class="form-group"><label>Email</label><input type="email" required id="login-email"></div> -->
+                <div class="form-group"><label>Password</label><input type="password" required id="txt-password-log"></div>
+                <button type="submit" class="btn">Login</button>
+            </form>
+            <div class="switch-auth" onclick="switchView('register-view')">Need an account? Register</div>
+        </div>
+    </div>
 
-    <button id="fetch-data">Fetch Data</button>
-    <button id="clear-data">Clear Data</button>
+    <!-- Register View -->
+    <div id="register-view" class="view">
+        <div class="auth-container">
+            <h2>Create Account</h2>
+            <form onsubmit="handleRegister(event)">
+                <div class="form-group"><label>Username</label><input type="text" id="txt-username-reg" required></div>
+                <!-- <div class="form-group"><label>Name</label><input type="text" required></div> -->
+                <!-- <div class="form-group"><label>Email</label><input type="email" required id="reg-email"></div> -->
+                <div class="form-group"><label>Password</label><input type="password" id="txt-password-reg" required></div>
+                <button type="submit" class="btn">Sign Up</button>
+            </form>
+            <div class="switch-auth" onclick="switchView('login-view')">Already have an account? Login</div>
+        </div>
+    </div>
 
-    <ul id="data-list"></ul>
 
+    <!-- Asymmetric Dashboard View -->
+    <div id="dashboard-view" class="view">
+        <aside>
+            <header>
+                <span>Inbox / Items</span>
+                <button class="add-btn" onclick="showCreateForm()" title="Create Item">+</button>
+            </header>
+            <ul class="sidebar-list" id="item-list">
+                <!-- Dynamic Items -->
+            </ul>
+        </aside>
+        <main>
+            <header>
+                <h2>Dashboard Workspace</h2>
+                <button class="btn logout-btn" onclick="logout()">Logout</button>
+            </header>
+            
+            <!-- Context View Panel: Details -->
+            <div id="details-panel" class="content-panel active">
+                <h1 id="content-title">Select an item</h1>
+                <p id="content-body" style="margin-top: 1rem; color: #4b5563; line-height: 1.5;"></p>
+            </div>
 
-<script>
-(function(){
-    var token = ''
-    document.addEventListener('DOMContentLoaded', function () {
-        // Clear the visible data from the UI
-        document.getElementById('clear-data').addEventListener('click', function() {
-            document.getElementById('data-list').innerHTML = "";
-        });
+            <!-- Context View Panel: Create Form -->
+            <div id="create-panel" class="content-panel">
+                <h3>Create New Item</h3>
+                <form onsubmit="handleCreateItem(event)" style="margin-top: 1rem; max-width: 600px;">
+                    <div class="form-group">
+                        <label>Title</label>
+                        <input type="text" id="new-item-title" required placeholder="e.g. Project Beta">
+                    </div>
+                    <div class="form-group">
+                        <label>Description</label>
+                        <textarea id="new-item-desc" required placeholder="Describe your item details..."></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn">Save Item</button>
+                        <button type="button" class="btn cancel-btn" onclick="hideCreateForm()">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </main>
+    </div>
 
-        // Fetch and display data from a protected route
-        document.getElementById('fetch-data').addEventListener('click', async function () {
-            try {
-                const response = await fetch('http://localhost:8080/protected/', {
-                    mode:'cors',
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    credentials:"include",
-                })
-                
-                const data = await response.json()
+    <script>
+        let data = [
+            { id: 1, title: 'Note 1', desc: 'Making a note now for later.' },
+            { id: 2, title: 'Note 2', desc: "Leaving this here so i don't forget." },
+            { id: 3, title: 'Note 3', desc: 'Quarterly development meeting next week.' }
+        ];
+        let selectedId = null;
 
-                if (!response.ok) {
-                    if (response.status == 401) {
-                        alert('unauthorized!')
-                    }
+        function switchView(viewId) {
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            document.getElementById(viewId).classList.add('active');
+        }
 
-                    throw new Error(`HTTP Error! Status: ${response.status} : ${data.error}`)
-                }
+        function switchContentPanel(panelId) {
+            document.querySelectorAll('.content-panel').forEach(p => p.classList.remove('active'));
+            document.getElementById(panelId).classList.add('active');
+        }
 
-                console.log('Success: ', data)
-
-                const dataList = document.getElementById('data-list');
-                dataList.innerHTML = ''; 
-
-                // Display each object
-                data.forEach(o => {
-                    const listItem = document.createElement('li');
-                    listItem.textContent = `${o.id} - ${o.location} - ${o.username} - ${o.visitedOn}`;
-                    dataList.appendChild(listItem);
-                });
-            } catch (error) {
-                console.error('Error sending POST request:', error);
-            }
-        });
-
-        // Add a new user
-        document.getElementById('account-form').addEventListener('submit', async function (e) {
-            e.preventDefault(); 
-
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
+        async function handleLogin(e) {
+            e.preventDefault();
+            const username = document.getElementById('txt-username-log').value;
+            const password = document.getElementById('txt-password-log').value;
             
             try {
-                const response = await fetch('http://localhost:8080/account/', {
+                const response = await fetch('http://localhost:8080/login/', {
                     mode:'cors',
-                    credentials:"include",
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({ username, password }),
@@ -93,20 +175,158 @@
                 if (!response.ok) {
                     throw new Error(`HTTP Error! Status: ${response.status} : ${data.error}`)
                 }
-                authorizationHeader = response.headers.get("Authorization")
-                if (authorizationHeader) {
-                    if (authorizationHeader.indexOf("Bearer") > -1) {
-                        token = authorizationHeader.split(" ")[1]
-                    }
-                }
+                token = data.accessToken
+                sessionStorage.setItem("refreshToken", data.refreshToken)
+                sessionStorage.setItem("accessToken", data.accessToken)
+                sessionStorage.setItem("sessionId", data.sessionId)
+                initDashboard();
 
                 console.log('Success: ', data)
             } catch (error) {
                 console.error('Error sending POST request:', error);
             }
-        });
-    });
-}())
-</script>
-</body>
+        }
+
+        async function handleRegister(e) {
+            e.preventDefault();
+            // Redirect straight to dashboard after signup
+            const username = document.getElementById('txt-username-reg').value;
+            const password = document.getElementById('txt-password-reg').value;
+            
+            try {
+                const response = await fetch('http://localhost:8080/register/', {
+                    mode:'cors',
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ username, password }),
+                })
+                
+                const data = await response.json()
+
+                if (!response.ok) {
+                    throw new Error(`HTTP Error! Status: ${response.status} : ${data.error}`)
+                }
+                token = data.accessToken
+                sessionStorage.setItem("refreshToken", data.refreshToken)
+                sessionStorage.setItem("accessToken", data.accessToken)
+                sessionStorage.setItem("sessionId", data.sessionId)
+                initDashboard();
+
+                console.log('Success: ', data)
+            } catch (error) {
+                console.error('Error sending POST request:', error);
+            }
+        }
+
+        function initDashboard() {
+            switchView('dashboard-view');
+            renderSidebar();
+            if (data.length > 0) {
+                selectItem(data[0].id);
+            } else {
+                switchContentPanel('details-panel');
+                document.getElementById('content-title').textContent = 'No items available';
+                document.getElementById('content-body').textContent = 'Click the "+" button to add an item.';
+            }
+        }
+
+        function renderSidebar() {
+            const listEl = document.getElementById('item-list');
+            listEl.innerHTML = '';
+            
+            // TODO: fetch notes...
+
+            data.forEach((item) => {
+                const li = document.createElement('li');
+                li.className = 'sidebar-item';
+                if (item.id === selectedId) {
+                    li.classList.add('selected');
+                }
+                li.textContent = item.title;
+                li.onclick = () => {
+                    hideCreateForm();
+                    selectItem(item.id);
+                };
+                listEl.appendChild(li);
+            });
+        }
+
+        function selectItem(id) {
+            selectedId = id;
+            switchContentPanel('details-panel');
+            
+            // Update selected class visual anchor in sidebar
+            document.querySelectorAll('.sidebar-item').forEach((li, index) => {
+                if (data[index] && data[index].id === id) {
+                    li.classList.add('selected');
+                } else {
+                    li.classList.remove('selected');
+                }
+            });
+
+            const item = data.find(d => d.id === id);
+            if (item) {
+                document.getElementById('content-title').textContent = item.title;
+                document.getElementById('content-body').textContent = item.desc;
+            }
+        }
+        function showCreateForm() {
+            // Remove selections from sidebar while creating
+            document.querySelectorAll('.sidebar-item')
+            .forEach(li => li.classList.remove('selected'));
+            selectedId = null;
+            // Reset input values
+            document.getElementById('new-item-title').value = '';
+            document.getElementById('new-item-desc').value = '';
+            switchContentPanel('create-panel');
+        }
+        function hideCreateForm() {
+            if (data.length > 0) {
+                selectItem(data[data.length - 1].id); 
+                // default to last item if canceling
+            } else {
+                switchContentPanel('details-panel');
+            }
+        }
+        function handleCreateItem(e) {
+            e.preventDefault();
+            const title = document.getElementById('new-item-title').value;
+            const desc = document.getElementById('new-item-desc').value;
+            const newItem = {
+                // Unique ID generator
+                id: Date.now(), 
+                title: title,
+                desc: desc
+            };
+
+            // TODO: create note POST /notes/
+
+            data.push(newItem);
+            selectedId = newItem.id;
+            renderSidebar();
+            selectItem(newItem.id);
+        }
+
+        async function logout() {
+            selectedId = null;
+            try {
+                let sessionId = sessionStorage.getItem("sessionId")
+                const response = await fetch(`http://localhost:8080/logout/${sessionId}`, {
+                    mode:'cors',
+                    method: 'POST',
+                })
+                
+                const data = await response.text()
+
+                if (!response.ok) {
+                    throw new Error(`HTTP Error! Status: ${response.status} : ${data.error}`)
+                }
+                console.log(data)
+                switchView('login-view');
+            } catch (error) {
+                console.error('Error sending POST request:', error);
+            }
+        }
+        </script>
+        </body>
 </html>
