@@ -142,56 +142,78 @@ $ docker compose down
 ## deploy
 
 ```bash
-# TODO: create deploy flow
+# TODO: choose another container orchestration platform and define deploy step
 $ make deploy
 ```
 
+## smoke testing endpoints using curl
 
 ```bash
+# Set the two variables in your shell after hitting the register endpoint
+export bearer_token=
+export refresh_token=
 
-# POST   /register/
-# Create User - returns initial token in Authorization header
-curl -X POST -v -d '{"username":"bob","password":"13013"}' http://localhost:8080/register/
+# Create User and first session
+curl -X POST -v \
+  -d '{"username":"bob","password":"secret"}' \
+  http://localhost:8080/register/
 
-# Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwidXNlcm5hbWUiOiJib2IiLCJ0eXBlIjoiYWNjZXNzIiwic3ViIjoiYm9iIiwiZXhwIjoxNzg1MTgzNjc1LCJpYXQiOjE3ODUxODMzNzUsImp0aSI6IjdjZmJiNTU2LTcyYzktNGMzYy04NWQ2LWRhNjkyNzdhODZjNyJ9.qmHS78GyVOXIR-WJ546qqOzOXosBLbK8Bi2O7q_YLQM
+# Login User and create new session
+curl -X POST -v \
+  -d '{"username":"bob","password":"secret"}' \
+  http://localhost:8080/login/
 
-# Create session - returns sessionId, accessToken, refreshToken, accessTokenExpiresAt, refreshTokenExpiresAt, username in body
-curl -X POST -v -d '{"username":"bob","password":"13013"}' http://localhost:8080/login/
-# {"sessionId":"4346a042-5dde-468b-8ad1-9b10c4d71d8e","accessToken":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwidXNlcm5hbWUiOiJib2IiLCJ0eXBlIjoiYWNjZXNzIiwic3ViIjoiYm9iIiwiZXhwIjoxNzg1MTgzNzI3LCJpYXQiOjE3ODUxODM0MjcsImp0aSI6IjBkYzEyODg5LThiNTAtNDQzMi04ZGY0LTZkMWM1N2I5MDVhYyJ9.g6oKiiLayHDS_uVzKMJB7cvPrO702osiFjk1yVwZBfE","refreshToken":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwidXNlcm5hbWUiOiJib2IiLCJ0eXBlIjoicmVmcmVzaCIsInN1YiI6ImJvYiIsImV4cCI6MTc4NTI2OTgyNywiaWF0IjoxNzg1MTgzNDI3LCJqdGkiOiI0MzQ2YTA0Mi01ZGRlLTQ2OGItOGFkMS05YjEwYzRkNzFkOGUifQ.QQnlW3Xq5OzZk5LvBQeqU3IMJuVn6lc8ldbMeJQf_W4","accessTokenExpiresAt":"2026-07-27T20:22:07Z","refreshTokenExpiresAt":"2026-07-28T20:17:07Z","username":"bob"}
+# Refresh generates a new access token from the supplied refreshToken if the 
+# associated session is not revoked.
+curl -X POST -v -d "{\"refreshToken\":\"$refresh_token\"}" \
+  http://localhost:8080/refresh/
 
-# Create new access token from the supplied refreshToken - returns accessToken, accessTokenExpiresAt in body
-curl -X POST -v -d '{"refreshToken":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwidXNlcm5hbWUiOiJib2IiLCJ0eXBlIjoicmVmcmVzaCIsInN1YiI6ImJvYiIsImV4cCI6MTc4NTI3Mzg0OSwiaWF0IjoxNzg1MTg3NDQ5LCJqdGkiOiI1ZTY3YWJmMC0zYzkzLTQ1YjUtOWJjNS1iODUxMWM4OGUwMTUifQ.lDUod1IhID-nBP3qxrX8mlGAS85cAqIdeElPhvkUYJA"}' http://localhost:8080/refresh/
+# Logout deletes the session invalidating any associated tokens refresh or access
+curl -X POST -v http://localhost:8080/logout/e885764a-356a-4096-9177-e6a3ef8c0e29
 
-# {"accessToken":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwidXNlcm5hbWUiOiJib2IiLCJzdWIiOiJib2IiLCJleHAiOjE3ODUwOTI3ODQsImlhdCI6MTc4NTA5MTg4NCwianRpIjoiMGFiNTkzNGUtZmFjYi00NDY4LTgzOGQtZDY1NThiZDUzYmFmIn0.v7UdI4_Z9BdQqCU_YxSEsaCF2jGGBwBnu4c1As_GYoc","accessTokenExpiresAt":"2026-07-26T19:06:24Z"}
-
-curl -X POST -v http://localhost:8080/logout/6f5f326f-63cf-4b7f-9891-21dd3a516b76
-
-curl -X POST -v http://localhost:8080/revoke/4346a042-5dde-468b-8ad1-9b10c4d71d8e
-
-# GET    /users/
-curl -X GET -v -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwidXNlcm5hbWUiOiJib2IiLCJzdWIiOiJib2IiLCJleHAiOjE3ODUwOTQ0NDAsImlhdCI6MTc4NTA5MzU0MCwianRpIjoiZDc0NDc5NzgtMTM2OC00M2ZhLThhNzUtMDcxMDgwMDQ4OTQ3In0.qpRYE7glGnW9fZlI6kvmgm2VVZOlWugD5jEIklCVt1c" \
-      http://localhost:8080/users/
-
-# DELETE /users/:id/
-curl -X DELETE -v -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwidXNlcm5hbWUiOiJib2IiLCJzdWIiOiJib2IiLCJleHAiOjE3ODUwOTM0ODksImlhdCI6MTc4NTA5MzE4OSwianRpIjoiYjYzYzJmNzYtYjcyMy00ZjhmLWJjYjgtZWUwMTMxODhlYTU2In0.VnQSQuJpAI9u8qgADmYArgzKF6AnqIeaQ8uA_8BtC7A" \
-      http://localhost:8080/users/1/
-
-# PATCH  /users/
-# -----------------------------------------------------------------------------------------------------------------------
-
-# GET /protected/
-# return api JSON data from a route that is protected by JWT validation middleware
-curl -X GET -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwidXNlcm5hbWUiOiJib2IiLCJ0eXBlIjoiYWNjZXNzIiwic3ViIjoiYm9iIiwiZXhwIjoxNzg1MTg4NDA0LCJpYXQiOjE3ODUxODc1MDQsImp0aSI6IjUwM2JjYTgwLThmYzItNDc4OS04MGY4LTVhN2NjMmY5ZjU1OSJ9.M3XdWfvaYqmkAtEPbNgFbBFpojOA7bcZFZgX_GCH-AI" -v http://localhost:8080/protected/
+# Revoke flags the session associated with the refresh token as revoked 
+# preventing refresh of access tokens.
+curl -X POST -v http://localhost:8080/revoke/e885764a-356a-4096-9177-e6a3ef8c0e29
 
 # -----------------------------------------------------------------------------------------------------------------------
 
-# # DELETE /image/
-# # GET    /image/
-# # Image - Fetch images list; should check that the jwt is still valid before requesting data using the claimer.
-# curl -v -X GET  http://localhost:8080/image/
+# Users lists all current users displaying all fields currently.
+curl -X GET -v \
+  -H "Authorization: Bearer $bearer_token" \
+  http://localhost:8080/users/
 
-# # PATCH  /image/
-# # POST   /image/
-# # Image - Create image
-# curl -v -d '{"data":"somefoo"}' http://localhost:8080/image/
-# ```
+# Users deletes user with associated id.
+curl -X DELETE -v \
+  -H "Authorization: Bearer $bearer_token" \
+  http://localhost:8080/users/1/
+
+# Users updates the password for the current user after verifying current password 
+# matches the stored hash.
+curl -X PATCH -v \
+  -d '{"id":1,"username":"bob","currentPassword":"secret","newPassword":"newsecret"}' \
+  -H "Authorization: Bearer $bearer_token" \
+  http://localhost:8080/users/
+
+# -----------------------------------------------------------------------------------------------------------------------
+
+# Notes creates a new note for the associated user.
+curl -X POST -v \
+  -d '{"userId":1,"title":"this is a title","content":"this is a note"}' \
+  -H "Authorization: Bearer $bearer_token" \
+  http://localhost:8080/users/1/notes/
+
+# Notes lists all notes for the associated user.
+curl -X GET -v \
+  -H "Authorization: Bearer $bearer_token" \
+  http://localhost:8080/users/1/notes/
+
+# Notes updates the title and or content for a given note associated with user.
+curl -X PUT -v \
+  -d '{"id":1, "userId":1,"title":"this is a new title","content":"this is a new note"}' \
+  -H "Authorization: Bearer $bearer_token" \
+  http://localhost:8080/users/1/notes/
+
+# Notes deletes a note associated with a current user.
+curl -X DELETE -v \
+  -H "Authorization: Bearer $bearer_token" \
+  http://localhost:8080/users/1/notes/1

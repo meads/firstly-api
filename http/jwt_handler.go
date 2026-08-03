@@ -52,6 +52,7 @@ type loginResponse struct {
 	AccessTokenExpiresAt  time.Time `json:"accessTokenExpiresAt"`
 	RefreshTokenExpiresAt time.Time `json:"refreshTokenExpiresAt"`
 	Username              string    `json:"username"`
+	UserID                int64     `json:"userId"`
 }
 
 type renewAccessTokenRequest struct {
@@ -87,7 +88,7 @@ func loginHandler(ctx *gin.Context) {
 		return
 	}
 
-	accessToken, accessClaims, err := firstly.tokener.GenerateToken(dbUser.ID, dbUser.Username, "access", 5*time.Minute)
+	accessToken, accessClaims, err := firstly.tokener.GenerateToken(dbUser.ID, dbUser.Username, "access", 15*time.Minute)
 	if err != nil {
 		ctx.Writer.WriteHeader(http.StatusInternalServerError)
 		return
@@ -101,7 +102,7 @@ func loginHandler(ctx *gin.Context) {
 
 	session, err := firstly.store.CreateSession(ctx, db.CreateSessionParams{
 		ID:           refreshClaims.RegisteredClaims.ID,
-		Username:     dbUser.Username,
+		UserID:       dbUser.ID,
 		RefreshToken: refreshToken,
 		IsRevoked:    false,
 		ExpiresAt:    refreshClaims.RegisteredClaims.ExpiresAt.Time,
@@ -119,6 +120,7 @@ func loginHandler(ctx *gin.Context) {
 		AccessTokenExpiresAt:  accessClaims.RegisteredClaims.ExpiresAt.Time,
 		RefreshTokenExpiresAt: refreshClaims.RegisteredClaims.ExpiresAt.Time,
 		Username:              dbUser.Username,
+		UserID:                dbUser.ID,
 	})
 }
 
@@ -154,6 +156,10 @@ func renewAccessTokenHandler(ctx *gin.Context) {
 
 	session, err := firstly.store.GetSession(ctx, refreshClaims.RegisteredClaims.ID)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			ctx.JSON(http.StatusUnauthorized, errorResponse(errors.New("invalid session")))
+			return
+		}
 		ctx.JSON(http.StatusInternalServerError, errorResponse(errors.New("error getting session")))
 		return
 	}
@@ -163,10 +169,10 @@ func renewAccessTokenHandler(ctx *gin.Context) {
 		return
 	}
 
-	if session.Username != refreshClaims.Username {
-		ctx.JSON(http.StatusUnauthorized, errorResponse(errors.New("invalid session")))
-		return
-	}
+	// if session.Username != refreshClaims.Username {
+	// 	ctx.JSON(http.StatusUnauthorized, errorResponse(errors.New("invalid session")))
+	// 	return
+	// }
 
 	accessToken, accessClaims, err := firstly.tokener.GenerateToken(
 		refreshClaims.ID, refreshClaims.Username, "access", 15*time.Minute)

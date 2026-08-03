@@ -12,16 +12,16 @@ import (
 
 const createSession = `-- name: CreateSession :one
 INSERT INTO sessions (
-  id, username, refresh_token, is_revoked, expires_at, created_at
+  id, user_id, refresh_token, is_revoked, expires_at, created_at
 ) VALUES (
   $1, $2, $3, $4, $5, NOW()
 )
-RETURNING id, username, refresh_token, is_revoked, expires_at, created_at
+RETURNING id, user_id, refresh_token, is_revoked, expires_at, created_at
 `
 
 type CreateSessionParams struct {
 	ID           string    `json:"id"`
-	Username     string    `json:"username"`
+	UserID       int64     `json:"userId"`
 	RefreshToken string    `json:"refreshToken"`
 	IsRevoked    bool      `json:"isRevoked"`
 	ExpiresAt    time.Time `json:"expiresAt"`
@@ -30,7 +30,7 @@ type CreateSessionParams struct {
 func (q *Queries) CreateSession(ctx context.Context, arg CreateSessionParams) (Session, error) {
 	row := q.db.QueryRowContext(ctx, createSession,
 		arg.ID,
-		arg.Username,
+		arg.UserID,
 		arg.RefreshToken,
 		arg.IsRevoked,
 		arg.ExpiresAt,
@@ -38,7 +38,7 @@ func (q *Queries) CreateSession(ctx context.Context, arg CreateSessionParams) (S
 	var i Session
 	err := row.Scan(
 		&i.ID,
-		&i.Username,
+		&i.UserID,
 		&i.RefreshToken,
 		&i.IsRevoked,
 		&i.ExpiresAt,
@@ -58,7 +58,7 @@ func (q *Queries) DeleteSession(ctx context.Context, id string) error {
 }
 
 const getSession = `-- name: GetSession :one
-SELECT id, username, refresh_token, is_revoked, expires_at, created_at FROM sessions
+SELECT id, user_id, refresh_token, is_revoked, expires_at, created_at FROM sessions
 WHERE id = $1 LIMIT 1
 `
 
@@ -67,7 +67,7 @@ func (q *Queries) GetSession(ctx context.Context, id string) (Session, error) {
 	var i Session
 	err := row.Scan(
 		&i.ID,
-		&i.Username,
+		&i.UserID,
 		&i.RefreshToken,
 		&i.IsRevoked,
 		&i.ExpiresAt,
@@ -84,5 +84,16 @@ WHERE id = $1
 
 func (q *Queries) RevokeSession(ctx context.Context, id string) error {
 	_, err := q.db.ExecContext(ctx, revokeSession, id)
+	return err
+}
+
+const revokeUserSessions = `-- name: RevokeUserSessions :exec
+UPDATE sessions
+SET is_revoked = TRUE
+WHERE user_id = $1
+`
+
+func (q *Queries) RevokeUserSessions(ctx context.Context, userID int64) error {
+	_, err := q.db.ExecContext(ctx, revokeUserSessions, userID)
 	return err
 }

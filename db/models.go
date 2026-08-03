@@ -9,9 +9,17 @@ import (
 	"time"
 )
 
+type Note struct {
+	ID        int64        `json:"id"`
+	Title     string       `json:"title"`
+	Content   string       `json:"content"`
+	UserID    int64        `json:"userId"`
+	CreatedAt sql.NullTime `json:"createdAt"`
+}
+
 type Session struct {
 	ID           string       `json:"id"`
-	Username     string       `json:"username"`
+	UserID       int64        `json:"userId"`
 	RefreshToken string       `json:"refreshToken"`
 	IsRevoked    bool         `json:"isRevoked"`
 	ExpiresAt    time.Time    `json:"expiresAt"`

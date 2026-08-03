@@ -1,5 +1,8 @@
--- name: UserExists :one
+-- name: UsernameExists :one
 SELECT EXISTS(SELECT 1 FROM users WHERE username = $1);
+
+-- name: UserExists :one
+SELECT EXISTS(SELECT 1 FROM users WHERE id = $1);
 
 -- name: GetUser :one
 SELECT * FROM users
@@ -24,8 +27,8 @@ RETURNING *;
 DELETE FROM users
 WHERE id = $1;
 
--- name: UpdateUser :exec
+-- name: UpdateUserPassword :exec
 UPDATE users
-SET password = $1, updated_at = NOW()
+SET password = $1
 WHERE id = $2;
 

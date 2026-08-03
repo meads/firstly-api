@@ -116,28 +116,39 @@ func (q *Queries) ListUsers(ctx context.Context, arg ListUsersParams) ([]User, e
 	return items, nil
 }
 
-const updateUser = `-- name: UpdateUser :exec
+const updateUserPassword = `-- name: UpdateUserPassword :exec
 UPDATE users
-SET password = $1, updated_at = NOW()
+SET password = $1
 WHERE id = $2
 `
 
-type UpdateUserParams struct {
+type UpdateUserPasswordParams struct {
 	Password string `json:"password"`
 	ID       int64  `json:"id"`
 }
 
-func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) error {
-	_, err := q.db.ExecContext(ctx, updateUser, arg.Password, arg.ID)
+func (q *Queries) UpdateUserPassword(ctx context.Context, arg UpdateUserPasswordParams) error {
+	_, err := q.db.ExecContext(ctx, updateUserPassword, arg.Password, arg.ID)
 	return err
 }
 
 const userExists = `-- name: UserExists :one
+SELECT EXISTS(SELECT 1 FROM users WHERE id = $1)
+`
+
+func (q *Queries) UserExists(ctx context.Context, id int64) (bool, error) {
+	row := q.db.QueryRowContext(ctx, userExists, id)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
+}
+
+const usernameExists = `-- name: UsernameExists :one
 SELECT EXISTS(SELECT 1 FROM users WHERE username = $1)
 `
 
-func (q *Queries) UserExists(ctx context.Context, username string) (bool, error) {
-	row := q.db.QueryRowContext(ctx, userExists, username)
+func (q *Queries) UsernameExists(ctx context.Context, username string) (bool, error) {
+	row := q.db.QueryRowContext(ctx, usernameExists, username)
 	var exists bool
 	err := row.Scan(&exists)
 	return exists, err

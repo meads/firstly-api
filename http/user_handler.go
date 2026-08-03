@@ -23,6 +23,7 @@ type registerUserResponse struct {
 	AccessTokenExpiresAt  time.Time `json:"accessTokenExpiresAt"`
 	RefreshTokenExpiresAt time.Time `json:"refreshTokenExpiresAt"`
 	Username              string    `json:"username"`
+	UserID                int64     `json:"userId"`
 }
 
 func registerUserHandler(ctx *gin.Context) {
@@ -32,21 +33,17 @@ func registerUserHandler(ctx *gin.Context) {
 		return
 	}
 
-	// check if there is an existing user with that username
-	userExists, err := firstly.store.UserExists(ctx, req.Username)
-	// if there is an error and it isn't because of no db rows then error
+	usernameExists, err := firstly.store.UsernameExists(ctx, req.Username)
 	if err != nil && !errors.Is(sql.ErrNoRows, err) {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
 
-	// if a user exists already with that name, fail
-	if userExists {
+	if usernameExists {
 		ctx.JSON(http.StatusBadRequest, errorResponse(errors.New("please choose another username")))
 		return
 	}
 
-	// hash the request password
 	var param db.CreateUserParams
 	param.Username = req.Username
 	param.Password, err = firstly.hasher.HashPassword(req.Password)
@@ -55,28 +52,27 @@ func registerUserHandler(ctx *gin.Context) {
 		return
 	}
 
-	// create the user with the hashed password and username
 	dbUser, err := firstly.store.CreateUser(ctx, param)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
 
-	accessToken, accessClaims, err := firstly.tokener.GenerateToken(dbUser.ID, dbUser.Username, "access", 5*time.Minute)
+	accessToken, accessClaims, err := firstly.tokener.GenerateToken(dbUser.ID, dbUser.Username, "access", 15*time.Minute)
 	if err != nil {
-		ctx.Writer.WriteHeader(http.StatusInternalServerError)
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
 
 	refreshToken, refreshClaims, err := firstly.tokener.GenerateToken(dbUser.ID, dbUser.Username, "refresh", 24*time.Hour)
 	if err != nil {
-		ctx.Writer.WriteHeader(http.StatusInternalServerError)
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
 
 	session, err := firstly.store.CreateSession(ctx, db.CreateSessionParams{
 		ID:           refreshClaims.RegisteredClaims.ID,
-		Username:     dbUser.Username,
+		UserID:       dbUser.ID,
 		RefreshToken: refreshToken,
 		IsRevoked:    false,
 		ExpiresAt:    refreshClaims.RegisteredClaims.ExpiresAt.Time,
@@ -85,7 +81,6 @@ func registerUserHandler(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(errors.New("error creating session")))
 		return
 	}
-	// ctx.Writer.Header().Add("Authorization", fmt.Sprintf("Bearer %s", accessToken))
 
 	ctx.JSON(http.StatusOK, registerUserResponse{
 		SessionID:             session.ID,
@@ -94,35 +89,27 @@ func registerUserHandler(ctx *gin.Context) {
 		AccessTokenExpiresAt:  accessClaims.RegisteredClaims.ExpiresAt.Time,
 		RefreshTokenExpiresAt: refreshClaims.RegisteredClaims.ExpiresAt.Time,
 		Username:              dbUser.Username,
+		UserID:                dbUser.ID,
 	})
-	// // generate a 5 minute token for the new user
-	// tokenString, userClaims, err := firstly.tokener.GenerateToken(dbUser.ID, dbUser.Username, "access", 5*time.Minute)
-	// if err != nil {
-	// 	ctx.JSON(http.StatusInternalServerError, errorResponse(err))
-	// 	return
-	// }
 
-	// // do something with userClaims
-	// _ = userClaims
+	// ctx.SetCookieData(&http.Cookie{
+	// 	Name:     "token",
+	// 	Value:    tokenString,
+	// 	Expires:  time.Now().Add(time.Minute * 5),
+	// 	Path:     "/",
+	// 	Domain:   "localhost",
+	// 	SameSite: http.SameSiteNoneMode,
+	// 	Secure:   true,
+	// 	HttpOnly: true,
+	// })
+}
 
-	// // ctx.SetCookieData(&http.Cookie{
-	// // 	Name:     "token",
-	// // 	Value:    tokenString,
-	// // 	Expires:  time.Now().Add(time.Minute * 5),
-	// // 	Path:     "/",
-	// // 	Domain:   "localhost",
-	// // 	SameSite: http.SameSiteNoneMode,
-	// // 	Secure:   true,
-	// // 	HttpOnly: true,
-	// // })
-
-	// ctx.Writer.Header().Set("Authorization", fmt.Sprintf("Bearer %s", tokenString))
-
-	// ctx.JSON(http.StatusOK, nil)
+type DeleteUserResponse struct {
+	Message string `json:"message"`
 }
 
 func deleteUserHandler(ctx *gin.Context) {
-	idParam := ctx.Param("id")
+	idParam := ctx.Param("userid")
 	if idParam == "" {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"error": "id parameter is required",
@@ -146,24 +133,27 @@ func deleteUserHandler(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, nil)
+	ctx.JSON(http.StatusOK, DeleteUserResponse{
+		Message: "Resource successfully deleted",
+	})
+}
+
+type ListUsersResponse struct {
+	Users []db.User `json:"users"`
 }
 
 func listUsersHandler(ctx *gin.Context) {
-	getLimitAndOffset := func(ctx *gin.Context) (string, string) {
-		limit := ctx.Query("limit")
-		if limit == "0" || limit == "" {
-			limit = "50"
-		}
-		offset := ctx.Query("offset")
-		if offset == "" {
-			offset = "0"
-		}
-
-		return limit, offset
+	limit := ctx.Query("limit")
+	if limit == "0" || limit == "" {
+		limit = "50"
 	}
-	limit, offset := getLimitAndOffset(ctx)
-	i, err := strconv.ParseInt(limit, 10, 32)
+
+	offset := ctx.Query("offset")
+	if offset == "" {
+		offset = "0"
+	}
+
+	i, err := strconv.ParseInt(limit, 10, 64)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"error": "error parsing limit as int",
@@ -172,7 +162,7 @@ func listUsersHandler(ctx *gin.Context) {
 		return
 	}
 
-	j, err := strconv.ParseInt(offset, 10, 32)
+	j, err := strconv.ParseInt(offset, 10, 64)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"error": "error parsing offset as int",
@@ -190,31 +180,27 @@ func listUsersHandler(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, users)
+	ctx.JSON(http.StatusOK, ListUsersResponse{Users: users})
 }
 
-type updateUserRequest struct {
+type PatchUserRequest struct {
 	ID              int64  `json:"id" binding:"required"`
 	Username        string `json:"username" binding:"required"`
 	CurrentPassword string `json:"currentPassword" binding:"required"`
 	NewPassword     string `json:"newPassword" binding:"required"`
 }
 
-func updateUserHandler(ctx *gin.Context) {
-	var req updateUserRequest
+type PatchUserResponse struct {
+	Message string `json:"message"`
+}
+
+func patchUserHandler(ctx *gin.Context) {
+	var req PatchUserRequest
 	if err := ctx.BindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return
 	}
 
-	// hash the current password
-	currentPasswordHash, err := firstly.hasher.HashPassword(req.CurrentPassword)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
-		return
-	}
-
-	// get the current user
 	user, err := firstly.store.GetUser(ctx, req.ID)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -225,29 +211,29 @@ func updateUserHandler(ctx *gin.Context) {
 		return
 	}
 
-	// compare the current passowrd hashed against the stored password
-	if currentPasswordHash != user.Password {
+	err = firstly.hasher.ComparePassword(user.Password, req.CurrentPassword)
+	if err != nil {
 		ctx.JSON(http.StatusBadRequest, errorResponse(errors.New("current password invalid")))
 		return
 	}
 
-	// hash the new password
 	newPasswordHash, err := firstly.hasher.HashPassword(req.NewPassword)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
 
-	// update the password for the user with the new password hash and current id
-	var updateParams db.UpdateUserParams
+	var updateParams db.UpdateUserPasswordParams
 	updateParams.ID = user.ID
 	updateParams.Password = newPasswordHash
 
-	err = firstly.store.UpdateUser(ctx, updateParams)
+	err = firstly.store.UpdateUserPassword(ctx, updateParams)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
 
-	ctx.JSON(http.StatusOK, nil)
+	ctx.JSON(http.StatusOK, PatchUserResponse{
+		Message: "Resource successfully patched",
+	})
 }

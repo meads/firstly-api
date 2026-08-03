@@ -48,10 +48,13 @@ func NewFirstlyServer(tokener security.Tokener, hasher security.Hasher, router *
 
 	// firstly.router.GET("/users/:id", claimsMiddleware(getUserHandler))
 	firstly.router.GET("/users/", claimsMiddleware(listUsersHandler))
-	firstly.router.PATCH("/users/", claimsMiddleware(updateUserHandler))
-	firstly.router.DELETE("/users/:id/", claimsMiddleware(deleteUserHandler))
+	firstly.router.PATCH("/users/", claimsMiddleware(patchUserHandler))
+	firstly.router.DELETE("/users/:userid/", claimsMiddleware(deleteUserHandler))
 
-	firstly.router.GET("/protected/", claimsMiddleware(listProtectedHandler))
+	firstly.router.POST("/users/:userid/notes/", claimsMiddleware(createNoteHandler))
+	firstly.router.PUT("/users/:userid/notes/", claimsMiddleware(updateNoteHandler))
+	firstly.router.GET("/users/:userid/notes/", claimsMiddleware(listNotesHandler))
+	firstly.router.DELETE("/users/:userid/notes/:noteid", claimsMiddleware(deleteNoteHandler))
 
 	return firstly
 }

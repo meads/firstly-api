@@ -153,7 +153,7 @@ func TestJWTSignInHandler(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			// Arrange
-			router := gin.Default()
+			router := gin.New()
 			gin.SetMode(gin.TestMode)
 			ctrl := gomock.NewController(t)
 

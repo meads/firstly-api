@@ -1,21 +1,20 @@
-# Notes API UI Tester 📝
+# Notes API Tester 📝
 
-A lightweight frontend interface built to test authentication endpoints and core CRUD functionality for a work-in-progress Notes API. 
+A lightweight frontend interface built to test authentication endpoints and core functionality for a work-in-progress Notes API. 
 
 ## 🚀 Overview
 
-This project is a fun experiment created to stress-test token-based authentication workflows. It provides a visual interface to verify how the backend handles secure note creation, token expiration, and automatic token rotation.
-
-### Key Features
-* **Token Rotation Testing:** Manual or automatic triggers to test access/refresh token exchanges.
-* **Auth State Visualization:** Real-time visual tracking of token expiration states.
-* **Basic CRUD Operations:** Create, read, update, and delete notes via the API.
+This project is an experiment created to stress-test token-based authentication workflows. It provides a visual interface to verify how the backend handles secure note creation and token based authentication.
 
 ## 🛠️ Tech Stack
 
-* **Frontend:** [Vanilla JS]
+* **Frontend:** [Vite/React]
 * **Styling:** [CSS]
 * **HTTP Client:** [Fetch API]
+* **HTTP Server:** [Gin]
+* **Backend:** [Go]
+* **Tokens:** [JWT]
+* **Database:** [sqlc/Postgresql]
 
 ## 📦 Getting Started
 
@@ -64,9 +63,11 @@ Open `http://localhost:3000` in your browser to view the UI.
 
 ## 🧪 How to Test the Auth Flow
 
-1. **Register/Login:** Create an account to receive your initial access and refresh tokens.
-2. **Inspect Tokens:** Check the UI dashboard to see active token strings and lifetimes.
-3. **Simulate Expiration:** Shorten token lifespans on your API to witness the UI use the refresh token automatically.
+Use the curl commands to inspect the http api or launch the web application and witness the
+token expiration. 
+~~1. **Register/Login:** Create an account to receive your initial access and refresh tokens.~~
+~~2. **Inspect Tokens:** Check the UI dashboard to see active token strings and lifetimes.~~
+~~3. **Simulate Expiration:** Shorten token lifespans on your API to witness the UI use the refresh token automatically.~~
 
 ## 🚧 Project Status
 

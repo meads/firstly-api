@@ -5,8 +5,8 @@
 - [x] Users routes to retrieve and modify database users.
 - [x] Login route to authenticate existing users, create tokens and session.
 - [x] Sessions route to retrieve and modify sessions. 
-- [ ] Notes route to retrieve and modify notes db records.
-- [ ] Notes table for persisting notes records.
+- [x] Notes route to retrieve and modify notes db records.
+- [x] Notes table for persisting notes records.
 - [x] Users table for persisting uesrs records.
 - [x] Sessions table for persisting sessions records.
 - [x] Reliable means of hashing and comparing passwords during Registration and Login.
@@ -17,12 +17,19 @@
 - [ ] Config struct to store environment variables in main package, validate and provide ease of use.
 - [ ] Tests for all code located in main package.
 - [ ] Near 100% code coverage for unit testing of all backend code.
+- [ ] Convert sqlc.yaml to version 2 and convert all TIMESTAMP columns to TIMESTAMPZ to handle NULL types
+- [ ] Create an internal api layer that becomes the source to interact with backing data stores.
+- [ ] Refactor handlers data calls to api calls.
+- [ ] Refactor handler tests to use mocks of the api.
+- [ ] Unit test api layer.
+- [ ] Remove dead code 
 
 ### Frontend
 - [x] UI to register users.
 - [x] UI to login existing users.
 - [ ] UI to view sessions and tokens.
-- [ ] UI to create and list notes.
+- [x] UI to create, edit, list and delete notes.
 - [ ] UI to view realtime token expiration.
+- [ ] UI to intercept 401 token expired calls
  
 
