@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/gin-gonic/gin"
-	db "github.com/meads/firstly-api/db"
+	db "github.com/meads/firstly-api/db/sqlc"
 	"github.com/meads/firstly-api/security"
 	"go.uber.org/mock/gomock"
 )

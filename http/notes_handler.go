@@ -6,7 +6,7 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
-	"github.com/meads/firstly-api/db"
+	db "github.com/meads/firstly-api/db/sqlc"
 )
 
 type CreateNoteRequest struct {

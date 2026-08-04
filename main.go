@@ -15,7 +15,7 @@ import (
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 
-	db "github.com/meads/firstly-api/db"
+	db "github.com/meads/firstly-api/db/sqlc"
 	http_api "github.com/meads/firstly-api/http"
 	"github.com/meads/firstly-api/security"
 )
