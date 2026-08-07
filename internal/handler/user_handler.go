@@ -1,0 +1,114 @@
+package handler
+
+import (
+	"fmt"
+	"net/http"
+	"strconv"
+
+	"github.com/gin-gonic/gin"
+	"github.com/meads/firstly-api/internal/domain"
+	service "github.com/meads/firstly-api/internal/service"
+)
+
+type UserHandler struct {
+	svc service.UserServicer
+}
+
+func NewUserHandler(svc service.UserServicer) *UserHandler {
+	return &UserHandler{svc: svc}
+}
+
+func (h *UserHandler) DeleteUser(ctx *gin.Context) {
+	idParam := ctx.Param("userid")
+	if idParam == "" {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"error": "id parameter is required",
+		})
+
+		return
+	}
+	id, err := strconv.ParseInt(idParam, 10, 64)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"error": "id parameter must be a valid integer",
+		})
+
+		return
+	}
+
+	err = h.svc.DeleteUser(ctx, id)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, err)
+
+		return
+	}
+
+	ctx.JSON(http.StatusOK, DeleteUserResponse{
+		Message: "Resource successfully deleted",
+	})
+
+}
+
+func (h *UserHandler) ListUsers(ctx *gin.Context) {
+	limit := ctx.Query("limit")
+	if limit == "0" || limit == "" {
+		limit = "50"
+	}
+
+	offset := ctx.Query("offset")
+	if offset == "" {
+		offset = "0"
+	}
+
+	i, err := strconv.ParseInt(limit, 10, 64)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"error": "error parsing limit as int",
+		})
+
+		return
+	}
+
+	j, err := strconv.ParseInt(offset, 10, 64)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"error": "error parsing offset as int",
+		})
+
+		return
+	}
+
+	users, err := h.svc.ListUsers(ctx, domain.ListUsersParams{Limit: int32(i), Offset: int32(j)})
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Internal Server Error",
+		})
+
+		return
+	}
+
+	ctx.JSON(http.StatusOK, ListUsersResponse{Users: users})
+}
+
+func (h *UserHandler) PatchUser(ctx *gin.Context) {
+	var req PatchUserRequest
+	if err := ctx.BindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, errorResponse(err))
+		return
+	}
+
+	err := h.svc.ChangePassword(ctx, domain.UpdateUserPasswordParams{
+		ID:              req.ID,
+		Username:        req.Username,
+		CurrentPassword: req.CurrentPassword,
+		NewPassword:     req.NewPassword,
+	})
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, fmt.Errorf("change password failed: %w", err))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, PatchUserResponse{
+		Message: "Resource successfully patched",
+	})
+}

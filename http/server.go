@@ -6,7 +6,7 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	db "github.com/meads/firstly-api/db/sqlc"
-	"github.com/meads/firstly-api/security"
+	"github.com/meads/firstly-api/internal/security"
 )
 
 type FirstlyServer struct {

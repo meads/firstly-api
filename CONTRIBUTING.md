@@ -149,9 +149,10 @@ $ make deploy
 ## smoke testing endpoints using curl
 
 ```bash
-# Set the two variables in your shell after hitting the register endpoint
-export bearer_token=
-export refresh_token=
+# Set the variables in your shell using the response body of the register endpoint
+export bearer_token=''
+export refresh_token=''
+export session_id=''
 
 # Create User and first session
 curl -X POST -v \
@@ -169,11 +170,11 @@ curl -X POST -v -d "{\"refreshToken\":\"$refresh_token\"}" \
   http://localhost:8080/refresh/
 
 # Logout deletes the session invalidating any associated tokens refresh or access
-curl -X POST -v http://localhost:8080/logout/e885764a-356a-4096-9177-e6a3ef8c0e29
+curl -X POST -v http://localhost:8080/logout/$session_id
 
 # Revoke flags the session associated with the refresh token as revoked 
 # preventing refresh of access tokens.
-curl -X POST -v http://localhost:8080/revoke/e885764a-356a-4096-9177-e6a3ef8c0e29
+curl -X POST -v http://localhost:8080/revoke/$session_id
 
 # -----------------------------------------------------------------------------------------------------------------------
 

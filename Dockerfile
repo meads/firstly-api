@@ -14,7 +14,7 @@ RUN go mod download
 COPY . .
 
 # Build a statically linked Linux binary
-RUN CGO_ENABLED=0 GOOS=linux go build -o /bin/firstly-api .
+RUN CGO_ENABLED=0 GOOS=linux go build -o /bin/firstly-api ./cmd/server
 
 # ==========================================
 # STAGE 2: Create a lightweight runtime
