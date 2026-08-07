@@ -4,7 +4,7 @@ import (
 	"context"
 	"database/sql"
 
-	sqlc "github.com/meads/firstly-api/db/sqlc"
+	sqlc "github.com/meads/firstly-api/internal/db/sqlc"
 	"github.com/meads/firstly-api/internal/domain"
 )
 

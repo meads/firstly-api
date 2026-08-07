@@ -27,7 +27,7 @@ WORKDIR /app
 RUN apk --no-cache add ca-certificates
 
 # Copy the migration folder specifically
-COPY --from=builder /app/db ./db
+COPY --from=builder /app/internal/db ./db
 
 # Copy the go binary from the builder stage
 COPY --from=builder /bin/firstly-api /bin/firstly-api

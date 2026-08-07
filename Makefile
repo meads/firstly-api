@@ -12,10 +12,16 @@ tidy:
 	@go mod tidy
 
 mockgen:
-	@mockgen -package db -destination ./db/sqlc/querier_mock.go github.com/meads/firstly-api/db/sqlc Querier
-	@mockgen -package security -destination ./security/bcrypt_mock.go github.com/meads/firstly-api/security Hasher
-	@mockgen -package security -destination ./security/claims_mock.go github.com/meads/firstly-api/security Tokener
-
+	@mockgen -package db -destination ./internal/db/sqlc/querier_mock.go github.com/meads/firstly-api/internal/db/sqlc Querier
+	@mockgen -package security -destination ./internal/security/bcrypt_mock.go github.com/meads/firstly-api/internal/security Hasher
+	@mockgen -package security -destination ./internal/security/claims_mock.go github.com/meads/firstly-api/internal/security Tokener
+	@mockgen -package repository -destination ./internal/repository/note_repository_mock.go github.com/meads/firstly-api/internal/repository NoteRepository
+	@mockgen -package repository -destination ./internal/repository/session_repository_mock.go github.com/meads/firstly-api/internal/repository SessionRepository
+	@mockgen -package repository -destination ./internal/repository/user_repository_mock.go github.com/meads/firstly-api/internal/repository UserRepository
+	@mockgen -package service -destination ./internal/service/note_service_mock.go github.com/meads/firstly-api/internal/service NoteServicer
+	@mockgen -package service -destination ./internal/service/user_service_mock.go github.com/meads/firstly-api/internal/service UserServicer
+	@mockgen -package service -destination ./internal/service/auth_service_mock.go github.com/meads/firstly-api/internal/service AuthServicer
+	
 generate: tidy sqlc mockgen
 
 test:

@@ -1,11 +1,11 @@
 version: 1
 packages:
   - name: "db"    # The generated code package 'name'.
-    path: "db/sqlc/" # The path where the code is to be generated.
-    queries: "db/query/" # The file containing the 'queries' which are 
+    path: "internal/db/sqlc/" # The path where the code is to be generated.
+    queries: "internal/db/query/" # The file containing the 'queries' which are 
                                 # annotated with comments specifying the data access methods to be generated.
                                 # Can be just a directory.
-    schema: "db/migration/" # The file containing the dml statements. Should be the migrations directory.
+    schema: "internal/db/migration/" # The file containing the dml statements. Should be the migrations directory.
     engine: "postgresql" # The sql engine to use when parsing the sql queries.
     emit_prepared_queries: false
     emit_interface: true

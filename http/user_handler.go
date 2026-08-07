@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	db "github.com/meads/firstly-api/db/sqlc"
+	db "github.com/meads/firstly-api/internal/db/sqlc"
 )
 
 type registerUserRequest struct {
