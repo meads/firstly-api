@@ -49,7 +49,7 @@ func main() {
 	conn := dbConnect(10, dbURL)
 	defer conn.Close()
 
-	m, err := migrate.New("file://db/migration", dbURL)
+	m, err := migrate.New("file://internal/db/migration", dbURL)
 	if err != nil {
 		log.Fatalf("error calling New with sql-migration tool: %s", err)
 		return
