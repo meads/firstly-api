@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"errors"
 	"fmt"
 	"net/http"
 
@@ -25,7 +24,7 @@ func (h *AuthHandler) Register(ctx *gin.Context) {
 	}
 	registerResult, err := h.svc.Register(ctx, req.Username, req.Password)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, "Registration failed.")
+		ctx.JSON(http.StatusInternalServerError, errorResponse(fmt.Errorf("Registration failed: %w", err)))
 		return
 	}
 
@@ -59,11 +58,6 @@ func (h *AuthHandler) Login(ctx *gin.Context) {
 
 func (h *AuthHandler) Logout(ctx *gin.Context) {
 	idParam := ctx.Param("sessionid")
-	if idParam == "" {
-		ctx.JSON(http.StatusBadRequest, errorResponse(errors.New("missing session ID")))
-		return
-	}
-
 	err := h.svc.Logout(ctx, idParam)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(fmt.Errorf("logout failed %w", err)))
@@ -75,21 +69,22 @@ func (h *AuthHandler) Logout(ctx *gin.Context) {
 
 func (h *AuthHandler) RenewAccessToken(ctx *gin.Context) {
 	var req RenewAccessTokenRequest
-
 	if err := ctx.BindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return
 	}
 
+	renewAccessTokenResult, err := h.svc.RenewAccessToken(ctx, req.RefreshToken)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(fmt.Errorf("error renewing access token: %w", err)))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, renewAccessTokenResult)
 }
 
 func (h *AuthHandler) RevokeSession(ctx *gin.Context) {
 	idParam := ctx.Param("sessionid")
-	if idParam == "" {
-		ctx.JSON(http.StatusBadRequest, errorResponse(errors.New("missing session ID")))
-		return
-	}
-
 	err := h.svc.RevokeSession(ctx, idParam)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, fmt.Errorf("error revoking session: %w", err))

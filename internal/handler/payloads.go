@@ -76,18 +76,25 @@ type CreateNoteRequest struct {
 	UserID  int64  `json:"userId" binding:"required"`
 }
 
-// type CreateNoteResponse struct {
-// 	ID      int64  `json:"id"`
-// 	Title   string `json:"title"`
-// 	Content string `json:"content"`
-// 	UserID  int64  `json:"userId"`
-// }
+type CreateNoteResponse struct {
+	ID      int64  `json:"id"`
+	Title   string `json:"title"`
+	Content string `json:"content"`
+	UserID  int64  `json:"userId"`
+}
 
 type UpdateNoteRequest struct {
 	ID      int64  `json:"id" binding:"required"`
 	UserID  int64  `json:"userId" binding:"required"`
 	Title   string `json:"title" binding:"required"`
 	Content string `json:"content" binding:"required"`
+}
+
+type UpdateNoteResponse struct {
+	ID      int64  `json:"id"`
+	Title   string `json:"title"`
+	Content string `json:"content"`
+	UserID  int64  `json:"userId"`
 }
 
 type ListNotesResponse struct {

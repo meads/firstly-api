@@ -64,7 +64,6 @@ func main() {
 
 	sessionRepo := repository.NewSessionRepository(conn)
 	userRepo := repository.NewUserRepository(conn)
-	noteRepo := repository.NewNoteRepository(conn)
 
 	authService := service.NewAuthService(userRepo, sessionRepo, tokener, hasher)
 	authHandler := handler.NewAuthHandler(authService)
@@ -72,6 +71,7 @@ func main() {
 	userService := service.NewUserService(userRepo)
 	userHandler := handler.NewUserHandler(userService)
 
+	noteRepo := repository.NewNoteRepository(conn)
 	noteService := service.NewNoteService(noteRepo, userRepo)
 	noteHandler := handler.NewNoteHandler(noteService)
 

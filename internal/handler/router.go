@@ -51,6 +51,9 @@ func SetupRouter(
 ) *gin.Engine {
 	config := cors.DefaultConfig()
 	origins := os.Getenv("ALLOW_ORIGINS")
+	if origins == "" {
+		origins = "http://localhost:3000"
+	}
 	config.AllowOrigins = []string{origins}
 	config.AllowCredentials = true
 	config.AllowHeaders = []string{"Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With"}
@@ -61,20 +64,24 @@ func SetupRouter(
 
 	router.Use(cors.New(config))
 
-	router.POST("/register/", authHandler.Register)
-	router.POST("/login/", authHandler.Login)
-	router.POST("/refresh/", authHandler.RenewAccessToken)
-	router.POST("/logout/:sessionid", authHandler.Logout)
-	router.POST("/revoke/:sessionid", authHandler.RevokeSession)
-
-	router.GET("/users/", claimsMiddleware(userHandler.ListUsers, tokener))
-	router.PATCH("/users/", claimsMiddleware(userHandler.PatchUser, tokener))
-	router.DELETE("/users/:userid/", claimsMiddleware(userHandler.DeleteUser, tokener))
-
-	router.POST("/users/:userid/notes/", claimsMiddleware(noteHandler.CreateNote, tokener))
-	router.PUT("/users/:userid/notes/", claimsMiddleware(noteHandler.UpdateNote, tokener))
-	router.GET("/users/:userid/notes/", claimsMiddleware(noteHandler.ListNotes, tokener))
-	router.DELETE("/users/:userid/notes/:noteid", claimsMiddleware(noteHandler.DeleteNote, tokener))
+	if authHandler != nil {
+		router.POST("/register/", authHandler.Register)
+		router.POST("/login/", authHandler.Login)
+		router.POST("/refresh/", authHandler.RenewAccessToken)
+		router.POST("/logout/:sessionid", authHandler.Logout)
+		router.POST("/revoke/:sessionid", authHandler.RevokeSession)
+	}
+	if userHandler != nil {
+		router.GET("/users/", claimsMiddleware(userHandler.ListUsers, tokener))
+		router.PATCH("/users/", claimsMiddleware(userHandler.PatchUser, tokener))
+		router.DELETE("/users/:userid/", claimsMiddleware(userHandler.DeleteUser, tokener))
+	}
+	if noteHandler != nil {
+		router.POST("/users/:userid/notes/", claimsMiddleware(noteHandler.CreateNote, tokener))
+		router.PUT("/users/:userid/notes/", claimsMiddleware(noteHandler.UpdateNote, tokener))
+		router.GET("/users/:userid/notes/", claimsMiddleware(noteHandler.ListNotes, tokener))
+		router.DELETE("/users/:userid/notes/:noteid", claimsMiddleware(noteHandler.DeleteNote, tokener))
+	}
 
 	return router
 }

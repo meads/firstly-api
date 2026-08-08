@@ -28,9 +28,15 @@ func (h *NoteHandler) CreateNote(ctx *gin.Context) {
 	note, err := h.svc.CreateNote(ctx, req.UserID, req.Title, req.Content)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
 	}
 
-	ctx.JSON(http.StatusOK, note)
+	ctx.JSON(http.StatusOK, CreateNoteResponse{
+		ID:      note.ID,
+		Title:   note.Title,
+		Content: note.Content,
+		UserID:  note.UserID,
+	})
 }
 
 func (h *NoteHandler) UpdateNote(ctx *gin.Context) {
@@ -43,18 +49,19 @@ func (h *NoteHandler) UpdateNote(ctx *gin.Context) {
 	note, err := h.svc.UpdateNote(ctx, req.ID, req.UserID, req.Title, req.Content)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
 	}
 
-	ctx.JSON(http.StatusOK, note)
+	ctx.JSON(http.StatusOK, UpdateNoteResponse{
+		ID:      note.ID,
+		Title:   note.Title,
+		Content: note.Content,
+		UserID:  note.UserID,
+	})
 }
 
 func (h *NoteHandler) ListNotes(ctx *gin.Context) {
 	userIDParam := ctx.Param("userid")
-	if userIDParam == "" {
-		ctx.JSON(http.StatusBadRequest, errorResponse(errors.New("missing user id param")))
-		return
-	}
-
 	userID, err := strconv.ParseInt(userIDParam, 10, 64)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, errorResponse(errors.New("invalid user id param")))
@@ -73,11 +80,6 @@ func (h *NoteHandler) ListNotes(ctx *gin.Context) {
 
 func (h *NoteHandler) DeleteNote(ctx *gin.Context) {
 	userIDParam := ctx.Param("userid")
-	if userIDParam == "" {
-		ctx.JSON(http.StatusBadRequest, errorResponse(errors.New("missing user id param")))
-		return
-	}
-
 	userID, err := strconv.ParseInt(userIDParam, 10, 64)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, errorResponse(errors.New("invalid user id param")))
@@ -85,11 +87,6 @@ func (h *NoteHandler) DeleteNote(ctx *gin.Context) {
 	}
 
 	noteIDParam := ctx.Param("noteid")
-	if noteIDParam == "" {
-		ctx.JSON(http.StatusBadRequest, errorResponse(errors.New("missing note id param")))
-		return
-	}
-
 	noteID, err := strconv.ParseInt(noteIDParam, 10, 64)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, errorResponse(errors.New("invalid note id param")))
