@@ -19,11 +19,11 @@ type NoteServicer interface {
 }
 
 type NoteHandler struct {
-	svc NoteServicer
+	noteService NoteServicer
 }
 
-func NewNoteHandler(svc NoteServicer) *NoteHandler {
-	return &NoteHandler{svc: svc}
+func NewNoteHandler(noteService NoteServicer) *NoteHandler {
+	return &NoteHandler{noteService: noteService}
 }
 
 func (h *NoteHandler) CreateNote(ctx *gin.Context) {
@@ -33,7 +33,7 @@ func (h *NoteHandler) CreateNote(ctx *gin.Context) {
 		return
 	}
 
-	note, err := h.svc.CreateNote(ctx, req.UserID, req.Title, req.Content)
+	note, err := h.noteService.CreateNote(ctx, req.UserID, req.Title, req.Content)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -54,7 +54,7 @@ func (h *NoteHandler) UpdateNote(ctx *gin.Context) {
 		return
 	}
 
-	note, err := h.svc.UpdateNote(ctx, req.ID, req.UserID, req.Title, req.Content)
+	note, err := h.noteService.UpdateNote(ctx, req.ID, req.UserID, req.Title, req.Content)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -76,7 +76,7 @@ func (h *NoteHandler) ListNotes(ctx *gin.Context) {
 		return
 	}
 
-	notes, err := h.svc.ListNotes(ctx, userID)
+	notes, err := h.noteService.ListNotes(ctx, userID)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -100,7 +100,7 @@ func (h *NoteHandler) DeleteNote(ctx *gin.Context) {
 		return
 	}
 
-	err = h.svc.DeleteNote(ctx, noteID, userID)
+	err = h.noteService.DeleteNote(ctx, noteID, userID)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, fmt.Errorf("delete note failed: %w", err))
 		return

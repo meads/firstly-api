@@ -18,11 +18,11 @@ type AuthServicer interface {
 }
 
 type AuthHandler struct {
-	svc AuthServicer
+	authService AuthServicer
 }
 
-func NewAuthHandler(svc AuthServicer) *AuthHandler {
-	return &AuthHandler{svc: svc}
+func NewAuthHandler(authService AuthServicer) *AuthHandler {
+	return &AuthHandler{authService: authService}
 }
 
 func (h *AuthHandler) Register(ctx *gin.Context) {
@@ -31,7 +31,7 @@ func (h *AuthHandler) Register(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return
 	}
-	registerResult, err := h.svc.Register(ctx, req.Username, req.Password)
+	registerResult, err := h.authService.Register(ctx, req.Username, req.Password)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(fmt.Errorf("Registration failed: %w", err)))
 		return
@@ -48,7 +48,7 @@ func (h *AuthHandler) Login(ctx *gin.Context) {
 		return
 	}
 
-	loginResult, err := h.svc.Login(ctx, req.Username, req.Password)
+	loginResult, err := h.authService.Login(ctx, req.Username, req.Password)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, fmt.Errorf("login failed: %w", err))
 		return
@@ -67,7 +67,7 @@ func (h *AuthHandler) Login(ctx *gin.Context) {
 
 func (h *AuthHandler) Logout(ctx *gin.Context) {
 	idParam := ctx.Param("sessionid")
-	err := h.svc.Logout(ctx, idParam)
+	err := h.authService.Logout(ctx, idParam)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(fmt.Errorf("logout failed %w", err)))
 		return
@@ -83,18 +83,18 @@ func (h *AuthHandler) RenewAccessToken(ctx *gin.Context) {
 		return
 	}
 
-	renewAccessTokenResult, err := h.svc.RenewAccessToken(ctx, req.RefreshToken)
+	renewAccessTokenResult, err := h.authService.RenewAccessToken(ctx, req.RefreshToken)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(fmt.Errorf("error renewing access token: %w", err)))
 		return
 	}
 
-	ctx.JSON(http.StatusOK, renewAccessTokenResult)
+	ctx.JSON(http.StatusOK, MapToRenewAccessTokenResponse(renewAccessTokenResult))
 }
 
 func (h *AuthHandler) RevokeSession(ctx *gin.Context) {
 	idParam := ctx.Param("sessionid")
-	err := h.svc.RevokeSession(ctx, idParam)
+	err := h.authService.RevokeSession(ctx, idParam)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, fmt.Errorf("error revoking session: %w", err))
 		return

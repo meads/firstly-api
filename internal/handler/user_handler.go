@@ -14,26 +14,18 @@ type UserServicer interface {
 	DeleteUser(ctx context.Context, id int64) error
 	ListUsers(ctx context.Context, params domain.ListUsersParams) ([]domain.User, error)
 	ChangePassword(ctx context.Context, params domain.UpdateUserPasswordParams) error
-	// UpdateUserPassword(ctx context.Context, params domain.UpdateUserPasswordParams) error
 }
 
 type UserHandler struct {
-	svc UserServicer
+	userService UserServicer
 }
 
-func NewUserHandler(svc UserServicer) *UserHandler {
-	return &UserHandler{svc: svc}
+func NewUserHandler(userService UserServicer) *UserHandler {
+	return &UserHandler{userService: userService}
 }
 
 func (h *UserHandler) DeleteUser(ctx *gin.Context) {
 	idParam := ctx.Param("userid")
-	if idParam == "" {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"error": "id parameter is required",
-		})
-
-		return
-	}
 	id, err := strconv.ParseInt(idParam, 10, 64)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
@@ -43,7 +35,7 @@ func (h *UserHandler) DeleteUser(ctx *gin.Context) {
 		return
 	}
 
-	err = h.svc.DeleteUser(ctx, id)
+	err = h.userService.DeleteUser(ctx, id)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, err)
 
@@ -85,7 +77,7 @@ func (h *UserHandler) ListUsers(ctx *gin.Context) {
 		return
 	}
 
-	users, err := h.svc.ListUsers(ctx, domain.ListUsersParams{Limit: int32(i), Offset: int32(j)})
+	users, err := h.userService.ListUsers(ctx, domain.ListUsersParams{Limit: int32(i), Offset: int32(j)})
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"error": "Internal Server Error",
@@ -104,7 +96,7 @@ func (h *UserHandler) PatchUser(ctx *gin.Context) {
 		return
 	}
 
-	err := h.svc.ChangePassword(ctx, domain.UpdateUserPasswordParams{
+	err := h.userService.ChangePassword(ctx, domain.UpdateUserPasswordParams{
 		ID:              req.ID,
 		Username:        req.Username,
 		CurrentPassword: req.CurrentPassword,

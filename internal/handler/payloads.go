@@ -59,6 +59,13 @@ type RenewAccessTokenResponse struct {
 	AccessTokenExpiresAt time.Time `json:"accessTokenExpiresAt"`
 }
 
+func MapToRenewAccessTokenResponse(result *domain.RenewAccessTokenResult) *RenewAccessTokenResponse {
+	return &RenewAccessTokenResponse{
+		AccessToken:          result.AccessToken,
+		AccessTokenExpiresAt: result.AccessTokenExpiresAt,
+	}
+}
+
 // Users
 
 type UserResponse struct {
