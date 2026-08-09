@@ -8,7 +8,6 @@ import (
 	"net/http/httptest"
 	"reflect"
 	"testing"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/meads/firstly-api/internal/domain"
@@ -284,12 +283,12 @@ func TestUserHandler_Get(t *testing.T) {
 			name:         "list handler responds with Status Code 200 given a valid request",
 			responseCode: http.StatusOK,
 			route:        "/users/",
-			want:         ListUsersResponse{Users: []domain.User{{ID: 69, Username: "foo", CreatedAt: time.Time{}}}},
+			want:         ListUsersResponse{Users: []UserResponse{{ID: 69, Username: "foo"}}},
 			setupExpectations: func(r *http.Request, tokener *security.MockTokener, userService *service.MockUserServicer) {
 				passClaimsMiddleware(r, tokener)
 				params := domain.ListUsersParams{Limit: 50, Offset: 0}
 				userService.EXPECT().ListUsers(gomock.Any(), params).Return([]domain.User{
-					{ID: 69, Username: "foo", CreatedAt: time.Time{}},
+					{ID: 69, Username: "foo"},
 				}, nil)
 			},
 		},

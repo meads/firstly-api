@@ -87,7 +87,7 @@ func (h *UserHandler) ListUsers(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, ListUsersResponse{Users: users})
+	ctx.JSON(http.StatusOK, MapUsersToListUsersResponse(users))
 }
 
 func (h *UserHandler) PatchUser(ctx *gin.Context) {

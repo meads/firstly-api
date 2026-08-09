@@ -49,12 +49,32 @@ type RenewAccessTokenResponse struct {
 
 // Users
 
+type UserResponse struct {
+	ID       int64  `json:"id"`
+	Username string `json:"username"`
+	Password string `json:"password"`
+	// CreatedAt sql.NullTime `json:"createdAt"`
+}
+
 type DeleteUserResponse struct {
 	Message string `json:"message"`
 }
 
 type ListUsersResponse struct {
-	Users []domain.User `json:"users"`
+	Users []UserResponse `json:"users"`
+}
+
+func MapUsersToListUsersResponse(users []domain.User) ListUsersResponse {
+	userResponses := make([]UserResponse, 0, len(users))
+	for _, u := range users {
+		userResponses = append(userResponses, UserResponse{
+			ID:       u.ID,
+			Username: u.Username,
+			Password: u.Password,
+			// CreatedAt: u.CreatedAt,
+		})
+	}
+	return ListUsersResponse{Users: userResponses}
 }
 
 type PatchUserRequest struct {
@@ -70,17 +90,17 @@ type PatchUserResponse struct {
 
 // Notes
 
-type CreateNoteRequest struct {
-	Title   string `json:"title" binding:"required"`
-	Content string `json:"content" binding:"required"`
-	UserID  int64  `json:"userId" binding:"required"`
-}
-
-type CreateNoteResponse struct {
+type NoteResponse struct {
 	ID      int64  `json:"id"`
 	Title   string `json:"title"`
 	Content string `json:"content"`
 	UserID  int64  `json:"userId"`
+}
+
+type CreateNoteRequest struct {
+	Title   string `json:"title" binding:"required"`
+	Content string `json:"content" binding:"required"`
+	UserID  int64  `json:"userId" binding:"required"`
 }
 
 type UpdateNoteRequest struct {
@@ -90,17 +110,23 @@ type UpdateNoteRequest struct {
 	Content string `json:"content" binding:"required"`
 }
 
-type UpdateNoteResponse struct {
-	ID      int64  `json:"id"`
-	Title   string `json:"title"`
-	Content string `json:"content"`
-	UserID  int64  `json:"userId"`
-}
-
 type ListNotesResponse struct {
-	Notes []domain.Note `json:"notes"`
+	Notes []NoteResponse `json:"notes"`
 }
 
 type DeleteNoteResponse struct {
 	Message string `json:"message"`
+}
+
+func MapNotesToListNotesResponse(notes []domain.Note) ListNotesResponse {
+	noteResponses := make([]NoteResponse, 0, len(notes))
+	for _, n := range notes {
+		noteResponses = append(noteResponses, NoteResponse{
+			ID:      n.ID,
+			Title:   n.Title,
+			Content: n.Content,
+			UserID:  n.UserID,
+		})
+	}
+	return ListNotesResponse{Notes: noteResponses}
 }

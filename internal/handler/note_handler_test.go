@@ -23,7 +23,7 @@ func TestCreateNote_Post(t *testing.T) {
 		name              string
 		responseCode      int
 		route             string
-		want              CreateNoteResponse
+		want              NoteResponse
 		setupExpectations func(r *http.Request, noteService *service.MockNoteServicer, tokener *security.MockTokener)
 	}{
 		{
@@ -32,7 +32,7 @@ func TestCreateNote_Post(t *testing.T) {
 			name:         "create note handler responds with status code 400 given fields are blank",
 			responseCode: http.StatusBadRequest,
 			route:        "/users/1/notes/",
-			want:         CreateNoteResponse{},
+			want:         NoteResponse{},
 			setupExpectations: func(r *http.Request, noteService *service.MockNoteServicer, tokener *security.MockTokener) {
 				passClaimsMiddleware(r, tokener)
 			},
@@ -43,7 +43,7 @@ func TestCreateNote_Post(t *testing.T) {
 			name:         "create note handler responds with status code 500 given note service returns an error",
 			responseCode: http.StatusInternalServerError,
 			route:        "/users/1/notes/",
-			want:         CreateNoteResponse{},
+			want:         NoteResponse{},
 			setupExpectations: func(r *http.Request, noteService *service.MockNoteServicer, tokener *security.MockTokener) {
 				passClaimsMiddleware(r, tokener)
 				noteService.EXPECT().CreateNote(gomock.Any(), int64(1), "title", "content").
@@ -56,7 +56,7 @@ func TestCreateNote_Post(t *testing.T) {
 			name:         "create note handler responds with status code 200 given note service succeeds",
 			responseCode: http.StatusOK,
 			route:        "/users/1/notes/",
-			want: CreateNoteResponse{
+			want: NoteResponse{
 				ID:      int64(1),
 				Title:   "title",
 				Content: "content",
@@ -107,7 +107,7 @@ func TestCreateNote_Post(t *testing.T) {
 			}
 
 			// Decode and verify the JSON Body
-			var got CreateNoteResponse
+			var got NoteResponse
 			err := json.NewDecoder(responseRecorder.Body).Decode(&got)
 			if err != nil {
 				t.Fatalf("Failed to decode JSON response: %v", err)
@@ -128,7 +128,7 @@ func TestUpdateNote_Put(t *testing.T) {
 		name              string
 		responseCode      int
 		route             string
-		want              UpdateNoteResponse
+		want              NoteResponse
 		setupExpectations func(r *http.Request, noteService *service.MockNoteServicer, tokener *security.MockTokener)
 	}{
 		{
@@ -137,7 +137,7 @@ func TestUpdateNote_Put(t *testing.T) {
 			name:         "update note handler responds with status code 400 given fields are blank",
 			responseCode: http.StatusBadRequest,
 			route:        "/users/1/notes/",
-			want:         UpdateNoteResponse{},
+			want:         NoteResponse{},
 			setupExpectations: func(r *http.Request, noteService *service.MockNoteServicer, tokener *security.MockTokener) {
 				passClaimsMiddleware(r, tokener)
 			},
@@ -148,7 +148,7 @@ func TestUpdateNote_Put(t *testing.T) {
 			name:         "update note handler responds with status code 500 given note service returns an error",
 			responseCode: http.StatusInternalServerError,
 			route:        "/users/1/notes/",
-			want:         UpdateNoteResponse{},
+			want:         NoteResponse{},
 			setupExpectations: func(r *http.Request, noteService *service.MockNoteServicer, tokener *security.MockTokener) {
 				passClaimsMiddleware(r, tokener)
 				noteService.EXPECT().
@@ -162,7 +162,7 @@ func TestUpdateNote_Put(t *testing.T) {
 			name:         "update note handler responds with status code 200 given valid data supplied",
 			responseCode: http.StatusOK,
 			route:        "/users/1/notes/",
-			want: UpdateNoteResponse{
+			want: NoteResponse{
 				ID:      int64(1),
 				Title:   "title",
 				Content: "content",
@@ -213,7 +213,7 @@ func TestUpdateNote_Put(t *testing.T) {
 			}
 
 			// Decode and verify the JSON Body
-			var got UpdateNoteResponse
+			var got NoteResponse
 			err := json.NewDecoder(responseRecorder.Body).Decode(&got)
 			if err != nil {
 				t.Fatalf("Failed to decode JSON response: %v", err)
@@ -265,7 +265,7 @@ func TestListNotes_Get(t *testing.T) {
 			responseCode: http.StatusOK,
 			route:        "/users/1/notes/",
 			want: ListNotesResponse{
-				Notes: []domain.Note{{ID: int64(1), Title: "title", Content: "content", UserID: int64(1)}},
+				Notes: []NoteResponse{{ID: int64(1), Title: "title", Content: "content", UserID: int64(1)}},
 			},
 			setupExpectations: func(r *http.Request, noteService *service.MockNoteServicer, tokener *security.MockTokener) {
 				passClaimsMiddleware(r, tokener)

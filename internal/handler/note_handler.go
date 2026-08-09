@@ -31,7 +31,7 @@ func (h *NoteHandler) CreateNote(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, CreateNoteResponse{
+	ctx.JSON(http.StatusOK, NoteResponse{
 		ID:      note.ID,
 		Title:   note.Title,
 		Content: note.Content,
@@ -52,7 +52,7 @@ func (h *NoteHandler) UpdateNote(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, UpdateNoteResponse{
+	ctx.JSON(http.StatusOK, NoteResponse{
 		ID:      note.ID,
 		Title:   note.Title,
 		Content: note.Content,
@@ -73,9 +73,8 @@ func (h *NoteHandler) ListNotes(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
-	ctx.JSON(http.StatusOK, ListNotesResponse{
-		Notes: notes,
-	})
+
+	ctx.JSON(http.StatusOK, MapNotesToListNotesResponse(notes))
 }
 
 func (h *NoteHandler) DeleteNote(ctx *gin.Context) {
