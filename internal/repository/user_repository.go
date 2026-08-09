@@ -70,7 +70,6 @@ func (r *UserSQLRepository) ListUsers(ctx context.Context, params domain.ListUse
 		return nil, err
 	}
 
-	// avoiding expensive array resizing operations during the loop
 	domainUsers := make([]domain.User, 0, len(sqlcUsers))
 
 	for _, u := range sqlcUsers {

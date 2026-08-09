@@ -70,7 +70,6 @@ func (r *NoteSQLRepository) ListNotesByUserID(ctx context.Context, userID int64)
 		return nil, err
 	}
 
-	// avoiding expensive array resizing operations during the loop
 	domainNotes := make([]domain.Note, 0, len(sqlcNotes))
 
 	for _, n := range sqlcNotes {
