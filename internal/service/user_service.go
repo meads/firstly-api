@@ -5,23 +5,22 @@ import (
 	"fmt"
 
 	domain "github.com/meads/firstly-api/internal/domain"
-	"github.com/meads/firstly-api/internal/repository"
 	security "github.com/meads/firstly-api/internal/security"
 )
 
-type UserServicer interface {
-	DeleteUser(ctx context.Context, id int64) error
-	ListUsers(ctx context.Context, params domain.ListUsersParams) ([]domain.User, error)
-	ChangePassword(ctx context.Context, params domain.UpdateUserPasswordParams) error
-	// UpdateUserPassword(ctx context.Context, params domain.UpdateUserPasswordParams) error
-}
+// type UserServicer interface {
+// 	DeleteUser(ctx context.Context, id int64) error
+// 	ListUsers(ctx context.Context, params domain.ListUsersParams) ([]domain.User, error)
+// 	ChangePassword(ctx context.Context, params domain.UpdateUserPasswordParams) error
+// 	// UpdateUserPassword(ctx context.Context, params domain.UpdateUserPasswordParams) error
+// }
 
 type UserService struct {
-	userRepo repository.UserRepository
+	userRepo domain.UserRepository
 	hasher   security.Hasher
 }
 
-func NewUserService(repo repository.UserRepository) UserServicer {
+func NewUserService(repo domain.UserRepository) *UserService {
 	return &UserService{
 		userRepo: repo,
 	}

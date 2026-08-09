@@ -8,22 +8,14 @@ import (
 	"github.com/meads/firstly-api/internal/domain"
 )
 
-// Repository defines what the database layer must do.
-type NoteRepository interface {
-	CreateNote(ctx context.Context, param domain.CreateNoteParams) (*domain.Note, error)
-	GetNote(ctx context.Context, id int64) (*domain.Note, error)
-	DeleteNote(ctx context.Context, param domain.DeleteNoteParams) error
-	ListNotesByUserID(ctx context.Context, userID int64) ([]domain.Note, error)
-	UpdateNote(ctx context.Context, param domain.UpdateNoteParams) error
-}
-
-// SQLRepository wraps the standard sql.DB pool and the sqlc Querier.
+// NoteSQLRepository wraps the standard sql.DB pool and the sqlc Querier.
+// implements NoteRepository interface defined in domain.Note
 type NoteSQLRepository struct {
 	db      *sql.DB
 	queries *sqlc.Queries
 }
 
-func NewNoteRepository(db *sql.DB) NoteRepository {
+func NewNoteRepository(db *sql.DB) *NoteSQLRepository {
 	return &NoteSQLRepository{
 		db:      db,
 		queries: sqlc.New(db),
@@ -42,6 +34,7 @@ func (r *NoteSQLRepository) CreateNote(ctx context.Context, param domain.CreateN
 	}
 
 	return &domain.Note{
+		ID:      sqlcNote.ID,
 		Title:   sqlcNote.Title,
 		Content: sqlcNote.Content,
 		UserID:  sqlcNote.UserID,
@@ -55,6 +48,7 @@ func (r *NoteSQLRepository) GetNote(ctx context.Context, id int64) (*domain.Note
 	}
 
 	return &domain.Note{
+		ID:      sqlcNote.ID,
 		Title:   sqlcNote.Title,
 		Content: sqlcNote.Content,
 		UserID:  sqlcNote.UserID,

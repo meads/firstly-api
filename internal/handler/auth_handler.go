@@ -1,18 +1,27 @@
 package handler
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	service "github.com/meads/firstly-api/internal/service"
+	"github.com/meads/firstly-api/internal/domain"
 )
 
-type AuthHandler struct {
-	svc service.AuthServicer
+type AuthServicer interface {
+	Register(ctx context.Context, username, password string) (*domain.RegisterResult, error)
+	Login(ctx context.Context, username, password string) (*domain.LoginResult, error)
+	Logout(ctx context.Context, sessionID string) error
+	RenewAccessToken(ctx context.Context, refreshToken string) (*domain.RenewAccessTokenResult, error)
+	RevokeSession(ctx context.Context, sessionID string) error
 }
 
-func NewAuthHandler(svc service.AuthServicer) *AuthHandler {
+type AuthHandler struct {
+	svc AuthServicer
+}
+
+func NewAuthHandler(svc AuthServicer) *AuthHandler {
 	return &AuthHandler{svc: svc}
 }
 
@@ -28,7 +37,7 @@ func (h *AuthHandler) Register(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, registerResult)
+	ctx.JSON(http.StatusOK, MapToRegisterResponse(registerResult))
 }
 
 func (h *AuthHandler) Login(ctx *gin.Context) {

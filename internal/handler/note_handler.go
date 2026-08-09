@@ -1,20 +1,28 @@
 package handler
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
-	"github.com/meads/firstly-api/internal/service"
+	"github.com/meads/firstly-api/internal/domain"
 )
 
-type NoteHandler struct {
-	svc service.NoteServicer
+type NoteServicer interface {
+	CreateNote(ctx context.Context, userID int64, title, content string) (*domain.Note, error)
+	UpdateNote(ctx context.Context, noteID, userID int64, title, content string) (*domain.Note, error)
+	ListNotes(ctx context.Context, userID int64) ([]domain.Note, error)
+	DeleteNote(ctx context.Context, noteID, userID int64) error
 }
 
-func NewNoteHandler(svc service.NoteServicer) *NoteHandler {
+type NoteHandler struct {
+	svc NoteServicer
+}
+
+func NewNoteHandler(svc NoteServicer) *NoteHandler {
 	return &NoteHandler{svc: svc}
 }
 

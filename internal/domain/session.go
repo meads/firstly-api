@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"context"
 	"time"
 )
 
@@ -19,4 +20,12 @@ type CreateSessionParams struct {
 	RefreshToken string    // `json:"refreshToken"`
 	IsRevoked    bool      // `json:"isRevoked"`
 	ExpiresAt    time.Time // `json:"expiresAt"`
+}
+
+type SessionRepository interface {
+	CreateSession(ctx context.Context, arg CreateSessionParams) (*Session, error)
+	GetSession(ctx context.Context, id string) (*Session, error)
+	DeleteSession(ctx context.Context, id string) error
+	RevokeSession(ctx context.Context, id string) error
+	// RevokeUserSessions(ctx context.Context, userID int64) error
 }

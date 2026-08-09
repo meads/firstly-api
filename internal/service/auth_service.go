@@ -7,31 +7,30 @@ import (
 	"time"
 
 	domain "github.com/meads/firstly-api/internal/domain"
-	repo "github.com/meads/firstly-api/internal/repository"
 	security "github.com/meads/firstly-api/internal/security"
 )
 
-type AuthServicer interface {
-	Register(ctx context.Context, username, password string) (*domain.RegisterResult, error)
-	Login(ctx context.Context, username, password string) (*domain.LoginResult, error)
-	Logout(ctx context.Context, sessionID string) error
-	RenewAccessToken(ctx context.Context, refreshToken string) (*domain.RenewAccessTokenResult, error)
-	RevokeSession(ctx context.Context, sessionID string) error
-}
+// type AuthServicer interface {
+// 	Register(ctx context.Context, username, password string) (*domain.RegisterResult, error)
+// 	Login(ctx context.Context, username, password string) (*domain.LoginResult, error)
+// 	Logout(ctx context.Context, sessionID string) error
+// 	RenewAccessToken(ctx context.Context, refreshToken string) (*domain.RenewAccessTokenResult, error)
+// 	RevokeSession(ctx context.Context, sessionID string) error
+// }
 
 type AuthService struct {
-	userRepo    repo.UserRepository
-	sessionRepo repo.SessionRepository
+	userRepo    domain.UserRepository
+	sessionRepo domain.SessionRepository
 	tokener     security.Tokener
 	hasher      security.Hasher
 }
 
 func NewAuthService(
-	userRepo repo.UserRepository,
-	sessionRepo repo.SessionRepository,
+	userRepo domain.UserRepository,
+	sessionRepo domain.SessionRepository,
 	tokener security.Tokener,
 	hasher security.Hasher,
-) AuthServicer {
+) *AuthService {
 	return &AuthService{
 		userRepo:    userRepo,
 		sessionRepo: sessionRepo,

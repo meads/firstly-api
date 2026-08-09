@@ -1,20 +1,27 @@
 package handler
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/meads/firstly-api/internal/domain"
-	service "github.com/meads/firstly-api/internal/service"
 )
 
-type UserHandler struct {
-	svc service.UserServicer
+type UserServicer interface {
+	DeleteUser(ctx context.Context, id int64) error
+	ListUsers(ctx context.Context, params domain.ListUsersParams) ([]domain.User, error)
+	ChangePassword(ctx context.Context, params domain.UpdateUserPasswordParams) error
+	// UpdateUserPassword(ctx context.Context, params domain.UpdateUserPasswordParams) error
 }
 
-func NewUserHandler(svc service.UserServicer) *UserHandler {
+type UserHandler struct {
+	svc UserServicer
+}
+
+func NewUserHandler(svc UserServicer) *UserHandler {
 	return &UserHandler{svc: svc}
 }
 

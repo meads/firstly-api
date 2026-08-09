@@ -6,24 +6,23 @@ import (
 	"fmt"
 
 	domain "github.com/meads/firstly-api/internal/domain"
-	r "github.com/meads/firstly-api/internal/repository"
 )
 
-type NoteServicer interface {
-	CreateNote(ctx context.Context, userID int64, title, content string) (*domain.Note, error)
-	UpdateNote(ctx context.Context, noteID, userID int64, title, content string) (*domain.Note, error)
-	ListNotes(ctx context.Context, userID int64) ([]domain.Note, error)
-	DeleteNote(ctx context.Context, noteID, userID int64) error
-}
+// type NoteServicer interface {
+// 	CreateNote(ctx context.Context, userID int64, title, content string) (*domain.Note, error)
+// 	UpdateNote(ctx context.Context, noteID, userID int64, title, content string) (*domain.Note, error)
+// 	ListNotes(ctx context.Context, userID int64) ([]domain.Note, error)
+// 	DeleteNote(ctx context.Context, noteID, userID int64) error
+// }
 
 type NoteService struct {
-	noteRepo r.NoteRepository
-	userRepo r.UserRepository
+	noteRepo domain.NoteRepository
+	userRepo domain.UserRepository
 }
 
 func NewNoteService(
-	noteRepo r.NoteRepository,
-	userRepo r.UserRepository) *NoteService {
+	noteRepo domain.NoteRepository,
+	userRepo domain.UserRepository) *NoteService {
 	return &NoteService{
 		noteRepo: noteRepo,
 		userRepo: userRepo,

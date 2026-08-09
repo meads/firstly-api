@@ -12,7 +12,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/meads/firstly-api/internal/domain"
 	"github.com/meads/firstly-api/internal/security"
-	"github.com/meads/firstly-api/internal/service"
 	"go.uber.org/mock/gomock"
 )
 
@@ -24,7 +23,7 @@ func TestRegisterUserHandler_Post(t *testing.T) {
 		responseCode      int
 		route             string
 		want              RegisterResponse
-		setupExpectations func(r *http.Request, tokener *security.MockTokener, userService *service.MockUserServicer, authService *service.MockAuthServicer)
+		setupExpectations func(r *http.Request, tokener *security.MockTokener, userService *MockUserServicer, authService *MockAuthServicer)
 	}{
 		{
 			body:         bytes.NewBufferString("{\"username\":\"newuser\",\"password\":\"message\"}"),
@@ -41,7 +40,7 @@ func TestRegisterUserHandler_Post(t *testing.T) {
 				Username:              "newuser",
 				UserID:                1,
 			},
-			setupExpectations: func(r *http.Request, tokener *security.MockTokener, userService *service.MockUserServicer, authService *service.MockAuthServicer) {
+			setupExpectations: func(r *http.Request, tokener *security.MockTokener, userService *MockUserServicer, authService *MockAuthServicer) {
 				requestUsername, requestPassword := "newuser", "message"
 				result := &domain.RegisterResult{
 					SessionID:             "uuid",
@@ -63,7 +62,7 @@ func TestRegisterUserHandler_Post(t *testing.T) {
 			responseCode: http.StatusInternalServerError,
 			route:        "/register/",
 			want:         RegisterResponse{},
-			setupExpectations: func(r *http.Request, tokener *security.MockTokener, userService *service.MockUserServicer, authService *service.MockAuthServicer) {
+			setupExpectations: func(r *http.Request, tokener *security.MockTokener, userService *MockUserServicer, authService *MockAuthServicer) {
 				requestUsername, requestPassword := "newuser", "message"
 				authService.EXPECT().Register(gomock.Any(), requestUsername, requestPassword).
 					Return(&domain.RegisterResult{}, errors.New("server error"))
@@ -76,7 +75,7 @@ func TestRegisterUserHandler_Post(t *testing.T) {
 			responseCode: http.StatusBadRequest,
 			route:        "/register/",
 			want:         RegisterResponse{},
-			setupExpectations: func(r *http.Request, tokener *security.MockTokener, userService *service.MockUserServicer, authService *service.MockAuthServicer) {
+			setupExpectations: func(r *http.Request, tokener *security.MockTokener, userService *MockUserServicer, authService *MockAuthServicer) {
 			},
 		},
 	}
@@ -86,11 +85,11 @@ func TestRegisterUserHandler_Post(t *testing.T) {
 			gin.SetMode(gin.TestMode)
 			ctrl := gomock.NewController(t)
 
-			mockUserService := service.NewMockUserServicer(ctrl)
+			mockUserService := NewMockUserServicer(ctrl)
 			userHandler := NewUserHandler(mockUserService)
 			mockTokener := security.NewMockTokener(ctrl)
 
-			mockAuthService := service.NewMockAuthServicer(ctrl)
+			mockAuthService := NewMockAuthServicer(ctrl)
 			authHandler := NewAuthHandler(mockAuthService)
 
 			router := SetupRouter(authHandler, userHandler, nil, mockTokener)
@@ -137,7 +136,7 @@ func TestUserHandler_Delete(t *testing.T) {
 		responseCode      int
 		route             string
 		want              DeleteUserResponse
-		setupExpectations func(r *http.Request, tokener *security.MockTokener, userService *service.MockUserServicer)
+		setupExpectations func(r *http.Request, tokener *security.MockTokener, userService *MockUserServicer)
 	}{
 		{
 			body:         bytes.NewBufferString(""),
@@ -146,7 +145,7 @@ func TestUserHandler_Delete(t *testing.T) {
 			responseCode: http.StatusOK,
 			route:        "/users/1/",
 			want:         DeleteUserResponse{Message: "Resource successfully deleted"},
-			setupExpectations: func(r *http.Request, tokener *security.MockTokener, userService *service.MockUserServicer) {
+			setupExpectations: func(r *http.Request, tokener *security.MockTokener, userService *MockUserServicer) {
 				passClaimsMiddleware(r, tokener)
 				userService.EXPECT().DeleteUser(gomock.Any(), int64(1)).Return(nil)
 			},
@@ -158,7 +157,7 @@ func TestUserHandler_Delete(t *testing.T) {
 			responseCode: http.StatusBadRequest,
 			route:        "/users//",
 			want:         DeleteUserResponse{},
-			setupExpectations: func(r *http.Request, tokener *security.MockTokener, userService *service.MockUserServicer) {
+			setupExpectations: func(r *http.Request, tokener *security.MockTokener, userService *MockUserServicer) {
 				passClaimsMiddleware(r, tokener)
 			},
 		},
@@ -169,7 +168,7 @@ func TestUserHandler_Delete(t *testing.T) {
 			responseCode: http.StatusBadRequest,
 			route:        "/users/invalid/",
 			want:         DeleteUserResponse{},
-			setupExpectations: func(r *http.Request, tokener *security.MockTokener, userService *service.MockUserServicer) {
+			setupExpectations: func(r *http.Request, tokener *security.MockTokener, userService *MockUserServicer) {
 				passClaimsMiddleware(r, tokener)
 			},
 		},
@@ -180,7 +179,7 @@ func TestUserHandler_Delete(t *testing.T) {
 			responseCode: http.StatusInternalServerError,
 			route:        "/users/1/",
 			want:         DeleteUserResponse{},
-			setupExpectations: func(r *http.Request, tokener *security.MockTokener, userService *service.MockUserServicer) {
+			setupExpectations: func(r *http.Request, tokener *security.MockTokener, userService *MockUserServicer) {
 				passClaimsMiddleware(r, tokener)
 				userService.EXPECT().DeleteUser(gomock.Any(), int64(1)).Return(errors.New("oops"))
 			},
@@ -192,7 +191,7 @@ func TestUserHandler_Delete(t *testing.T) {
 			gin.SetMode(gin.TestMode)
 			ctrl := gomock.NewController(t)
 
-			mockUserService := service.NewMockUserServicer(ctrl)
+			mockUserService := NewMockUserServicer(ctrl)
 			userHandler := NewUserHandler(mockUserService)
 			mockTokener := security.NewMockTokener(ctrl)
 
@@ -240,7 +239,7 @@ func TestUserHandler_Get(t *testing.T) {
 		responseCode      int
 		route             string
 		want              ListUsersResponse
-		setupExpectations func(r *http.Request, tokener *security.MockTokener, userService *service.MockUserServicer)
+		setupExpectations func(r *http.Request, tokener *security.MockTokener, userService *MockUserServicer)
 	}{
 		{
 			body:         bytes.NewBufferString(""),
@@ -249,7 +248,7 @@ func TestUserHandler_Get(t *testing.T) {
 			responseCode: http.StatusBadRequest,
 			route:        "/users/?limit=invalid",
 			want:         ListUsersResponse{},
-			setupExpectations: func(r *http.Request, tokener *security.MockTokener, userService *service.MockUserServicer) {
+			setupExpectations: func(r *http.Request, tokener *security.MockTokener, userService *MockUserServicer) {
 				passClaimsMiddleware(r, tokener)
 			},
 		},
@@ -260,7 +259,7 @@ func TestUserHandler_Get(t *testing.T) {
 			responseCode: http.StatusBadRequest,
 			route:        "/users/?offset=invalid",
 			want:         ListUsersResponse{},
-			setupExpectations: func(r *http.Request, tokener *security.MockTokener, userService *service.MockUserServicer) {
+			setupExpectations: func(r *http.Request, tokener *security.MockTokener, userService *MockUserServicer) {
 				passClaimsMiddleware(r, tokener)
 			},
 		},
@@ -271,7 +270,7 @@ func TestUserHandler_Get(t *testing.T) {
 			responseCode: http.StatusInternalServerError,
 			route:        "/users/",
 			want:         ListUsersResponse{},
-			setupExpectations: func(r *http.Request, tokener *security.MockTokener, userService *service.MockUserServicer) {
+			setupExpectations: func(r *http.Request, tokener *security.MockTokener, userService *MockUserServicer) {
 				passClaimsMiddleware(r, tokener)
 				params := domain.ListUsersParams{Limit: 50, Offset: 0}
 				userService.EXPECT().ListUsers(gomock.Any(), params).Return([]domain.User{}, errors.New("oops."))
@@ -284,7 +283,7 @@ func TestUserHandler_Get(t *testing.T) {
 			responseCode: http.StatusOK,
 			route:        "/users/",
 			want:         ListUsersResponse{Users: []UserResponse{{ID: 69, Username: "foo"}}},
-			setupExpectations: func(r *http.Request, tokener *security.MockTokener, userService *service.MockUserServicer) {
+			setupExpectations: func(r *http.Request, tokener *security.MockTokener, userService *MockUserServicer) {
 				passClaimsMiddleware(r, tokener)
 				params := domain.ListUsersParams{Limit: 50, Offset: 0}
 				userService.EXPECT().ListUsers(gomock.Any(), params).Return([]domain.User{
@@ -299,7 +298,7 @@ func TestUserHandler_Get(t *testing.T) {
 			gin.SetMode(gin.TestMode)
 			ctrl := gomock.NewController(t)
 
-			mockUserService := service.NewMockUserServicer(ctrl)
+			mockUserService := NewMockUserServicer(ctrl)
 			userHandler := NewUserHandler(mockUserService)
 			mockTokener := security.NewMockTokener(ctrl)
 
@@ -349,7 +348,7 @@ func TestUserHandler_Patch(t *testing.T) {
 		responseCode      int
 		route             string
 		want              PatchUserResponse
-		setupExpectations func(r *http.Request, tokener *security.MockTokener, userService *service.MockUserServicer)
+		setupExpectations func(r *http.Request, tokener *security.MockTokener, userService *MockUserServicer)
 	}{
 		{
 			body:         bytes.NewBufferString("{\"id\":1,\"username\":\"user\",\"currentPassword\":\"current\",\"newPassword\":\"new\"}"),
@@ -358,7 +357,7 @@ func TestUserHandler_Patch(t *testing.T) {
 			responseCode: http.StatusOK,
 			route:        "/users/",
 			want:         PatchUserResponse{Message: "Resource successfully patched"},
-			setupExpectations: func(r *http.Request, tokener *security.MockTokener, userService *service.MockUserServicer) {
+			setupExpectations: func(r *http.Request, tokener *security.MockTokener, userService *MockUserServicer) {
 				passClaimsMiddleware(r, tokener)
 				reqID, reqUsername, reqCurrentPassword, reqNewPassword := int64(1), "user", "current", "new"
 				userService.EXPECT().ChangePassword(gomock.Any(), domain.UpdateUserPasswordParams{
@@ -376,7 +375,7 @@ func TestUserHandler_Patch(t *testing.T) {
 			responseCode: http.StatusBadRequest,
 			route:        "/users/",
 			want:         PatchUserResponse{},
-			setupExpectations: func(r *http.Request, tokener *security.MockTokener, userService *service.MockUserServicer) {
+			setupExpectations: func(r *http.Request, tokener *security.MockTokener, userService *MockUserServicer) {
 				passClaimsMiddleware(r, tokener)
 			},
 		},
@@ -387,7 +386,7 @@ func TestUserHandler_Patch(t *testing.T) {
 			responseCode: http.StatusInternalServerError,
 			route:        "/users/",
 			want:         PatchUserResponse{},
-			setupExpectations: func(r *http.Request, tokener *security.MockTokener, userService *service.MockUserServicer) {
+			setupExpectations: func(r *http.Request, tokener *security.MockTokener, userService *MockUserServicer) {
 				passClaimsMiddleware(r, tokener)
 				reqID, reqUsername, reqCurrentPassword, reqNewPassword := int64(1), "user", "current", "new"
 				userService.EXPECT().ChangePassword(gomock.Any(), domain.UpdateUserPasswordParams{
@@ -405,7 +404,7 @@ func TestUserHandler_Patch(t *testing.T) {
 			gin.SetMode(gin.TestMode)
 			ctrl := gomock.NewController(t)
 
-			mockUserService := service.NewMockUserServicer(ctrl)
+			mockUserService := NewMockUserServicer(ctrl)
 			userHandler := NewUserHandler(mockUserService)
 			mockTokener := security.NewMockTokener(ctrl)
 

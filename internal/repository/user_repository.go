@@ -9,25 +9,14 @@ import (
 	"github.com/meads/firstly-api/internal/domain"
 )
 
-// Repository defines what the database layer must do.
-type UserRepository interface {
-	CreateUser(ctx context.Context, username, password string) (*domain.User, error)
-	UsernameExists(ctx context.Context, username string) (bool, error)
-	DeleteUser(ctx context.Context, id int64) error
-	GetUser(ctx context.Context, id int64) (*domain.User, error)
-	ListUsers(ctx context.Context, params domain.ListUsersParams) ([]domain.User, error)
-	UpdateUserPassword(ctx context.Context, id int64, password string) error
-	UserExists(ctx context.Context, id int64) (bool, error)
-	GetUserByUsername(ctx context.Context, username string) (*domain.User, error)
-}
-
-// SQLRepository wraps the standard sql.DB pool and the sqlc Querier.
+// UserSQLRepository wraps the standard sql.DB pool and the sqlc Querier.
+// implements UserRepository interface defined in domain.User
 type UserSQLRepository struct {
 	db      *sql.DB
 	queries *sqlc.Queries
 }
 
-func NewUserRepository(db *sql.DB) UserRepository {
+func NewUserRepository(db *sql.DB) *UserSQLRepository {
 	return &UserSQLRepository{
 		db:      db,
 		queries: sqlc.New(db),

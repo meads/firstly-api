@@ -10,28 +10,14 @@ import (
 	"github.com/meads/firstly-api/internal/domain"
 )
 
-// Repository defines what the database layer must do.
-type SessionRepository interface {
-	CreateSession(ctx context.Context, arg domain.CreateSessionParams) (*domain.Session, error)
-	GetSession(ctx context.Context, id string) (*domain.Session, error)
-	DeleteSession(ctx context.Context, id string) error
-	RevokeSession(ctx context.Context, id string) error
-	// RevokeUserSessions(ctx context.Context, userID int64) error
-
-	// CreateSession(ctx context.Context, arg CreateSessionParams) (Session, error)
-	// DeleteSession(ctx context.Context, id string) error
-	// GetSession(ctx context.Context, id string) (Session, error)
-	// RevokeSession(ctx context.Context, id string) error
-	// RevokeUserSessions(ctx context.Context, userID int64) error
-}
-
-// SQLRepository wraps the standard sql.DB pool and the sqlc Querier.
+// SessionSQLRepository wraps the standard sql.DB pool and the sqlc Querier.
+// implements SessionRepository interface defined in domain.Session
 type SessionSQLRepository struct {
 	db      *sql.DB
 	queries *sqlc.Queries
 }
 
-func NewSessionRepository(db *sql.DB) SessionRepository {
+func NewSessionRepository(db *sql.DB) *SessionSQLRepository {
 	return &SessionSQLRepository{
 		db:      db,
 		queries: sqlc.New(db),

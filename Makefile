@@ -15,13 +15,15 @@ mockgen:
 	@mockgen -package db -destination ./internal/db/sqlc/querier_mock.go github.com/meads/firstly-api/internal/db/sqlc Querier
 	@mockgen -package security -destination ./internal/security/bcrypt_mock.go github.com/meads/firstly-api/internal/security Hasher
 	@mockgen -package security -destination ./internal/security/claims_mock.go github.com/meads/firstly-api/internal/security Tokener
-	@mockgen -package repository -destination ./internal/repository/note_repository_mock.go github.com/meads/firstly-api/internal/repository NoteRepository
-	@mockgen -package repository -destination ./internal/repository/session_repository_mock.go github.com/meads/firstly-api/internal/repository SessionRepository
-	@mockgen -package repository -destination ./internal/repository/user_repository_mock.go github.com/meads/firstly-api/internal/repository UserRepository
-	@mockgen -package service -destination ./internal/service/note_service_mock.go github.com/meads/firstly-api/internal/service NoteServicer
-	@mockgen -package service -destination ./internal/service/user_service_mock.go github.com/meads/firstly-api/internal/service UserServicer
-	@mockgen -package service -destination ./internal/service/auth_service_mock.go github.com/meads/firstly-api/internal/service AuthServicer
-	
+
+	@mockgen -package service -destination ./internal/service/note_repository_mock.go github.com/meads/firstly-api/internal/domain NoteRepository
+	@mockgen -package service -destination ./internal/service/session_repository_mock.go github.com/meads/firstly-api/internal/domain SessionRepository
+	@mockgen -package service -destination ./internal/service/user_repository_mock.go  github.com/meads/firstly-api/internal/domain UserRepository
+
+	@mockgen -package handler -destination ./internal/handler/note_service_mock.go github.com/meads/firstly-api/internal/handler NoteServicer
+	@mockgen -package handler -destination ./internal/handler/user_service_mock.go github.com/meads/firstly-api/internal/handler UserServicer
+	@mockgen -package handler -destination ./internal/handler/auth_service_mock.go github.com/meads/firstly-api/internal/handler AuthServicer
+
 generate: tidy sqlc mockgen
 
 test:

@@ -10,7 +10,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/meads/firstly-api/internal/domain"
-	service "github.com/meads/firstly-api/internal/service"
 	"go.uber.org/mock/gomock"
 )
 
@@ -22,7 +21,7 @@ func TestAuthLogin_Post(t *testing.T) {
 		responseCode      int
 		route             string
 		want              LoginResponse
-		setupExpectations func(r *http.Request, authService *service.MockAuthServicer)
+		setupExpectations func(r *http.Request, authService *MockAuthServicer)
 	}{
 		{
 			body:         bytes.NewBufferString("{\"username\":\"\",\"password\":\"\"}"),
@@ -31,7 +30,7 @@ func TestAuthLogin_Post(t *testing.T) {
 			responseCode: http.StatusBadRequest,
 			route:        "/login/",
 			want:         LoginResponse{},
-			setupExpectations: func(r *http.Request, authService *service.MockAuthServicer) {
+			setupExpectations: func(r *http.Request, authService *MockAuthServicer) {
 			},
 		},
 		{
@@ -41,7 +40,7 @@ func TestAuthLogin_Post(t *testing.T) {
 			responseCode: http.StatusInternalServerError,
 			route:        "/login/",
 			want:         LoginResponse{},
-			setupExpectations: func(r *http.Request, authService *service.MockAuthServicer) {
+			setupExpectations: func(r *http.Request, authService *MockAuthServicer) {
 				requestUsername, requestPassword := "newuser", "message"
 				authService.EXPECT().Login(gomock.Any(), requestUsername, requestPassword).
 					Return(&domain.LoginResult{}, errors.New("server error"))
@@ -62,7 +61,7 @@ func TestAuthLogin_Post(t *testing.T) {
 				Username:              "newuser",
 				UserID:                1,
 			},
-			setupExpectations: func(r *http.Request, authService *service.MockAuthServicer) {
+			setupExpectations: func(r *http.Request, authService *MockAuthServicer) {
 				requestUsername, requestPassword := "newuser", "message"
 				result := &domain.LoginResult{
 					SessionID:             "uuid",
@@ -84,7 +83,7 @@ func TestAuthLogin_Post(t *testing.T) {
 			gin.SetMode(gin.TestMode)
 			ctrl := gomock.NewController(t)
 
-			mockAuthService := service.NewMockAuthServicer(ctrl)
+			mockAuthService := NewMockAuthServicer(ctrl)
 			authHandler := NewAuthHandler(mockAuthService)
 
 			router := SetupRouter(authHandler, nil, nil, nil)
@@ -129,14 +128,14 @@ func TestAuthLogout_Post(t *testing.T) {
 		name              string
 		responseCode      int
 		route             string
-		setupExpectations func(r *http.Request, authService *service.MockAuthServicer)
+		setupExpectations func(r *http.Request, authService *MockAuthServicer)
 	}{
 		{
 			contentType:  "application/json; charset=utf-8",
 			name:         "logout handler responds with Status Code 500 given auth service returns an error",
 			responseCode: http.StatusInternalServerError,
 			route:        "/logout/invalidsessionid",
-			setupExpectations: func(r *http.Request, authService *service.MockAuthServicer) {
+			setupExpectations: func(r *http.Request, authService *MockAuthServicer) {
 				authService.EXPECT().Logout(gomock.Any(), "invalidsessionid").
 					Return(errors.New("server error"))
 			},
@@ -146,7 +145,7 @@ func TestAuthLogout_Post(t *testing.T) {
 			name:         "logout handler responds with Status Code 204 when valid data supplied",
 			responseCode: http.StatusNoContent,
 			route:        "/logout/sessionid",
-			setupExpectations: func(r *http.Request, authService *service.MockAuthServicer) {
+			setupExpectations: func(r *http.Request, authService *MockAuthServicer) {
 				authService.EXPECT().Logout(gomock.Any(), "sessionid").
 					Return(nil)
 			},
@@ -158,7 +157,7 @@ func TestAuthLogout_Post(t *testing.T) {
 			gin.SetMode(gin.TestMode)
 			ctrl := gomock.NewController(t)
 
-			mockAuthService := service.NewMockAuthServicer(ctrl)
+			mockAuthService := NewMockAuthServicer(ctrl)
 			authHandler := NewAuthHandler(mockAuthService)
 
 			router := SetupRouter(authHandler, nil, nil, nil)
@@ -193,7 +192,7 @@ func TestRenewAccessToken_Post(t *testing.T) {
 		responseCode      int
 		route             string
 		want              RenewAccessTokenResponse
-		setupExpectations func(r *http.Request, authService *service.MockAuthServicer)
+		setupExpectations func(r *http.Request, authService *MockAuthServicer)
 	}{
 		{
 			body:         bytes.NewBufferString("{\"refreshToken\":\"\"}"),
@@ -202,7 +201,7 @@ func TestRenewAccessToken_Post(t *testing.T) {
 			responseCode: http.StatusBadRequest,
 			route:        "/refresh/",
 			want:         RenewAccessTokenResponse{},
-			setupExpectations: func(r *http.Request, authService *service.MockAuthServicer) {
+			setupExpectations: func(r *http.Request, authService *MockAuthServicer) {
 			},
 		},
 		{
@@ -215,7 +214,7 @@ func TestRenewAccessToken_Post(t *testing.T) {
 				AccessToken:          "newtoken",
 				AccessTokenExpiresAt: defaultDate,
 			},
-			setupExpectations: func(r *http.Request, authService *service.MockAuthServicer) {
+			setupExpectations: func(r *http.Request, authService *MockAuthServicer) {
 				authService.EXPECT().RenewAccessToken(gomock.Any(), "token").
 					Return(&domain.RenewAccessTokenResult{
 						AccessToken:          "newtoken",
@@ -230,7 +229,7 @@ func TestRenewAccessToken_Post(t *testing.T) {
 			responseCode: http.StatusInternalServerError,
 			route:        "/refresh/",
 			want:         RenewAccessTokenResponse{},
-			setupExpectations: func(r *http.Request, authService *service.MockAuthServicer) {
+			setupExpectations: func(r *http.Request, authService *MockAuthServicer) {
 				authService.EXPECT().RenewAccessToken(gomock.Any(), "token").
 					Return(nil, errors.New("server error"))
 			},
@@ -242,7 +241,7 @@ func TestRenewAccessToken_Post(t *testing.T) {
 			gin.SetMode(gin.TestMode)
 			ctrl := gomock.NewController(t)
 
-			mockAuthService := service.NewMockAuthServicer(ctrl)
+			mockAuthService := NewMockAuthServicer(ctrl)
 			authHandler := NewAuthHandler(mockAuthService)
 
 			router := SetupRouter(authHandler, nil, nil, nil)
@@ -287,14 +286,14 @@ func TestRevokeSession_Post(t *testing.T) {
 		name              string
 		responseCode      int
 		route             string
-		setupExpectations func(r *http.Request, authService *service.MockAuthServicer)
+		setupExpectations func(r *http.Request, authService *MockAuthServicer)
 	}{
 		{
 			contentType:  "application/json; charset=utf-8",
 			name:         "revoke session handler responds with Status Code 500 given auth service returns an error",
 			responseCode: http.StatusInternalServerError,
 			route:        "/revoke/invalidsessionid",
-			setupExpectations: func(r *http.Request, authService *service.MockAuthServicer) {
+			setupExpectations: func(r *http.Request, authService *MockAuthServicer) {
 				authService.EXPECT().RevokeSession(gomock.Any(), "invalidsessionid").
 					Return(errors.New("server error"))
 			},
@@ -304,7 +303,7 @@ func TestRevokeSession_Post(t *testing.T) {
 			name:         "revoke session handler responds with Status Code 204 when valid data supplied",
 			responseCode: http.StatusNoContent,
 			route:        "/revoke/sessionid",
-			setupExpectations: func(r *http.Request, authService *service.MockAuthServicer) {
+			setupExpectations: func(r *http.Request, authService *MockAuthServicer) {
 				authService.EXPECT().RevokeSession(gomock.Any(), "sessionid").
 					Return(nil)
 			},
@@ -316,7 +315,7 @@ func TestRevokeSession_Post(t *testing.T) {
 			gin.SetMode(gin.TestMode)
 			ctrl := gomock.NewController(t)
 
-			mockAuthService := service.NewMockAuthServicer(ctrl)
+			mockAuthService := NewMockAuthServicer(ctrl)
 			authHandler := NewAuthHandler(mockAuthService)
 
 			router := SetupRouter(authHandler, nil, nil, nil)

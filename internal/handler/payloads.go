@@ -23,6 +23,18 @@ type RegisterResponse struct {
 	UserID                int64     `json:"userId"`
 }
 
+func MapToRegisterResponse(registerResult *domain.RegisterResult) *RegisterResponse {
+	return &RegisterResponse{
+		SessionID:             registerResult.SessionID,
+		AccessToken:           registerResult.AccessToken,
+		RefreshToken:          registerResult.RefreshToken,
+		AccessTokenExpiresAt:  registerResult.AccessTokenExpiresAt,
+		RefreshTokenExpiresAt: registerResult.RefreshTokenExpiresAt,
+		Username:              registerResult.Username,
+		UserID:                registerResult.UserID,
+	}
+}
+
 type LoginRequest struct {
 	Password string `json:"password" binding:"required"`
 	Username string `json:"username" binding:"required"`

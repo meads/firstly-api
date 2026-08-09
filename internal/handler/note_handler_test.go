@@ -12,7 +12,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/meads/firstly-api/internal/domain"
 	"github.com/meads/firstly-api/internal/security"
-	service "github.com/meads/firstly-api/internal/service"
 	"go.uber.org/mock/gomock"
 )
 
@@ -24,7 +23,7 @@ func TestCreateNote_Post(t *testing.T) {
 		responseCode      int
 		route             string
 		want              NoteResponse
-		setupExpectations func(r *http.Request, noteService *service.MockNoteServicer, tokener *security.MockTokener)
+		setupExpectations func(r *http.Request, noteService *MockNoteServicer, tokener *security.MockTokener)
 	}{
 		{
 			body:         bytes.NewBufferString("{\"title\":\"\",\"content\":\"\",\"userId\":\"\"}"),
@@ -33,7 +32,7 @@ func TestCreateNote_Post(t *testing.T) {
 			responseCode: http.StatusBadRequest,
 			route:        "/users/1/notes/",
 			want:         NoteResponse{},
-			setupExpectations: func(r *http.Request, noteService *service.MockNoteServicer, tokener *security.MockTokener) {
+			setupExpectations: func(r *http.Request, noteService *MockNoteServicer, tokener *security.MockTokener) {
 				passClaimsMiddleware(r, tokener)
 			},
 		},
@@ -44,7 +43,7 @@ func TestCreateNote_Post(t *testing.T) {
 			responseCode: http.StatusInternalServerError,
 			route:        "/users/1/notes/",
 			want:         NoteResponse{},
-			setupExpectations: func(r *http.Request, noteService *service.MockNoteServicer, tokener *security.MockTokener) {
+			setupExpectations: func(r *http.Request, noteService *MockNoteServicer, tokener *security.MockTokener) {
 				passClaimsMiddleware(r, tokener)
 				noteService.EXPECT().CreateNote(gomock.Any(), int64(1), "title", "content").
 					Return(nil, errors.New("server error"))
@@ -62,7 +61,7 @@ func TestCreateNote_Post(t *testing.T) {
 				Content: "content",
 				UserID:  int64(1),
 			},
-			setupExpectations: func(r *http.Request, noteService *service.MockNoteServicer, tokener *security.MockTokener) {
+			setupExpectations: func(r *http.Request, noteService *MockNoteServicer, tokener *security.MockTokener) {
 				passClaimsMiddleware(r, tokener)
 				noteService.EXPECT().CreateNote(gomock.Any(), int64(1), "title", "content").
 					Return(&domain.Note{
@@ -81,7 +80,7 @@ func TestCreateNote_Post(t *testing.T) {
 			gin.SetMode(gin.TestMode)
 			ctrl := gomock.NewController(t)
 
-			mockNoteService := service.NewMockNoteServicer(ctrl)
+			mockNoteService := NewMockNoteServicer(ctrl)
 			noteHandler := NewNoteHandler(mockNoteService)
 			mockTokener := security.NewMockTokener(ctrl)
 
@@ -129,7 +128,7 @@ func TestUpdateNote_Put(t *testing.T) {
 		responseCode      int
 		route             string
 		want              NoteResponse
-		setupExpectations func(r *http.Request, noteService *service.MockNoteServicer, tokener *security.MockTokener)
+		setupExpectations func(r *http.Request, noteService *MockNoteServicer, tokener *security.MockTokener)
 	}{
 		{
 			body:         bytes.NewBufferString("{\"id\":0,\"title\":\"\",\"content\":\"\",\"userId\":0}"),
@@ -138,7 +137,7 @@ func TestUpdateNote_Put(t *testing.T) {
 			responseCode: http.StatusBadRequest,
 			route:        "/users/1/notes/",
 			want:         NoteResponse{},
-			setupExpectations: func(r *http.Request, noteService *service.MockNoteServicer, tokener *security.MockTokener) {
+			setupExpectations: func(r *http.Request, noteService *MockNoteServicer, tokener *security.MockTokener) {
 				passClaimsMiddleware(r, tokener)
 			},
 		},
@@ -149,7 +148,7 @@ func TestUpdateNote_Put(t *testing.T) {
 			responseCode: http.StatusInternalServerError,
 			route:        "/users/1/notes/",
 			want:         NoteResponse{},
-			setupExpectations: func(r *http.Request, noteService *service.MockNoteServicer, tokener *security.MockTokener) {
+			setupExpectations: func(r *http.Request, noteService *MockNoteServicer, tokener *security.MockTokener) {
 				passClaimsMiddleware(r, tokener)
 				noteService.EXPECT().
 					UpdateNote(gomock.Any(), int64(1), int64(1), "title", "content").
@@ -168,7 +167,7 @@ func TestUpdateNote_Put(t *testing.T) {
 				Content: "content",
 				UserID:  int64(1),
 			},
-			setupExpectations: func(r *http.Request, noteService *service.MockNoteServicer, tokener *security.MockTokener) {
+			setupExpectations: func(r *http.Request, noteService *MockNoteServicer, tokener *security.MockTokener) {
 				passClaimsMiddleware(r, tokener)
 				noteService.EXPECT().
 					UpdateNote(gomock.Any(), int64(1), int64(1), "title", "content").
@@ -187,7 +186,7 @@ func TestUpdateNote_Put(t *testing.T) {
 			gin.SetMode(gin.TestMode)
 			ctrl := gomock.NewController(t)
 
-			mockNoteService := service.NewMockNoteServicer(ctrl)
+			mockNoteService := NewMockNoteServicer(ctrl)
 			noteHandler := NewNoteHandler(mockNoteService)
 			mockTokener := security.NewMockTokener(ctrl)
 
@@ -234,7 +233,7 @@ func TestListNotes_Get(t *testing.T) {
 		responseCode      int
 		route             string
 		want              ListNotesResponse
-		setupExpectations func(r *http.Request, noteService *service.MockNoteServicer, tokener *security.MockTokener)
+		setupExpectations func(r *http.Request, noteService *MockNoteServicer, tokener *security.MockTokener)
 	}{
 		{
 			contentType:  "application/json; charset=utf-8",
@@ -242,7 +241,7 @@ func TestListNotes_Get(t *testing.T) {
 			responseCode: http.StatusBadRequest,
 			route:        "/users/invalid/notes/",
 			want:         ListNotesResponse{},
-			setupExpectations: func(r *http.Request, noteService *service.MockNoteServicer, tokener *security.MockTokener) {
+			setupExpectations: func(r *http.Request, noteService *MockNoteServicer, tokener *security.MockTokener) {
 				passClaimsMiddleware(r, tokener)
 			},
 		},
@@ -252,7 +251,7 @@ func TestListNotes_Get(t *testing.T) {
 			responseCode: http.StatusInternalServerError,
 			route:        "/users/1/notes/",
 			want:         ListNotesResponse{},
-			setupExpectations: func(r *http.Request, noteService *service.MockNoteServicer, tokener *security.MockTokener) {
+			setupExpectations: func(r *http.Request, noteService *MockNoteServicer, tokener *security.MockTokener) {
 				passClaimsMiddleware(r, tokener)
 				noteService.EXPECT().
 					ListNotes(gomock.Any(), int64(1)).
@@ -267,7 +266,7 @@ func TestListNotes_Get(t *testing.T) {
 			want: ListNotesResponse{
 				Notes: []NoteResponse{{ID: int64(1), Title: "title", Content: "content", UserID: int64(1)}},
 			},
-			setupExpectations: func(r *http.Request, noteService *service.MockNoteServicer, tokener *security.MockTokener) {
+			setupExpectations: func(r *http.Request, noteService *MockNoteServicer, tokener *security.MockTokener) {
 				passClaimsMiddleware(r, tokener)
 				noteService.EXPECT().
 					ListNotes(gomock.Any(), int64(1)).
@@ -283,7 +282,7 @@ func TestListNotes_Get(t *testing.T) {
 			gin.SetMode(gin.TestMode)
 			ctrl := gomock.NewController(t)
 
-			mockNoteService := service.NewMockNoteServicer(ctrl)
+			mockNoteService := NewMockNoteServicer(ctrl)
 			noteHandler := NewNoteHandler(mockNoteService)
 			mockTokener := security.NewMockTokener(ctrl)
 
@@ -330,7 +329,7 @@ func TestDeleteNote_Delete(t *testing.T) {
 		responseCode      int
 		route             string
 		want              DeleteNoteResponse
-		setupExpectations func(r *http.Request, noteService *service.MockNoteServicer, tokener *security.MockTokener)
+		setupExpectations func(r *http.Request, noteService *MockNoteServicer, tokener *security.MockTokener)
 	}{
 		{
 			contentType:  "application/json; charset=utf-8",
@@ -338,7 +337,7 @@ func TestDeleteNote_Delete(t *testing.T) {
 			responseCode: http.StatusBadRequest,
 			route:        "/users/id/notes/1",
 			want:         DeleteNoteResponse{},
-			setupExpectations: func(r *http.Request, noteService *service.MockNoteServicer, tokener *security.MockTokener) {
+			setupExpectations: func(r *http.Request, noteService *MockNoteServicer, tokener *security.MockTokener) {
 				passClaimsMiddleware(r, tokener)
 			},
 		},
@@ -348,7 +347,7 @@ func TestDeleteNote_Delete(t *testing.T) {
 			responseCode: http.StatusBadRequest,
 			route:        "/users/1/notes/id",
 			want:         DeleteNoteResponse{},
-			setupExpectations: func(r *http.Request, noteService *service.MockNoteServicer, tokener *security.MockTokener) {
+			setupExpectations: func(r *http.Request, noteService *MockNoteServicer, tokener *security.MockTokener) {
 				passClaimsMiddleware(r, tokener)
 			},
 		},
@@ -358,7 +357,7 @@ func TestDeleteNote_Delete(t *testing.T) {
 			responseCode: http.StatusInternalServerError,
 			route:        "/users/1/notes/1",
 			want:         DeleteNoteResponse{},
-			setupExpectations: func(r *http.Request, noteService *service.MockNoteServicer, tokener *security.MockTokener) {
+			setupExpectations: func(r *http.Request, noteService *MockNoteServicer, tokener *security.MockTokener) {
 				passClaimsMiddleware(r, tokener)
 				noteService.EXPECT().DeleteNote(gomock.Any(), int64(1), int64(1)).
 					Return(errors.New("server error"))
@@ -370,7 +369,7 @@ func TestDeleteNote_Delete(t *testing.T) {
 			responseCode: http.StatusOK,
 			route:        "/users/1/notes/1",
 			want:         DeleteNoteResponse{Message: "Resource successfully deleted"},
-			setupExpectations: func(r *http.Request, noteService *service.MockNoteServicer, tokener *security.MockTokener) {
+			setupExpectations: func(r *http.Request, noteService *MockNoteServicer, tokener *security.MockTokener) {
 				passClaimsMiddleware(r, tokener)
 				noteService.EXPECT().DeleteNote(gomock.Any(), int64(1), int64(1)).
 					Return(nil)
@@ -383,7 +382,7 @@ func TestDeleteNote_Delete(t *testing.T) {
 			gin.SetMode(gin.TestMode)
 			ctrl := gomock.NewController(t)
 
-			mockNoteService := service.NewMockNoteServicer(ctrl)
+			mockNoteService := NewMockNoteServicer(ctrl)
 			noteHandler := NewNoteHandler(mockNoteService)
 			mockTokener := security.NewMockTokener(ctrl)
 
