@@ -6,36 +6,36 @@ import (
 )
 
 type Note struct {
-	ID        int64     // `json:"id"`
-	Title     string    // `json:"title"`
-	Content   string    // `json:"content"`
-	UserID    int64     // `json:"userId"`
-	CreatedAt time.Time // `json:"createdAt"`
+	ID        int64
+	Title     string
+	Content   string
+	UserID    int64
+	CreatedAt time.Time
 }
 
 type CreateNoteParams struct {
-	Title   string // `json:"title"`
-	Content string // `json:"content"`
-	UserID  int64  // `json:"userId"`
+	Title   string
+	Content string
+	UserID  int64
 }
 
 type CreateNoteResult struct {
-	ID      int64  // `json:"id"`
-	Title   string // `json:"title"`
-	Content string // `json:"content"`
-	UserID  int64  // `json:"userId"`
+	ID      int64
+	Title   string
+	Content string
+	UserID  int64
 }
 
 type DeleteNoteParams struct {
-	ID     int64 // `json:"id"`
-	UserID int64 // `json:"userId"`
+	ID     int64
+	UserID int64
 }
 
 type UpdateNoteParams struct {
-	ID      int64  // `json:"id"`
-	Title   string // `json:"title"`
-	Content string // `json:"content"`
-	UserID  int64  // `json:"userId"`
+	ID      int64
+	Title   string
+	Content string
+	UserID  int64
 }
 
 type NoteRepository interface {

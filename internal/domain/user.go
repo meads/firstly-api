@@ -6,10 +6,10 @@ import (
 )
 
 type User struct {
-	ID        int64     // `json:"id"`
-	Username  string    // `json:"username"`
-	Password  string    // `json:"password"`
-	CreatedAt time.Time // `json:"createdAt"`
+	ID        int64
+	Username  string
+	Password  string
+	CreatedAt time.Time
 }
 
 type ListUsersParams struct {
@@ -18,10 +18,10 @@ type ListUsersParams struct {
 }
 
 type UpdateUserPasswordParams struct {
-	ID              int64  // `json:"id"`
-	Username        string // `json:"username"`
-	CurrentPassword string // `json:"currentPassword"`
-	NewPassword     string // `json:"newPassword"`
+	ID              int64
+	Username        string
+	CurrentPassword string
+	NewPassword     string
 }
 
 type UserRepository interface {
