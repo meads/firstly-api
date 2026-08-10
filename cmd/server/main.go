@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"time"
 
@@ -23,14 +22,14 @@ import (
 	"github.com/meads/firstly-api/internal/service"
 )
 
-func dbConnect(retries int, dbUrl string) *sql.DB {
-	db, err := sql.Open("postgres", dbUrl)
+func dbConnect(ctx context.Context, retries int, dbConnectionString string) *pgxpool.Pool {
+	pool, err := pgxpool.New(ctx, dbConnectionString)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("Unable to connect to the database %v\n", err)
 	}
 	retryCount := 0
 	for {
-		err := db.Ping()
+		err := pool.Ping(ctx)
 		if err != nil {
 			retryCount += 1
 			time.Sleep(time.Second * 2)
@@ -43,19 +42,16 @@ func dbConnect(retries int, dbUrl string) *sql.DB {
 		}
 	}
 
-	return db
+	return pool
 }
 
 func main() {
 	dbConnectionString := os.Getenv("DATABASE_URL")
 	secretKey := os.Getenv("SECRET_KEY")
-	// conn := dbConnect(10, dbURL)
-	// defer conn.Close()
+
 	ctx := context.Background()
-	pool, err := pgxpool.New(ctx, dbConnectionString)
-	if err != nil {
-		log.Fatalf("Unable to connect to the database %v\n", err)
-	}
+	retries := 10
+	pool := dbConnect(ctx, retries, dbConnectionString)
 	defer pool.Close()
 
 	m, err := migrate.New("file://internal/db/migration", dbConnectionString)
@@ -64,12 +60,10 @@ func main() {
 		return
 	}
 	m.Up()
-
 	fmt.Print("\nmigrations were a success. 🎉\n")
 
 	tokener := security.NewTokenManager(secretKey)
 	hasher := security.NewHasher()
-	// store := db.New(conn)
 	queries := db.New(pool)
 
 	sessionRepo := repository.NewSessionRepository(queries)
