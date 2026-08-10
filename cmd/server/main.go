@@ -1,10 +1,12 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"time"
 
+	"github.com/jackc/pgx/v5/pgxpool"
 	_ "github.com/lib/pq"
 
 	"log"
@@ -14,6 +16,7 @@ import (
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 
+	db "github.com/meads/firstly-api/internal/db/sqlc"
 	"github.com/meads/firstly-api/internal/handler"
 	"github.com/meads/firstly-api/internal/repository"
 	"github.com/meads/firstly-api/internal/security"
@@ -44,12 +47,18 @@ func dbConnect(retries int, dbUrl string) *sql.DB {
 }
 
 func main() {
-	dbURL := os.Getenv("DATABASE_URL")
+	dbConnectionString := os.Getenv("DATABASE_URL")
 	secretKey := os.Getenv("SECRET_KEY")
-	conn := dbConnect(10, dbURL)
-	defer conn.Close()
+	// conn := dbConnect(10, dbURL)
+	// defer conn.Close()
+	ctx := context.Background()
+	pool, err := pgxpool.New(ctx, dbConnectionString)
+	if err != nil {
+		log.Fatalf("Unable to connect to the database %v\n", err)
+	}
+	defer pool.Close()
 
-	m, err := migrate.New("file://internal/db/migration", dbURL)
+	m, err := migrate.New("file://internal/db/migration", dbConnectionString)
 	if err != nil {
 		log.Fatalf("error calling New with sql-migration tool: %s", err)
 		return
@@ -61,9 +70,10 @@ func main() {
 	tokener := security.NewTokenManager(secretKey)
 	hasher := security.NewHasher()
 	// store := db.New(conn)
+	queries := db.New(pool)
 
-	sessionRepo := repository.NewSessionRepository(conn)
-	userRepo := repository.NewUserRepository(conn)
+	sessionRepo := repository.NewSessionRepository(queries)
+	userRepo := repository.NewUserRepository(queries)
 
 	authService := service.NewAuthService(userRepo, sessionRepo, tokener, hasher)
 	authHandler := handler.NewAuthHandler(authService)
@@ -71,7 +81,7 @@ func main() {
 	userService := service.NewUserService(userRepo)
 	userHandler := handler.NewUserHandler(userService)
 
-	noteRepo := repository.NewNoteRepository(conn)
+	noteRepo := repository.NewNoteRepository(queries)
 	noteService := service.NewNoteService(noteRepo, userRepo)
 	noteHandler := handler.NewNoteHandler(noteService)
 

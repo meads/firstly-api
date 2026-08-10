@@ -25,7 +25,7 @@ type CreateNoteParams struct {
 }
 
 func (q *Queries) CreateNote(ctx context.Context, arg CreateNoteParams) (Note, error) {
-	row := q.db.QueryRowContext(ctx, createNote, arg.Title, arg.Content, arg.UserID)
+	row := q.db.QueryRow(ctx, createNote, arg.Title, arg.Content, arg.UserID)
 	var i Note
 	err := row.Scan(
 		&i.ID,
@@ -48,7 +48,7 @@ type DeleteNoteParams struct {
 }
 
 func (q *Queries) DeleteNote(ctx context.Context, arg DeleteNoteParams) error {
-	_, err := q.db.ExecContext(ctx, deleteNote, arg.ID, arg.UserID)
+	_, err := q.db.Exec(ctx, deleteNote, arg.ID, arg.UserID)
 	return err
 }
 
@@ -58,7 +58,7 @@ WHERE id = $1 LIMIT 1
 `
 
 func (q *Queries) GetNote(ctx context.Context, id int64) (Note, error) {
-	row := q.db.QueryRowContext(ctx, getNote, id)
+	row := q.db.QueryRow(ctx, getNote, id)
 	var i Note
 	err := row.Scan(
 		&i.ID,
@@ -75,7 +75,7 @@ SELECT id, title, content, user_id, created_at FROM notes WHERE user_id = $1
 `
 
 func (q *Queries) ListNotesByUserID(ctx context.Context, userID int64) ([]Note, error) {
-	rows, err := q.db.QueryContext(ctx, listNotesByUserID, userID)
+	rows, err := q.db.Query(ctx, listNotesByUserID, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -93,9 +93,6 @@ func (q *Queries) ListNotesByUserID(ctx context.Context, userID int64) ([]Note, 
 			return nil, err
 		}
 		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
@@ -117,7 +114,7 @@ type UpdateNoteParams struct {
 }
 
 func (q *Queries) UpdateNote(ctx context.Context, arg UpdateNoteParams) error {
-	_, err := q.db.ExecContext(ctx, updateNote,
+	_, err := q.db.Exec(ctx, updateNote,
 		arg.Title,
 		arg.Content,
 		arg.ID,

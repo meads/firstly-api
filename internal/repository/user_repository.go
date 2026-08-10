@@ -11,15 +11,25 @@ import (
 
 // UserSQLRepository wraps the standard sql.DB pool and the sqlc Querier.
 // implements UserRepository interface defined in domain.User
+// type UserSQLRepository struct {
+// 	db      *sql.DB
+// 	queries *sqlc.Queries
+// }
+
+// func NewUserRepository(db *sql.DB) *UserSQLRepository {
+// 	return &UserSQLRepository{
+// 		db:      db,
+// 		queries: sqlc.New(db),
+// 	}
+// }
+
 type UserSQLRepository struct {
-	db      *sql.DB
-	queries *sqlc.Queries
+	queries sqlc.Querier
 }
 
-func NewUserRepository(db *sql.DB) *UserSQLRepository {
+func NewUserRepository(querier sqlc.Querier) *UserSQLRepository {
 	return &UserSQLRepository{
-		db:      db,
-		queries: sqlc.New(db),
+		queries: querier,
 	}
 }
 
@@ -34,7 +44,7 @@ func (r *UserSQLRepository) CreateUser(ctx context.Context, username, password s
 		ID:        sqlcUser.ID,
 		Username:  sqlcUser.Username,
 		Password:  sqlcUser.Password,
-		CreatedAt: sqlcUser.CreatedAt.Time,
+		CreatedAt: sqlcUser.CreatedAt,
 	}, nil
 }
 
@@ -59,7 +69,7 @@ func (r *UserSQLRepository) GetUser(ctx context.Context, id int64) (*domain.User
 		ID:        sqlcUser.ID,
 		Username:  sqlcUser.Username,
 		Password:  sqlcUser.Password,
-		CreatedAt: sqlcUser.CreatedAt.Time,
+		CreatedAt: sqlcUser.CreatedAt,
 	}, nil
 }
 
@@ -77,7 +87,7 @@ func (r *UserSQLRepository) ListUsers(ctx context.Context, params domain.ListUse
 			ID:        u.ID,
 			Username:  u.Username,
 			Password:  u.Password,
-			CreatedAt: u.CreatedAt.Time,
+			CreatedAt: u.CreatedAt,
 		})
 	}
 
@@ -106,6 +116,6 @@ func (r *UserSQLRepository) GetUserByUsername(ctx context.Context, username stri
 		ID:        sqlcUser.ID,
 		Username:  sqlcUser.Username,
 		Password:  sqlcUser.Password,
-		CreatedAt: sqlcUser.CreatedAt.Time,
+		CreatedAt: sqlcUser.CreatedAt,
 	}, nil
 }

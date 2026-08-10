@@ -2,7 +2,6 @@ package repository
 
 import (
 	"context"
-	"database/sql"
 
 	sqlc "github.com/meads/firstly-api/internal/db/sqlc"
 	"github.com/meads/firstly-api/internal/domain"
@@ -10,15 +9,25 @@ import (
 
 // NoteSQLRepository wraps the standard sql.DB pool and the sqlc Querier.
 // implements NoteRepository interface defined in domain.Note
+//
+//	type NoteSQLRepository struct {
+//		db      *sql.DB
+//		queries *sqlc.Queries
+//	}
+// func NewNoteRepository(db *sql.DB) *NoteSQLRepository {
+// 	return &NoteSQLRepository{
+// 		db:      db,
+// 		queries: sqlc.New(db),
+// 	}
+// }
+
 type NoteSQLRepository struct {
-	db      *sql.DB
-	queries *sqlc.Queries
+	queries sqlc.Querier
 }
 
-func NewNoteRepository(db *sql.DB) *NoteSQLRepository {
+func NewNoteRepository(querier sqlc.Querier) *NoteSQLRepository {
 	return &NoteSQLRepository{
-		db:      db,
-		queries: sqlc.New(db),
+		queries: querier,
 	}
 }
 
@@ -28,6 +37,7 @@ func (r *NoteSQLRepository) CreateNote(ctx context.Context, param domain.CreateN
 		Content: param.Content,
 		UserID:  param.UserID,
 	}
+
 	sqlcNote, err := r.queries.CreateNote(ctx, sqlcParam)
 	if err != nil {
 		return nil, err
@@ -75,7 +85,7 @@ func (r *NoteSQLRepository) ListNotesByUserID(ctx context.Context, userID int64)
 	for _, n := range sqlcNotes {
 		domainNotes = append(domainNotes, domain.Note{
 			Content:   n.Content,
-			CreatedAt: n.CreatedAt.Time,
+			CreatedAt: n.CreatedAt,
 			ID:        n.ID,
 			Title:     n.Title,
 			UserID:    n.UserID,
@@ -84,6 +94,7 @@ func (r *NoteSQLRepository) ListNotesByUserID(ctx context.Context, userID int64)
 
 	return domainNotes, nil
 }
+
 func (r *NoteSQLRepository) UpdateNote(ctx context.Context, param domain.UpdateNoteParams) error {
 	sqlcParams := sqlc.UpdateNoteParams{
 		Content: param.Content,

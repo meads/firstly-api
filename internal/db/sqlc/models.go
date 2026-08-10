@@ -5,30 +5,29 @@
 package db
 
 import (
-	"database/sql"
 	"time"
 )
 
 type Note struct {
-	ID        int64        `json:"id"`
-	Title     string       `json:"title"`
-	Content   string       `json:"content"`
-	UserID    int64        `json:"userId"`
-	CreatedAt sql.NullTime `json:"createdAt"`
+	ID        int64     `json:"id"`
+	Title     string    `json:"title"`
+	Content   string    `json:"content"`
+	UserID    int64     `json:"userId"`
+	CreatedAt time.Time `json:"createdAt"`
 }
 
 type Session struct {
-	ID           string       `json:"id"`
-	UserID       int64        `json:"userId"`
-	RefreshToken string       `json:"refreshToken"`
-	IsRevoked    bool         `json:"isRevoked"`
-	ExpiresAt    time.Time    `json:"expiresAt"`
-	CreatedAt    sql.NullTime `json:"createdAt"`
+	ID           string    `json:"id"`
+	UserID       int64     `json:"userId"`
+	RefreshToken string    `json:"refreshToken"`
+	IsRevoked    bool      `json:"isRevoked"`
+	ExpiresAt    time.Time `json:"expiresAt"`
+	CreatedAt    time.Time `json:"createdAt"`
 }
 
 type User struct {
-	ID        int64        `json:"id"`
-	Username  string       `json:"username"`
-	Password  string       `json:"password"`
-	CreatedAt sql.NullTime `json:"createdAt"`
+	ID        int64     `json:"id"`
+	Username  string    `json:"username"`
+	Password  string    `json:"password"`
+	CreatedAt time.Time `json:"createdAt"`
 }

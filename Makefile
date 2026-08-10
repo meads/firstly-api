@@ -12,7 +12,7 @@ tidy:
 	@go mod tidy
 
 mockgen:
-	@mockgen -package db -destination ./internal/db/sqlc/querier_mock.go github.com/meads/firstly-api/internal/db/sqlc Querier
+	@mockgen -package repository -destination ./internal/repository/querier_mock.go github.com/meads/firstly-api/internal/db/sqlc Querier
 	@mockgen -package security -destination ./internal/security/bcrypt_mock.go github.com/meads/firstly-api/internal/security Hasher
 	@mockgen -package security -destination ./internal/security/claims_mock.go github.com/meads/firstly-api/internal/security Tokener
 

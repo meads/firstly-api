@@ -28,7 +28,7 @@ type CreateSessionParams struct {
 }
 
 func (q *Queries) CreateSession(ctx context.Context, arg CreateSessionParams) (Session, error) {
-	row := q.db.QueryRowContext(ctx, createSession,
+	row := q.db.QueryRow(ctx, createSession,
 		arg.ID,
 		arg.UserID,
 		arg.RefreshToken,
@@ -53,7 +53,7 @@ WHERE id = $1
 `
 
 func (q *Queries) DeleteSession(ctx context.Context, id string) error {
-	_, err := q.db.ExecContext(ctx, deleteSession, id)
+	_, err := q.db.Exec(ctx, deleteSession, id)
 	return err
 }
 
@@ -63,7 +63,7 @@ WHERE id = $1 LIMIT 1
 `
 
 func (q *Queries) GetSession(ctx context.Context, id string) (Session, error) {
-	row := q.db.QueryRowContext(ctx, getSession, id)
+	row := q.db.QueryRow(ctx, getSession, id)
 	var i Session
 	err := row.Scan(
 		&i.ID,
@@ -83,7 +83,7 @@ WHERE id = $1
 `
 
 func (q *Queries) RevokeSession(ctx context.Context, id string) error {
-	_, err := q.db.ExecContext(ctx, revokeSession, id)
+	_, err := q.db.Exec(ctx, revokeSession, id)
 	return err
 }
 
@@ -94,6 +94,6 @@ WHERE user_id = $1
 `
 
 func (q *Queries) RevokeUserSessions(ctx context.Context, userID int64) error {
-	_, err := q.db.ExecContext(ctx, revokeUserSessions, userID)
+	_, err := q.db.Exec(ctx, revokeUserSessions, userID)
 	return err
 }

@@ -12,15 +12,25 @@ import (
 
 // SessionSQLRepository wraps the standard sql.DB pool and the sqlc Querier.
 // implements SessionRepository interface defined in domain.Session
+// type SessionSQLRepository struct {
+// 	db      *sql.DB
+// 	queries *sqlc.Queries
+// }
+
+// func NewSessionRepository(db *sql.DB) *SessionSQLRepository {
+// 	return &SessionSQLRepository{
+// 		db:      db,
+// 		queries: sqlc.New(db),
+// 	}
+// }
+
 type SessionSQLRepository struct {
-	db      *sql.DB
-	queries *sqlc.Queries
+	queries sqlc.Querier
 }
 
-func NewSessionRepository(db *sql.DB) *SessionSQLRepository {
+func NewSessionRepository(querier sqlc.Querier) *SessionSQLRepository {
 	return &SessionSQLRepository{
-		db:      db,
-		queries: sqlc.New(db),
+		queries: querier,
 	}
 }
 
