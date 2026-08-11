@@ -451,3 +451,52 @@ func TestAuthService_Login(t *testing.T) {
 		})
 	}
 }
+
+func TestAuthService_Logout(t *testing.T) {
+	tests := []struct {
+		name              string
+		sessionID         string
+		expectedError     error
+		setupExpectations func(srepo *MockSessionRepository)
+	}{
+		{
+			name:          "auth service logout fails given delete session returns an error",
+			sessionID:     "session-id",
+			expectedError: errors.New("delete session error"),
+			setupExpectations: func(srepo *MockSessionRepository) {
+				srepo.EXPECT().DeleteSession(gomock.Any(), "session-id").
+					Return(errors.New("delete session error"))
+			},
+		},
+		{
+			name:          "auth service logout succeeds given valid session id",
+			sessionID:     "valid-session-id",
+			expectedError: nil,
+			setupExpectations: func(srepo *MockSessionRepository) {
+				srepo.EXPECT().DeleteSession(gomock.Any(), "valid-session-id").Return(nil)
+			},
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			// Arrange
+			ctrl := gomock.NewController(t)
+
+			tokener := security.NewMockTokener(ctrl)
+			hasher := security.NewMockHasher(ctrl)
+			sessionRepo := NewMockSessionRepository(ctrl)
+			userRepo := NewMockUserRepository(ctrl)
+			test.setupExpectations(sessionRepo)
+
+			authService := NewAuthService(userRepo, sessionRepo, tokener, hasher)
+
+			// Act
+			err := authService.Logout(context.Background(), test.sessionID)
+
+			// Assert
+			if (err != nil) != (test.expectedError != nil) {
+				t.Fatalf("expected error presence: %v, got: %v", test.expectedError != nil, err)
+			}
+		})
+	}
+}
