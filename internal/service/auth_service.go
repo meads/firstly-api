@@ -10,14 +10,7 @@ import (
 	security "github.com/meads/firstly-api/internal/security"
 )
 
-// type AuthServicer interface {
-// 	Register(ctx context.Context, username, password string) (*domain.RegisterResult, error)
-// 	Login(ctx context.Context, username, password string) (*domain.LoginResult, error)
-// 	Logout(ctx context.Context, sessionID string) error
-// 	RenewAccessToken(ctx context.Context, refreshToken string) (*domain.RenewAccessTokenResult, error)
-// 	RevokeSession(ctx context.Context, sessionID string) error
-// }
-
+// implements handler.AuthServicer
 type AuthService struct {
 	userRepo    domain.UserRepository
 	sessionRepo domain.SessionRepository
@@ -53,24 +46,24 @@ func (s *AuthService) Register(ctx context.Context, username, password string) (
 		return nil, fmt.Errorf("error hashing password: %w", err)
 	}
 
-	dbUser, err := s.userRepo.CreateUser(ctx, username, password)
+	user, err := s.userRepo.CreateUser(ctx, username, password)
 	if err != nil {
 		return nil, fmt.Errorf("error calling user repository create user in auth service: %w", err)
 	}
 
-	accessToken, accessClaims, err := s.tokener.GenerateToken(dbUser.ID, dbUser.Username, "access", 15*time.Minute)
+	accessToken, accessClaims, err := s.tokener.GenerateToken(user.ID, user.Username, "access", 15*time.Minute)
 	if err != nil {
 		return nil, fmt.Errorf("error generating access token in auth service: %w", err)
 	}
 
-	refreshToken, refreshClaims, err := s.tokener.GenerateToken(dbUser.ID, dbUser.Username, "refresh", 24*time.Hour)
+	refreshToken, refreshClaims, err := s.tokener.GenerateToken(user.ID, user.Username, "refresh", 24*time.Hour)
 	if err != nil {
 		return nil, fmt.Errorf("error generating refresh token in auth service: %w", err)
 	}
 
 	session, err := s.sessionRepo.CreateSession(ctx, domain.CreateSessionParams{
 		ID:           refreshClaims.RegisteredClaims.ID,
-		UserID:       dbUser.ID,
+		UserID:       user.ID,
 		RefreshToken: refreshToken,
 		IsRevoked:    false,
 		ExpiresAt:    refreshClaims.RegisteredClaims.ExpiresAt.Time,
@@ -85,8 +78,8 @@ func (s *AuthService) Register(ctx context.Context, username, password string) (
 		RefreshToken:          refreshToken,
 		AccessTokenExpiresAt:  accessClaims.RegisteredClaims.ExpiresAt.Time,
 		RefreshTokenExpiresAt: refreshClaims.RegisteredClaims.ExpiresAt.Time,
-		Username:              dbUser.Username,
-		UserID:                dbUser.ID,
+		Username:              user.Username,
+		UserID:                user.ID,
 	}, nil
 
 }
