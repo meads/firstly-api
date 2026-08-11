@@ -610,3 +610,53 @@ func TestAuthService_RenewAccessToken(t *testing.T) {
 		})
 	}
 }
+
+func TestAuthService_RevokeSession(t *testing.T) {
+	tests := []struct {
+		name              string
+		sessionID         string
+		expectedError     error
+		setupExpectations func(srepo *MockSessionRepository)
+	}{
+		{
+			name:          "auth service revoke session succeeds given a valid session id",
+			sessionID:     "session-id",
+			expectedError: nil,
+			setupExpectations: func(srepo *MockSessionRepository) {
+				srepo.EXPECT().RevokeSession(gomock.Any(), "session-id").
+					Return(nil)
+			},
+		},
+		{
+			name:          "auth service revoke session fails given a session repo returns an error",
+			sessionID:     "session-id",
+			expectedError: errors.New("session repo error"),
+			setupExpectations: func(srepo *MockSessionRepository) {
+				srepo.EXPECT().RevokeSession(gomock.Any(), "session-id").
+					Return(errors.New("session repo error"))
+			},
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			// Arrange
+			ctrl := gomock.NewController(t)
+
+			tokener := security.NewMockTokener(ctrl)
+			hasher := security.NewMockHasher(ctrl)
+			sessionRepo := NewMockSessionRepository(ctrl)
+			userRepo := NewMockUserRepository(ctrl)
+			test.setupExpectations(sessionRepo)
+
+			authService := NewAuthService(userRepo, sessionRepo, tokener, hasher)
+
+			// Act
+			err := authService.RevokeSession(context.Background(), test.sessionID)
+
+			// Assert
+			if (err != nil) != (test.expectedError != nil) {
+				t.Fatalf("expected error presence: %v, got: %v", test.expectedError != nil, err)
+			}
+		})
+	}
+}
