@@ -500,3 +500,113 @@ func TestAuthService_Logout(t *testing.T) {
 		})
 	}
 }
+
+func TestAuthService_RenewAccessToken(t *testing.T) {
+	var testRenewAccessTokenResult *domain.RenewAccessTokenResult
+	tests := []struct {
+		name              string
+		refreshToken      string
+		expectedError     error
+		setupExpectations func(tokener *security.MockTokener, srepo *MockSessionRepository)
+	}{
+		{
+			name:          "auth service renew access token fails given error returned from verify token",
+			refreshToken:  "refresh-token",
+			expectedError: errors.New("invalid token or claims"),
+			setupExpectations: func(tokener *security.MockTokener, srepo *MockSessionRepository) {
+				tokener.EXPECT().VerifyToken("refresh-token").
+					Return(nil, errors.New("invalid token or claims"))
+
+				testRenewAccessTokenResult = nil
+			},
+		},
+		{
+			name:          "auth service renew access token fails given error returned from get session",
+			refreshToken:  "refresh-token",
+			expectedError: errors.New("error getting session"),
+			setupExpectations: func(tokener *security.MockTokener, srepo *MockSessionRepository) {
+				refreshClaims, _ := security.NewUserClaims(int64(1), "username", "refresh", 24*time.Hour)
+				tokener.EXPECT().VerifyToken("refresh-token").
+					Return(refreshClaims, nil)
+				srepo.EXPECT().GetSession(gomock.Any(), refreshClaims.RegisteredClaims.ID).
+					Return(nil, errors.New("error getting session"))
+
+				testRenewAccessTokenResult = nil
+			},
+		},
+		{
+			name:          "auth service renew access token fails given session is revoked",
+			refreshToken:  "refresh-token",
+			expectedError: errors.New("error generating token"),
+			setupExpectations: func(tokener *security.MockTokener, srepo *MockSessionRepository) {
+				refreshClaims, _ := security.NewUserClaims(int64(1), "username", "refresh", 24*time.Hour)
+				tokener.EXPECT().VerifyToken("refresh-token").
+					Return(refreshClaims, nil)
+				srepo.EXPECT().GetSession(gomock.Any(), refreshClaims.RegisteredClaims.ID).
+					Return(&domain.Session{IsRevoked: true}, nil)
+				testRenewAccessTokenResult = nil
+			},
+		},
+		{
+			name:          "auth service renew access token fails given error returned from generate token",
+			refreshToken:  "refresh-token",
+			expectedError: errors.New("error generating token"),
+			setupExpectations: func(tokener *security.MockTokener, srepo *MockSessionRepository) {
+				refreshClaims, _ := security.NewUserClaims(int64(1), "username", "refresh", 24*time.Hour)
+				tokener.EXPECT().VerifyToken("refresh-token").
+					Return(refreshClaims, nil)
+				srepo.EXPECT().GetSession(gomock.Any(), refreshClaims.RegisteredClaims.ID).
+					Return(&domain.Session{IsRevoked: false}, nil)
+				tokener.EXPECT().GenerateToken(refreshClaims.ID, refreshClaims.Username, "access", 15*time.Minute).
+					Return("", nil, errors.New("error generating token"))
+				testRenewAccessTokenResult = nil
+			},
+		},
+		{
+			name:          "auth service renew access token succeeds given valid refresh token and non revoked session",
+			refreshToken:  "valid-refresh-token",
+			expectedError: nil,
+			setupExpectations: func(tokener *security.MockTokener, srepo *MockSessionRepository) {
+				refreshClaims, _ := security.NewUserClaims(int64(1), "username", "refresh", 24*time.Hour)
+				tokener.EXPECT().VerifyToken("valid-refresh-token").
+					Return(refreshClaims, nil)
+				srepo.EXPECT().GetSession(gomock.Any(), refreshClaims.RegisteredClaims.ID).
+					Return(&domain.Session{IsRevoked: false}, nil)
+				accessClaims, _ := security.NewUserClaims(int64(1), "username", "access", 15*time.Minute)
+				tokener.EXPECT().GenerateToken(refreshClaims.ID, refreshClaims.Username, "access", 15*time.Minute).
+					Return("accesstoken", accessClaims, nil)
+				testRenewAccessTokenResult = &domain.RenewAccessTokenResult{
+					AccessToken:          "accesstoken",
+					AccessTokenExpiresAt: accessClaims.RegisteredClaims.ExpiresAt.Time,
+				}
+			},
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			// Arrange
+			ctrl := gomock.NewController(t)
+
+			tokener := security.NewMockTokener(ctrl)
+			hasher := security.NewMockHasher(ctrl)
+			sessionRepo := NewMockSessionRepository(ctrl)
+			userRepo := NewMockUserRepository(ctrl)
+			test.setupExpectations(tokener, sessionRepo)
+
+			authService := NewAuthService(userRepo, sessionRepo, tokener, hasher)
+
+			// Act
+			renewAccessTokenResult, err := authService.RenewAccessToken(context.Background(), test.refreshToken)
+
+			// Assert
+			if (err != nil) != (test.expectedError != nil) {
+				t.Fatalf("expected error presence: %v, got: %v", test.expectedError != nil, err)
+			}
+
+			if !reflect.DeepEqual(testRenewAccessTokenResult, renewAccessTokenResult) {
+				t.Fatalf("login result does not match, expected: \n%v, got: \n%v",
+					testRenewAccessTokenResult, renewAccessTokenResult)
+			}
+		})
+	}
+}
