@@ -246,5 +246,208 @@ func TestAuthService_Register(t *testing.T) {
 			}
 		})
 	}
+}
 
+func TestAuthService_Login(t *testing.T) {
+	var testLoginResult *domain.LoginResult
+	tests := []struct {
+		name              string
+		username          string
+		password          string
+		expectedError     error
+		setupExpectations func(
+			tokener *security.MockTokener, hasher *security.MockHasher,
+			srepo *MockSessionRepository, urepo *MockUserRepository,
+		)
+	}{
+		{
+			name:          "auth service login fails given error returned from get user by username",
+			username:      "username",
+			password:      "password",
+			expectedError: errors.New("user repo error"),
+			setupExpectations: func(
+				tokener *security.MockTokener, hasher *security.MockHasher,
+				srepo *MockSessionRepository, urepo *MockUserRepository,
+			) {
+				urepo.EXPECT().GetUserByUsername(gomock.Any(), "username").
+					Return(nil, errors.New("user repo error"))
+
+				testLoginResult = nil
+			},
+		},
+		{
+			name:          "auth service login fails given error returned from compare password",
+			username:      "username",
+			password:      "password",
+			expectedError: errors.New("hasher error compare password"),
+			setupExpectations: func(
+				tokener *security.MockTokener, hasher *security.MockHasher,
+				srepo *MockSessionRepository, urepo *MockUserRepository,
+			) {
+				user := &domain.User{ID: int64(1), Username: "username", Password: "password"}
+				urepo.EXPECT().GetUserByUsername(gomock.Any(), "username").Return(user, nil)
+				hasher.EXPECT().ComparePassword(user.Password, "password").
+					Return(errors.New("hasher error compare password"))
+
+				testLoginResult = nil
+			},
+		},
+		{
+			name:          "auth service login fails given error returned from generate token for access token",
+			username:      "username",
+			password:      "password",
+			expectedError: errors.New("generate access token error"),
+			setupExpectations: func(
+				tokener *security.MockTokener, hasher *security.MockHasher,
+				srepo *MockSessionRepository, urepo *MockUserRepository,
+			) {
+				user := &domain.User{ID: int64(1), Username: "username", Password: "password"}
+				urepo.EXPECT().GetUserByUsername(gomock.Any(), "username").Return(user, nil)
+				hasher.EXPECT().ComparePassword(user.Password, "password").Return(nil)
+
+				tokener.EXPECT().
+					GenerateToken(int64(1), "username", "access", 15*time.Minute).
+					Return("", nil, errors.New("generate access token error"))
+
+				testLoginResult = nil
+			},
+		},
+		{
+			name:          "auth service login fails given error returned from generate token for refresh token",
+			username:      "username",
+			password:      "password",
+			expectedError: errors.New("generate refresh token error"),
+			setupExpectations: func(
+				tokener *security.MockTokener, hasher *security.MockHasher,
+				srepo *MockSessionRepository, urepo *MockUserRepository,
+			) {
+				user := &domain.User{ID: int64(1), Username: "username", Password: "password"}
+				urepo.EXPECT().GetUserByUsername(gomock.Any(), "username").Return(user, nil)
+				hasher.EXPECT().ComparePassword(user.Password, "password").Return(nil)
+
+				accessClaims, _ := security.NewUserClaims(int64(1), "username", "access", 15*time.Minute)
+				tokener.EXPECT().
+					GenerateToken(int64(1), "username", "access", 15*time.Minute).
+					Return("accesstoken", accessClaims, nil)
+
+				tokener.EXPECT().
+					GenerateToken(int64(1), "username", "refresh", 24*time.Hour).
+					Return("", nil, errors.New("generate refresh token error"))
+
+				testLoginResult = nil
+			},
+		},
+		{
+			name:          "auth service login fails given error creating session",
+			username:      "username",
+			password:      "password",
+			expectedError: errors.New("server error creating session"),
+			setupExpectations: func(
+				tokener *security.MockTokener, hasher *security.MockHasher,
+				srepo *MockSessionRepository, urepo *MockUserRepository,
+			) {
+				user := &domain.User{ID: int64(1), Username: "username", Password: "password"}
+				urepo.EXPECT().GetUserByUsername(gomock.Any(), "username").Return(user, nil)
+				hasher.EXPECT().ComparePassword(user.Password, "password").Return(nil)
+
+				accessClaims, _ := security.NewUserClaims(int64(1), "username", "access", 15*time.Minute)
+				tokener.EXPECT().
+					GenerateToken(int64(1), "username", "access", 15*time.Minute).
+					Return("accesstoken", accessClaims, nil)
+
+				refreshClaims, _ := security.NewUserClaims(int64(1), "username", "access", 24*time.Hour)
+				tokener.EXPECT().
+					GenerateToken(int64(1), "username", "refresh", 24*time.Hour).
+					Return("refreshtoken", refreshClaims, nil)
+
+				createSessionParams := domain.CreateSessionParams{
+					ID:           refreshClaims.RegisteredClaims.ID,
+					UserID:       int64(1),
+					RefreshToken: "refreshtoken",
+					IsRevoked:    false,
+					ExpiresAt:    refreshClaims.RegisteredClaims.ExpiresAt.Time,
+				}
+				srepo.EXPECT().
+					CreateSession(gomock.Any(), createSessionParams).
+					Return(nil, errors.New("server error creating session"))
+			},
+		},
+		{
+			name:          "auth service login succeeds given valid data supplied",
+			username:      "username",
+			password:      "password",
+			expectedError: nil,
+			setupExpectations: func(
+				tokener *security.MockTokener, hasher *security.MockHasher,
+				srepo *MockSessionRepository, urepo *MockUserRepository,
+			) {
+				user := &domain.User{ID: int64(1), Username: "username", Password: "password"}
+				urepo.EXPECT().GetUserByUsername(gomock.Any(), "username").Return(user, nil)
+				hasher.EXPECT().ComparePassword(user.Password, "password").Return(nil)
+
+				accessClaims, _ := security.NewUserClaims(int64(1), "username", "access", 15*time.Minute)
+				tokener.EXPECT().
+					GenerateToken(int64(1), "username", "access", 15*time.Minute).
+					Return("accesstoken", accessClaims, nil)
+
+				refreshClaims, _ := security.NewUserClaims(int64(1), "username", "access", 24*time.Hour)
+				tokener.EXPECT().
+					GenerateToken(int64(1), "username", "refresh", 24*time.Hour).
+					Return("refreshtoken", refreshClaims, nil)
+
+				createSessionParams := domain.CreateSessionParams{
+					ID:           refreshClaims.RegisteredClaims.ID,
+					UserID:       int64(1),
+					RefreshToken: "refreshtoken",
+					IsRevoked:    false,
+					ExpiresAt:    refreshClaims.RegisteredClaims.ExpiresAt.Time,
+				}
+				srepo.EXPECT().
+					CreateSession(gomock.Any(), createSessionParams).
+					Return(&domain.Session{
+						ID:           refreshClaims.RegisteredClaims.ID,
+						UserID:       int64(1),
+						RefreshToken: "refreshtoken",
+						IsRevoked:    false,
+						ExpiresAt:    refreshClaims.RegisteredClaims.ExpiresAt.Time,
+					}, nil)
+
+				testLoginResult = &domain.LoginResult{
+					SessionID:             refreshClaims.RegisteredClaims.ID,
+					AccessToken:           "accesstoken",
+					RefreshToken:          "refreshtoken",
+					AccessTokenExpiresAt:  accessClaims.RegisteredClaims.ExpiresAt.Time,
+					RefreshTokenExpiresAt: refreshClaims.RegisteredClaims.ExpiresAt.Time,
+					Username:              "username",
+					UserID:                int64(1),
+				}
+			},
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			// Arrange
+			ctrl := gomock.NewController(t)
+
+			tokener := security.NewMockTokener(ctrl)
+			hasher := security.NewMockHasher(ctrl)
+			sessionRepo := NewMockSessionRepository(ctrl)
+			userRepo := NewMockUserRepository(ctrl)
+			test.setupExpectations(tokener, hasher, sessionRepo, userRepo)
+
+			authService := NewAuthService(userRepo, sessionRepo, tokener, hasher)
+
+			// Act
+			loginResult, err := authService.Login(context.Background(), test.username, test.password)
+
+			// Assert
+			if (err != nil) != (test.expectedError != nil) {
+				t.Fatalf("expected error presence: %v, got: %v", test.expectedError != nil, err)
+			}
+
+			if !reflect.DeepEqual(testLoginResult, loginResult) {
+				t.Fatalf("login result does not match, expected: \n%v, got: \n%v", testLoginResult, loginResult)
+			}
+		})
+	}
 }
