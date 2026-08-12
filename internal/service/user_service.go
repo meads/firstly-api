@@ -20,9 +20,10 @@ type UserService struct {
 	hasher   security.Hasher
 }
 
-func NewUserService(repo domain.UserRepository) *UserService {
+func NewUserService(repo domain.UserRepository, hasher security.Hasher) *UserService {
 	return &UserService{
 		userRepo: repo,
+		hasher:   hasher,
 	}
 }
 

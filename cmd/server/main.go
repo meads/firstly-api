@@ -72,7 +72,7 @@ func main() {
 	authService := service.NewAuthService(userRepo, sessionRepo, tokener, hasher)
 	authHandler := handler.NewAuthHandler(authService)
 
-	userService := service.NewUserService(userRepo)
+	userService := service.NewUserService(userRepo, hasher)
 	userHandler := handler.NewUserHandler(userService)
 
 	noteRepo := repository.NewNoteRepository(queries)
