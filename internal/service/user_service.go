@@ -8,13 +8,7 @@ import (
 	security "github.com/meads/firstly-api/internal/security"
 )
 
-// type UserServicer interface {
-// 	DeleteUser(ctx context.Context, id int64) error
-// 	ListUsers(ctx context.Context, params domain.ListUsersParams) ([]domain.User, error)
-// 	ChangePassword(ctx context.Context, params domain.UpdateUserPasswordParams) error
-// 	// UpdateUserPassword(ctx context.Context, params domain.UpdateUserPasswordParams) error
-// }
-
+// implements handler.UserServicer
 type UserService struct {
 	userRepo domain.UserRepository
 	hasher   security.Hasher

@@ -8,13 +8,7 @@ import (
 	domain "github.com/meads/firstly-api/internal/domain"
 )
 
-// type NoteServicer interface {
-// 	CreateNote(ctx context.Context, userID int64, title, content string) (*domain.Note, error)
-// 	UpdateNote(ctx context.Context, noteID, userID int64, title, content string) (*domain.Note, error)
-// 	ListNotes(ctx context.Context, userID int64) ([]domain.Note, error)
-// 	DeleteNote(ctx context.Context, noteID, userID int64) error
-// }
-
+// implements handler.NoteServicer
 type NoteService struct {
 	noteRepo domain.NoteRepository
 	userRepo domain.UserRepository
@@ -39,7 +33,7 @@ func (ns *NoteService) CreateNote(ctx context.Context, userID int64, title, cont
 		return nil, errors.New("note service error user not found")
 	}
 
-	dbNote, err := ns.noteRepo.CreateNote(ctx, domain.CreateNoteParams{
+	note, err := ns.noteRepo.CreateNote(ctx, domain.CreateNoteParams{
 		Content: content,
 		Title:   title,
 		UserID:  userID,
@@ -49,11 +43,11 @@ func (ns *NoteService) CreateNote(ctx context.Context, userID int64, title, cont
 	}
 
 	return &domain.Note{
-		Content:   dbNote.Content,
-		CreatedAt: dbNote.CreatedAt,
-		ID:        dbNote.ID,
-		Title:     dbNote.Title,
-		UserID:    dbNote.UserID,
+		Content:   note.Content,
+		CreatedAt: note.CreatedAt,
+		ID:        note.ID,
+		Title:     note.Title,
+		UserID:    note.UserID,
 	}, nil
 }
 
