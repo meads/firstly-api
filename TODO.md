@@ -15,21 +15,19 @@
 - [x] Generate mocks for interfaces allowing mocks for unit testing code that modifies database state.
 - [x] Generation of access & refresh tokens for custom claims using JWT library v5.
 - [ ] Config struct to store environment variables in main package, validate and provide ease of use.
-- [ ] Tests for all code located in main package.
 - [ ] Near 100% code coverage for unit testing of all backend code.
-- [ ] Convert sqlc.yaml to version 2 and convert all TIMESTAMP columns to TIMESTAMPZ to handle NULL types
-- [ ] Create an internal api layer that becomes the source to interact with backing data stores.
-- [ ] Refactor handlers data calls to api calls.
-- [ ] Refactor handler tests to use mocks of the api.
-- [ ] Unit test api layer.
-- [ ] Remove dead code 
+- [x] Convert sqlc.yaml to version 2 and convert all TIMESTAMP columns to TIMESTAMPZ to handle NULL types
+- [x] Create an internal api layer that becomes the source to interact with backing data stores.
+- [x] Refactor handlers data calls to api calls.
+- [x] Refactor handler tests to use mocks of the api.
+- [x] Unit test api layer.
+- [ ] Create error types that stop wrapping at the handler boundary. So end users don't see system errors.
 
 ### Frontend
 - [x] UI to register users.
 - [x] UI to login existing users.
 - [ ] UI to view sessions and tokens.
 - [x] UI to create, edit, list and delete notes.
-- [ ] UI to view realtime token expiration.
-- [ ] UI to intercept 401 token expired calls
+- [x] UI to intercept 401 token expired calls
  
 
