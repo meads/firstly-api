@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { register, login, logout, createNote, updateNote, deleteNote, getNotes } from './script'
+import { register, login, logout, createNote, updateNote, deleteNote, getNotes } from './script';
+import { authEvents, LOGOUT_EVENT } from './auth_event';
 
 export default function App() {
   const [page, setPage] = useState('login');
@@ -10,17 +11,16 @@ export default function App() {
   const [content, setContent] = useState('');
   const [authInput, setAuthInput] = useState({ username: '', password: '' });
 
+  useEffect(() => {
+    authEvents.addEventListener(LOGOUT_EVENT, setLoggedOutState);
+    return () => authEvents.removeEventListener(LOGOUT_EVENT, setLoggedOutState);
+  }, []);
 
   useEffect(() => {
     async function fetchNotes() {
       const result = await getNotes();
       if (result.success) {
         setNotes(result.data.notes);
-      } else {
-        console.log(result.data);
-        if (result.tokenExpired) {
-          setLoggedOutState();
-        }
       }
     }
 
@@ -72,10 +72,6 @@ export default function App() {
       if (result.success) {
         setNotes(notes.map(n => n.id === currentNote.id ? { ...n, title, content } : n));
         setPage('list');
-      } else {
-        if (result.tokenExpired) {
-          setLoggedOutState();
-        }
       }
     } else {
       const result = await createNote(title, content);
@@ -86,11 +82,6 @@ export default function App() {
           setNotes([...notes, { id: result.data.id, content: result.data.content, title: result.data.title }]);
         }
         setPage('list');
-      } else {
-        if (result.tokenExpired) {
-
-          setLoggedOutState();
-        }
       }
     }
     setTitle('');
@@ -109,11 +100,6 @@ export default function App() {
     const result = await deleteNote(id);
     if (result.success) {
       setNotes(notes.filter(n => n.id !== id));
-    } else {
-      console.log(result.data);
-      if (result.tokenExpired) {
-          setLoggedOutState();
-      }
     }
   };
 

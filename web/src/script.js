@@ -1,42 +1,26 @@
+import { fetchClient } from "./auth_client";
 
-export async function login(username, password) {
-    const response = await fetch('http://localhost:8080/login/', {
-        mode:'cors',
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ username, password }),
-    })
-
-    if (response.ok) {
-        const data = await response.json()
-        sessionStorage.setItem("refreshToken", data.refreshToken)
-        sessionStorage.setItem("accessToken", data.accessToken)
-        sessionStorage.setItem("sessionId", data.sessionId)
-        sessionStorage.setItem("userId", data.userId)
-
-        return { success: true, data: data };
-    }
-    
+const getErrorData = async (fetchResponse) => {
     let errorData = null;
-    const contentType = response.headers.get("content-type");
+    const contentType = fetchResponse.headers.get("content-type");
     if (contentType && contentType.includes("application/json")) {
-        errorData = await response.json();
+        errorData = await fetchResponse.json();
         errorData = errorData.error;
     } else {
-        errorData = await response.text();
+        errorData = await fetchResponse.text();
     }
     
-    return { success: false, data: `${response.status} : ${errorData}` };
+    return errorData
 }
 
-export async function register(username, password) {    
-    const response = await fetch('http://localhost:8080/register/', {
+export async function login(username, password) {
+    const response = await fetchClient('http://localhost:8080/login/', {
         mode:'cors',
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({ username, password }),
     })
-    
+
     if (response.ok) {
         const data = await response.json()
         sessionStorage.setItem("refreshToken", data.refreshToken)
@@ -47,21 +31,35 @@ export async function register(username, password) {
         return { success: true, data: data };
     }
     
-    let errorData = null;
-    const contentType = response.headers.get("content-type");
-    if (contentType && contentType.includes("application/json")) {
-        errorData = await response.json();
-        errorData = errorData.error;
-    } else {
-        errorData = await response.text();
+    const errorData = await getErrorData(response)
+    return { success: false, data: errorData }
+}
+
+export async function register(username, password) {
+    const response = await fetchClient('http://localhost:8080/register/', {
+        mode:'cors',
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ username, password }),
+    })
+
+    if (response.ok) {
+        const data = await response.json()
+        sessionStorage.setItem("refreshToken", data.refreshToken)
+        sessionStorage.setItem("accessToken", data.accessToken)
+        sessionStorage.setItem("sessionId", data.sessionId)
+        sessionStorage.setItem("userId", data.userId)
+
+        return { success: true, data: data };
     }
     
-    return { success: false, data: `${response.status} : ${errorData}` };
+    const errorData = await getErrorData(response)
+    return { success: false, data: errorData }
 }
 
 export async function logout() {
     let sessionId = sessionStorage.getItem("sessionId")
-    const response = await fetch(`http://localhost:8080/logout/${sessionId}`, {
+    const response = await fetchClient(`http://localhost:8080/logout/${sessionId}`, {
         mode:'cors',
         method: 'POST',
     })
@@ -72,23 +70,15 @@ export async function logout() {
         return { success: true, data: data };
     }
     
-    let errorData = null;
-    const contentType = response.headers.get("content-type");
-    if (contentType && contentType.includes("application/json")) {
-        errorData = await response.json();
-        errorData = errorData.error;
-    } else {
-        errorData = await response.text();
-    }
-    
-    return { success: false, data: `${response.status} : ${errorData}` };
+    const errorData = await getErrorData(response)
+    return { success: false, data: errorData }
 }
 
 export async function createNote(title, content) {
     const userIdString = sessionStorage.getItem("userId");
     const userId = parseInt(userIdString, 10);
     const accessToken = sessionStorage.getItem("accessToken");
-    const response = await fetch(`http://localhost:8080/users/${userIdString}/notes/`, {
+    const response = await fetchClient(`http://localhost:8080/users/${userIdString}/notes/`, {
         mode:'cors',
         method: 'POST',
         headers: {
@@ -101,30 +91,18 @@ export async function createNote(title, content) {
     if (response.ok) {
         const data = await response.json()
 
-        return { success: true, data: data, tokenExpired: false };
+        return { success: true, data: data };
     }
     
-    let errorData = null;
-    const contentType = response.headers.get("content-type");
-    if (contentType && contentType.includes("application/json")) {
-        errorData = await response.json();
-        errorData = errorData.error;
-    } else {
-        errorData = await response.text();
-    }
-    
-    return { 
-        success: false, 
-        data: `${errorData}`,
-        tokenExpired: tokenExpired(response.status, errorData),
-    }
+    const errorData = await getErrorData(response)
+    return { success: false, data: errorData }
 }
 
 export async function updateNote(id, title, content) {
     const userIdString = sessionStorage.getItem("userId");
     const userId = parseInt(userIdString, 10);
     const accessToken = sessionStorage.getItem("accessToken");
-    const response = await fetch(`http://localhost:8080/users/${userIdString}/notes/`, {
+    const response = await fetchClient(`http://localhost:8080/users/${userIdString}/notes/`, {
         mode:'cors',
         method: 'PUT',
         headers: {
@@ -137,29 +115,17 @@ export async function updateNote(id, title, content) {
     if (response.ok) {
         const data = await response.json()
 
-        return { success: true, data: data, tokenExpired: false };
+        return { success: true, data: data };
     }
     
-    let errorData = null;
-    const contentType = response.headers.get("content-type");
-    if (contentType && contentType.includes("application/json")) {
-        errorData = await response.json();
-        errorData = errorData.error;
-    } else {
-        errorData = await response.text();
-    }
-    
-    return { 
-        success: false, 
-        data: `${errorData}`,
-        tokenExpired: tokenExpired(response.status, errorData),
-    }
+    const errorData = await getErrorData(response)
+    return { success: false, data: errorData }
 }
 
 export async function deleteNote(id) {
     const userIdString = sessionStorage.getItem("userId");
     const accessToken = sessionStorage.getItem("accessToken");
-    const response = await fetch(`http://localhost:8080/users/${userIdString}/notes/${id}`, {
+    const response = await fetchClient(`http://localhost:8080/users/${userIdString}/notes/${id}`, {
         mode:'cors',
         method: 'DELETE',
         headers: {
@@ -174,22 +140,14 @@ export async function deleteNote(id) {
         return { success: true, data: data };
     }
     
-    let errorData = null;
-    const contentType = response.headers.get("content-type");
-    if (contentType && contentType.includes("application/json")) {
-        errorData = await response.json();
-        errorData = errorData.error;
-    } else {
-        errorData = await response.text();
-    }
-    
-    return { success: false, data: `${response.status} : ${errorData}` };
+    const errorData = await getErrorData(response)
+    return { success: false, data: errorData }
 }
 
 export async function getNotes() {
     const userIdString = sessionStorage.getItem("userId");
     const accessToken = sessionStorage.getItem("accessToken");
-    const response = await fetch(`http://localhost:8080/users/${userIdString}/notes/`, {
+    const response = await fetchClient(`http://localhost:8080/users/${userIdString}/notes/`, {
         mode:'cors',
         method: 'GET',
         headers: {
@@ -201,25 +159,9 @@ export async function getNotes() {
     if (response.ok) {
         const data = await response.json()
 
-        return { success: true, data: data, tokenExpired: false };
+        return { success: true, data: data };
     }
     
-    let errorData = null;
-    const contentType = response.headers.get("content-type");
-    if (contentType && contentType.includes("application/json")) {
-        errorData = await response.json();
-        errorData = errorData.error;
-    } else {
-        errorData = await response.text();
-    }
-    
-    return { 
-        success: false, 
-        data: `${errorData}`,
-        tokenExpired: tokenExpired(response.status, errorData),
-    }
-}
-
-function tokenExpired(status, data) {
-    return status === 401 && data.includes("token expired")
+    const errorData = await getErrorData(response)
+    return { success: false, data: errorData }
 }

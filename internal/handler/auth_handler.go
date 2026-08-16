@@ -50,7 +50,7 @@ func (h *AuthHandler) Login(ctx *gin.Context) {
 
 	loginResult, err := h.authService.Login(ctx, req.Username, req.Password)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, fmt.Errorf("login failed: %w", err))
+		ctx.JSON(http.StatusInternalServerError, errorResponse(fmt.Errorf("login failed: %w", err)))
 		return
 	}
 

@@ -51,7 +51,7 @@ func (s *AuthService) Register(ctx context.Context, username, password string) (
 		return nil, fmt.Errorf("error calling user repository create user in auth service: %w", err)
 	}
 
-	accessToken, accessClaims, err := s.tokener.GenerateToken(user.ID, user.Username, "access", 15*time.Minute)
+	accessToken, accessClaims, err := s.tokener.GenerateToken(user.ID, user.Username, "access", 5*time.Minute)
 	if err != nil {
 		return nil, fmt.Errorf("error generating access token in auth service: %w", err)
 	}
@@ -95,7 +95,7 @@ func (s *AuthService) Login(ctx context.Context, username, password string) (*do
 		return nil, fmt.Errorf("invalid username or password: %w", err)
 	}
 
-	accessToken, accessClaims, err := s.tokener.GenerateToken(user.ID, user.Username, "access", 15*time.Minute)
+	accessToken, accessClaims, err := s.tokener.GenerateToken(user.ID, user.Username, "access", 5*time.Minute)
 	if err != nil {
 		return nil, fmt.Errorf("error creating access token: %w", err)
 	}
@@ -152,7 +152,7 @@ func (s *AuthService) RenewAccessToken(ctx context.Context, refreshToken string)
 	}
 
 	accessToken, accessClaims, err := s.tokener.GenerateToken(
-		refreshClaims.ID, refreshClaims.Username, "access", 15*time.Minute)
+		refreshClaims.ID, refreshClaims.Username, "access", 5*time.Minute)
 	if err != nil {
 		return nil, fmt.Errorf("error creating token: %w", err)
 	}
