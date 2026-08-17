@@ -51,6 +51,19 @@ async function handleTokenRefresh() {
 
 
 // Custom interceptor wrapper around native fetch
+// If the caller of fetchClient is found to have a 401 response
+// the interceptor will immediately handle the refreshing of 
+// tokens first and updating them in sessionStorage then will 
+// issue a new fetch request with the same arguments but with an
+// updated Authorization header.
+// If the attempt to update the access token using the stored
+// refresh token fails, all tokens are removed from storage,
+// pending promises are rejected and an event is raised to 
+// set the application logged out state.
+// This client is meant to be used in conjunction with routes that 
+// are using jwt middleware on the backend, not refresh/, register/, 
+// login/ or logout/ routes. In those cases you will see native
+// fetch being used directly.
 export async function fetchClient(url, options = {}) {
   // Ensure headers object exists
   options.headers = options.headers || {};
@@ -66,7 +79,7 @@ export async function fetchClient(url, options = {}) {
 
     // Response Interceptor: Catch 401 Unauthorized status
     if (response.status === 401) {
-      
+
       // If a refresh is already in progress, queue this request
       if (isRefreshing) {
         return new Promise((resolve, reject) => {

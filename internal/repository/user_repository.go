@@ -3,26 +3,15 @@ package repository
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 
 	sqlc "github.com/meads/firstly-api/internal/db/sqlc"
 	"github.com/meads/firstly-api/internal/domain"
 )
 
-// UserSQLRepository wraps the standard sql.DB pool and the sqlc Querier.
+// UserSQLRepository wraps the sqlc Querier.
 // implements UserRepository interface defined in domain.User
-// type UserSQLRepository struct {
-// 	db      *sql.DB
-// 	queries *sqlc.Queries
-// }
-
-// func NewUserRepository(db *sql.DB) *UserSQLRepository {
-// 	return &UserSQLRepository{
-// 		db:      db,
-// 		queries: sqlc.New(db),
-// 	}
-// }
-
 type UserSQLRepository struct {
 	queries sqlc.Querier
 }
@@ -106,8 +95,8 @@ func (r *UserSQLRepository) UserExists(ctx context.Context, id int64) (bool, err
 func (r *UserSQLRepository) GetUserByUsername(ctx context.Context, username string) (*domain.User, error) {
 	sqlcUser, err := r.queries.GetUserByUsername(ctx, username)
 	if err != nil {
-		if err == sql.ErrNoRows {
-			return nil, fmt.Errorf("user not found: %w", err)
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, domain.ErrUserNotFound
 		}
 		return nil, err
 	}

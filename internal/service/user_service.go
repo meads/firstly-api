@@ -36,7 +36,8 @@ func (u *UserService) ChangePassword(ctx context.Context, params domain.UpdateUs
 
 	err = u.hasher.ComparePassword(user.Password, params.CurrentPassword)
 	if err != nil {
-		return fmt.Errorf("current password invalid: %w", err)
+		// current password invalid
+		return domain.ErrInvalidCredentials
 	}
 
 	newPasswordHash, err := u.hasher.HashPassword(params.NewPassword)

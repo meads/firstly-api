@@ -21,11 +21,12 @@
 - [x] Refactor handlers data calls to api calls.
 - [x] Refactor handler tests to use mocks of the api.
 - [x] Unit test api layer.
-- [ ] Create error types that stop wrapping at the handler boundary. So end users don't see system errors.
+- [x] Create error types that stop wrapping at the handler boundary. So end users don't see system errors.
 
 ### Frontend
 - [x] UI to register users.
 - [x] UI to login existing users.
+- [ ] UI to change user password.
 - [ ] UI to view sessions and tokens.
 - [x] UI to create, edit, list and delete notes.
 - [x] UI to intercept 401 token expired calls

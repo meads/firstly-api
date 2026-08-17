@@ -14,7 +14,7 @@ const getErrorData = async (fetchResponse) => {
 }
 
 export async function login(username, password) {
-    const response = await fetchClient('http://localhost:8080/login/', {
+    const response = await fetch('http://localhost:8080/login/', {
         mode:'cors',
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
@@ -36,7 +36,7 @@ export async function login(username, password) {
 }
 
 export async function register(username, password) {
-    const response = await fetchClient('http://localhost:8080/register/', {
+    const response = await fetch('http://localhost:8080/register/', {
         mode:'cors',
         method: 'POST',
         headers: {'Content-Type': 'application/json'},

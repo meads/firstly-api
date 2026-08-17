@@ -7,6 +7,7 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
+	"github.com/meads/firstly-api/internal/domain"
 )
 
 type UserClaims struct {
@@ -65,27 +66,28 @@ func (c *TokenManager) GenerateToken(id int64, username string, usage string, du
 }
 
 func (c *TokenManager) VerifyToken(tokenStr string) (*UserClaims, error) {
+	// Parse directly into the custom claims struct
 	claims := &UserClaims{}
 
-	// Parse directly into the custom claims struct
 	token, err := jwt.ParseWithClaims(tokenStr, claims, func(token *jwt.Token) (interface{}, error) {
 		_, ok := token.Method.(*jwt.SigningMethodHMAC)
 		if !ok {
-			return nil, fmt.Errorf("invalid token signing method")
+			// invalid token signing method
+			return nil, domain.ErrInvalidToken
 		}
 		return []byte(c.secretKey), nil
 	})
 
 	if err != nil {
 		if errors.Is(err, jwt.ErrTokenExpired) {
-			return nil, fmt.Errorf("token expired at %v", claims.ExpiresAt)
+			return nil, domain.ErrInvalidToken
 		}
-		return nil, err
+		return nil, domain.ErrInvalidToken
 	}
 
 	if token.Valid {
 		return claims, nil
 	}
 
-	return nil, fmt.Errorf("invalid token")
+	return nil, domain.ErrInvalidToken
 }

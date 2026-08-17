@@ -2,6 +2,7 @@ package handler
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -33,7 +34,7 @@ func (h *AuthHandler) Register(ctx *gin.Context) {
 	}
 	registerResult, err := h.authService.Register(ctx, req.Username, req.Password)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, errorResponse(fmt.Errorf("Registration failed: %w", err)))
+		ctx.JSON(http.StatusInternalServerError, errorResponse(errors.New("Registration failed")))
 		return
 	}
 
@@ -50,7 +51,13 @@ func (h *AuthHandler) Login(ctx *gin.Context) {
 
 	loginResult, err := h.authService.Login(ctx, req.Username, req.Password)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, errorResponse(fmt.Errorf("login failed: %w", err)))
+		switch {
+		case errors.Is(err, domain.ErrInvalidCredentials):
+			ctx.JSON(http.StatusUnauthorized, errorResponse(domain.ErrInvalidCredentials))
+
+		default:
+			ctx.JSON(http.StatusInternalServerError, errorResponse(errors.New("internal server error")))
+		}
 		return
 	}
 

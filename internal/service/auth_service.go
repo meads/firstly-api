@@ -35,7 +35,7 @@ func NewAuthService(
 func (s *AuthService) Register(ctx context.Context, username, password string) (*domain.RegisterResult, error) {
 	usernameExists, err := s.userRepo.UsernameExists(ctx, username)
 	if err != nil {
-		return nil, fmt.Errorf("error calling user repository from auth service: %w", err)
+		return nil, err
 	}
 	if usernameExists {
 		return nil, errors.New("please choose another username")
@@ -43,22 +43,22 @@ func (s *AuthService) Register(ctx context.Context, username, password string) (
 
 	password, err = s.hasher.HashPassword(password)
 	if err != nil {
-		return nil, fmt.Errorf("error hashing password: %w", err)
+		return nil, err
 	}
 
 	user, err := s.userRepo.CreateUser(ctx, username, password)
 	if err != nil {
-		return nil, fmt.Errorf("error calling user repository create user in auth service: %w", err)
+		return nil, err
 	}
 
-	accessToken, accessClaims, err := s.tokener.GenerateToken(user.ID, user.Username, "access", 5*time.Minute)
+	accessToken, accessClaims, err := s.tokener.GenerateToken(user.ID, user.Username, "access", 15*time.Second)
 	if err != nil {
-		return nil, fmt.Errorf("error generating access token in auth service: %w", err)
+		return nil, domain.ErrTokenGeneration
 	}
 
-	refreshToken, refreshClaims, err := s.tokener.GenerateToken(user.ID, user.Username, "refresh", 24*time.Hour)
+	refreshToken, refreshClaims, err := s.tokener.GenerateToken(user.ID, user.Username, "refresh", 1*time.Minute)
 	if err != nil {
-		return nil, fmt.Errorf("error generating refresh token in auth service: %w", err)
+		return nil, domain.ErrTokenGeneration
 	}
 
 	session, err := s.sessionRepo.CreateSession(ctx, domain.CreateSessionParams{
@@ -69,7 +69,7 @@ func (s *AuthService) Register(ctx context.Context, username, password string) (
 		ExpiresAt:    refreshClaims.RegisteredClaims.ExpiresAt.Time,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("error creating session in auth service: %w", err)
+		return nil, domain.ErrSessionCreation
 	}
 
 	return &domain.RegisterResult{
@@ -87,22 +87,25 @@ func (s *AuthService) Register(ctx context.Context, username, password string) (
 func (s *AuthService) Login(ctx context.Context, username, password string) (*domain.LoginResult, error) {
 	user, err := s.userRepo.GetUserByUsername(ctx, username)
 	if err != nil {
+		if errors.Is(err, domain.ErrUserNotFound) {
+			return nil, domain.ErrInvalidCredentials
+		}
 		return nil, err
 	}
 
 	err = s.hasher.ComparePassword(user.Password, password)
 	if err != nil {
-		return nil, fmt.Errorf("invalid username or password: %w", err)
+		return nil, domain.ErrInvalidCredentials
 	}
 
-	accessToken, accessClaims, err := s.tokener.GenerateToken(user.ID, user.Username, "access", 5*time.Minute)
+	accessToken, accessClaims, err := s.tokener.GenerateToken(user.ID, user.Username, "access", 15*time.Second)
 	if err != nil {
-		return nil, fmt.Errorf("error creating access token: %w", err)
+		return nil, domain.ErrTokenGeneration
 	}
 
-	refreshToken, refreshClaims, err := s.tokener.GenerateToken(user.ID, user.Username, "refresh", 24*time.Hour)
+	refreshToken, refreshClaims, err := s.tokener.GenerateToken(user.ID, user.Username, "refresh", 1*time.Minute)
 	if err != nil {
-		return nil, fmt.Errorf("error creating refresh token: %w", err)
+		return nil, domain.ErrTokenGeneration
 	}
 
 	session, err := s.sessionRepo.CreateSession(ctx, domain.CreateSessionParams{
@@ -113,9 +116,8 @@ func (s *AuthService) Login(ctx context.Context, username, password string) (*do
 		ExpiresAt:    refreshClaims.RegisteredClaims.ExpiresAt.Time,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("error creating session: %w", err)
+		return nil, domain.ErrSessionCreation
 	}
-	// ctx.Writer.Header().Add("Authorization", fmt.Sprintf("Bearer %s", accessToken))
 
 	return &domain.LoginResult{
 		SessionID:             session.ID,
@@ -139,22 +141,22 @@ func (s *AuthService) Logout(ctx context.Context, sessionID string) error {
 func (s *AuthService) RenewAccessToken(ctx context.Context, refreshToken string) (*domain.RenewAccessTokenResult, error) {
 	refreshClaims, err := s.tokener.VerifyToken(refreshToken)
 	if err != nil {
-		return nil, fmt.Errorf("error verifying refresh token: %w", err)
+		return nil, domain.ErrInvalidToken
 	}
 
 	session, err := s.sessionRepo.GetSession(ctx, refreshClaims.RegisteredClaims.ID)
 	if err != nil {
-		return nil, fmt.Errorf("error getting session: %w", err)
+		return nil, err
 	}
 
 	if session.IsRevoked {
-		return nil, errors.New("session revoked")
+		return nil, domain.ErrSessionRevoked
 	}
 
 	accessToken, accessClaims, err := s.tokener.GenerateToken(
-		refreshClaims.ID, refreshClaims.Username, "access", 5*time.Minute)
+		refreshClaims.ID, refreshClaims.Username, "access", 15*time.Second)
 	if err != nil {
-		return nil, fmt.Errorf("error creating token: %w", err)
+		return nil, domain.ErrTokenGeneration
 	}
 
 	return &domain.RenewAccessTokenResult{

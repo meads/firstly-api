@@ -1,8 +1,9 @@
 package security
 
 import (
-	"fmt"
+	"errors"
 
+	"github.com/meads/firstly-api/internal/domain"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -20,12 +21,19 @@ func NewHasher() Hasher {
 func (h *HashLib) HashPassword(password string) (string, error) {
 	hashed, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
-		return "", fmt.Errorf("error hashing password %w", err)
+		return "", err
 	}
 
 	return string(hashed), nil
 }
 
 func (h *HashLib) ComparePassword(hashedPassword string, password string) error {
-	return bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
+	err := bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
+	if err != nil {
+		if errors.Is(bcrypt.ErrMismatchedHashAndPassword, err) {
+			return domain.ErrInvalidCredentials
+		}
+		return err
+	}
+	return nil
 }
