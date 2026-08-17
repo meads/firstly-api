@@ -51,12 +51,12 @@ func (s *AuthService) Register(ctx context.Context, username, password string) (
 		return nil, err
 	}
 
-	accessToken, accessClaims, err := s.tokener.GenerateToken(user.ID, user.Username, "access", 15*time.Second)
+	accessToken, accessClaims, err := s.tokener.GenerateToken(user.ID, user.Username, "access", 15*time.Minute)
 	if err != nil {
 		return nil, domain.ErrTokenGeneration
 	}
 
-	refreshToken, refreshClaims, err := s.tokener.GenerateToken(user.ID, user.Username, "refresh", 1*time.Minute)
+	refreshToken, refreshClaims, err := s.tokener.GenerateToken(user.ID, user.Username, "refresh", 24*time.Hour)
 	if err != nil {
 		return nil, domain.ErrTokenGeneration
 	}
@@ -98,12 +98,12 @@ func (s *AuthService) Login(ctx context.Context, username, password string) (*do
 		return nil, domain.ErrInvalidCredentials
 	}
 
-	accessToken, accessClaims, err := s.tokener.GenerateToken(user.ID, user.Username, "access", 15*time.Second)
+	accessToken, accessClaims, err := s.tokener.GenerateToken(user.ID, user.Username, "access", 15*time.Minute)
 	if err != nil {
 		return nil, domain.ErrTokenGeneration
 	}
 
-	refreshToken, refreshClaims, err := s.tokener.GenerateToken(user.ID, user.Username, "refresh", 1*time.Minute)
+	refreshToken, refreshClaims, err := s.tokener.GenerateToken(user.ID, user.Username, "refresh", 24*time.Hour)
 	if err != nil {
 		return nil, domain.ErrTokenGeneration
 	}
@@ -154,7 +154,7 @@ func (s *AuthService) RenewAccessToken(ctx context.Context, refreshToken string)
 	}
 
 	accessToken, accessClaims, err := s.tokener.GenerateToken(
-		refreshClaims.ID, refreshClaims.Username, "access", 15*time.Second)
+		refreshClaims.ID, refreshClaims.Username, "access", 15*time.Minute)
 	if err != nil {
 		return nil, domain.ErrTokenGeneration
 	}
