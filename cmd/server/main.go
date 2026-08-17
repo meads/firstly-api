@@ -45,9 +45,30 @@ func dbConnect(ctx context.Context, retries int, dbConnectionString string) *pgx
 	return pool
 }
 
+func parseDurationFromEnv(name string, durationDefault time.Duration) time.Duration {
+	valStr := os.Getenv(name)
+
+	var dur time.Duration
+	var err error
+
+	if valStr == "" {
+		dur = durationDefault
+	} else {
+		dur, err = time.ParseDuration(valStr)
+		if err != nil {
+			fmt.Printf("Invalid %s value: %v\n", name, err)
+			dur = durationDefault
+		}
+	}
+	return dur
+}
+
 func main() {
 	dbConnectionString := os.Getenv("DATABASE_URL")
 	secretKey := os.Getenv("SECRET_KEY")
+
+	accessTokenDuration := parseDurationFromEnv("ACCESS_TOKEN_DURATION", 15*time.Minute)
+	refreshTokenDuration := parseDurationFromEnv("REFRESH_TOKEN_DURATION", 24*time.Hour)
 
 	ctx := context.Background()
 	retries := 10
@@ -69,7 +90,9 @@ func main() {
 	sessionRepo := repository.NewSessionRepository(queries)
 	userRepo := repository.NewUserRepository(queries)
 
-	authService := service.NewAuthService(userRepo, sessionRepo, tokener, hasher)
+	authService := service.NewAuthService(
+		userRepo, sessionRepo, tokener, hasher,
+		accessTokenDuration, refreshTokenDuration)
 	authHandler := handler.NewAuthHandler(authService)
 
 	userService := service.NewUserService(userRepo, hasher)

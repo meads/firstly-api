@@ -60,19 +60,21 @@ The .env file is excluded from the project via .gitignore file.
     
 ```env
 # api database connection string
-DATABASE_URL=postgresql://username:password@db:5432/databasename?sslmode=disable
+DATABASE_URL=postgresql://firstly:firstly@db:5432/firstly?sslmode=disable
 
-# used for jwt signing
+# used for jwt signing. generate using command -> openssl rand -hex 32
 SECRET=
 
 # used for configuring gin router cors middleware
-ALLOW_ORIGINS=
+ALLOW_ORIGINS="http://localhost:3000"
 
 # variables for db service
-POSTGRES_USER=
-POSTGRES_PASSWORD=
-POSTGRES_DB=
+POSTGRES_USER=firstly
+POSTGRES_PASSWORD=firstly
+POSTGRES_DB=firstly
 
+ACCESS_TOKEN_DURATION="15s"
+REFRESH_TOKEN_DURATION="2m"
 
 ```
 

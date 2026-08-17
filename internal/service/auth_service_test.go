@@ -231,7 +231,7 @@ func TestAuthService_Register(t *testing.T) {
 			userRepo := NewMockUserRepository(ctrl)
 			test.setupExpectations(tokener, hasher, sessionRepo, userRepo)
 
-			authService := NewAuthService(userRepo, sessionRepo, tokener, hasher)
+			authService := NewAuthService(userRepo, sessionRepo, tokener, hasher, 15*time.Minute, 24*time.Hour)
 
 			// Act
 			registerResult, err := authService.Register(context.Background(), test.username, test.password)
@@ -435,7 +435,7 @@ func TestAuthService_Login(t *testing.T) {
 			userRepo := NewMockUserRepository(ctrl)
 			test.setupExpectations(tokener, hasher, sessionRepo, userRepo)
 
-			authService := NewAuthService(userRepo, sessionRepo, tokener, hasher)
+			authService := NewAuthService(userRepo, sessionRepo, tokener, hasher, 15*time.Minute, 24*time.Hour)
 
 			// Act
 			loginResult, err := authService.Login(context.Background(), test.username, test.password)
@@ -488,7 +488,7 @@ func TestAuthService_Logout(t *testing.T) {
 			userRepo := NewMockUserRepository(ctrl)
 			test.setupExpectations(sessionRepo)
 
-			authService := NewAuthService(userRepo, sessionRepo, tokener, hasher)
+			authService := NewAuthService(userRepo, sessionRepo, tokener, hasher, 15*time.Minute, 24*time.Hour)
 
 			// Act
 			err := authService.Logout(context.Background(), test.sessionID)
@@ -593,7 +593,7 @@ func TestAuthService_RenewAccessToken(t *testing.T) {
 			userRepo := NewMockUserRepository(ctrl)
 			test.setupExpectations(tokener, sessionRepo)
 
-			authService := NewAuthService(userRepo, sessionRepo, tokener, hasher)
+			authService := NewAuthService(userRepo, sessionRepo, tokener, hasher, 15*time.Minute, 24*time.Hour)
 
 			// Act
 			renewAccessTokenResult, err := authService.RenewAccessToken(context.Background(), test.refreshToken)
@@ -648,7 +648,7 @@ func TestAuthService_RevokeSession(t *testing.T) {
 			userRepo := NewMockUserRepository(ctrl)
 			test.setupExpectations(sessionRepo)
 
-			authService := NewAuthService(userRepo, sessionRepo, tokener, hasher)
+			authService := NewAuthService(userRepo, sessionRepo, tokener, hasher, 15*time.Minute, 24*time.Hour)
 
 			// Act
 			err := authService.RevokeSession(context.Background(), test.sessionID)

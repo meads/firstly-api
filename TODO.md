@@ -22,6 +22,7 @@
 - [x] Refactor handler tests to use mocks of the api.
 - [x] Unit test api layer.
 - [x] Create error types that stop wrapping at the handler boundary. So end users don't see system errors.
+- [x] Access and Refresh token duration from environment variables
 
 ### Frontend
 - [x] UI to register users.
