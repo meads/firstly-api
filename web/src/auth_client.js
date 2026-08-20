@@ -19,9 +19,8 @@ const processQueue = (error, token = null) => {
 
 const getAccessToken = () => sessionStorage.getItem("accessToken");
 const getRefreshToken = () => sessionStorage.getItem("refreshToken");
-const updateTokens = (access, refresh) => {
-  sessionStorage.setItem("accessToken", access);
-  sessionStorage.setItem("refreshToken", refresh);
+const updateAccessToken = (accessToken) => {
+  sessionStorage.setItem("accessToken", accessToken);
 };
 const clearTokens = () => {
   sessionStorage.removeItem("accessToken");
@@ -46,7 +45,7 @@ async function handleTokenRefresh() {
   }
 
   const data = await response.json();
-  return data; // Assuming returns { accessToken, refreshToken }
+  return data;
 }
 
 
@@ -97,7 +96,7 @@ export async function fetchClient(url, options = {}) {
 
       return new Promise((resolve, reject) => {
         handleTokenRefresh().then((data) => {
-            updateTokens(data.accessToken, sessionStorage.getItem("refreshToken")); // data.refreshToken);
+            updateAccessToken(data.accessToken);
             
             // Update original request header and retry it
             options.headers["Authorization"] = `Bearer ${data.accessToken}`;
