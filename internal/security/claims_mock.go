@@ -41,9 +41,9 @@ func (m *MockTokener) EXPECT() *MockTokenerMockRecorder {
 }
 
 // GenerateToken mocks base method.
-func (m *MockTokener) GenerateToken(id int64, username, usage string, duration time.Duration) (string, *UserClaims, error) {
+func (m *MockTokener) GenerateToken(userID int64, username, usage string, duration time.Duration) (string, *UserClaims, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GenerateToken", id, username, usage, duration)
+	ret := m.ctrl.Call(m, "GenerateToken", userID, username, usage, duration)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(*UserClaims)
 	ret2, _ := ret[2].(error)
@@ -51,9 +51,9 @@ func (m *MockTokener) GenerateToken(id int64, username, usage string, duration t
 }
 
 // GenerateToken indicates an expected call of GenerateToken.
-func (mr *MockTokenerMockRecorder) GenerateToken(id, username, usage, duration any) *gomock.Call {
+func (mr *MockTokenerMockRecorder) GenerateToken(userID, username, usage, duration any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GenerateToken", reflect.TypeOf((*MockTokener)(nil).GenerateToken), id, username, usage, duration)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GenerateToken", reflect.TypeOf((*MockTokener)(nil).GenerateToken), userID, username, usage, duration)
 }
 
 // VerifyToken mocks base method.

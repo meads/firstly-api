@@ -33,8 +33,7 @@ func claimsMiddleware(h gin.HandlerFunc, tokener security.Tokener) gin.HandlerFu
 			return
 		}
 
-		// _ = userClaims
-		if userClaims.Type != "access" {
+		if userClaims.Usage != "access" {
 			ctx.JSON(http.StatusUnauthorized, errorResponse(errors.New("invalid token type")))
 			return
 		}

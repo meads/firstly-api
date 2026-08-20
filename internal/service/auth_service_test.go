@@ -557,7 +557,7 @@ func TestAuthService_RenewAccessToken(t *testing.T) {
 					Return(refreshClaims, nil)
 				srepo.EXPECT().GetSession(gomock.Any(), refreshClaims.RegisteredClaims.ID).
 					Return(&domain.Session{IsRevoked: false}, nil)
-				tokener.EXPECT().GenerateToken(refreshClaims.ID, refreshClaims.Username, "access", 15*time.Minute).
+				tokener.EXPECT().GenerateToken(refreshClaims.UserID, refreshClaims.Username, "access", 15*time.Minute).
 					Return("", nil, errors.New("error generating token"))
 				testRenewAccessTokenResult = nil
 			},
@@ -573,7 +573,7 @@ func TestAuthService_RenewAccessToken(t *testing.T) {
 				srepo.EXPECT().GetSession(gomock.Any(), refreshClaims.RegisteredClaims.ID).
 					Return(&domain.Session{IsRevoked: false}, nil)
 				accessClaims, _ := security.NewUserClaims(int64(1), "username", "access", 15*time.Minute)
-				tokener.EXPECT().GenerateToken(refreshClaims.ID, refreshClaims.Username, "access", 15*time.Minute).
+				tokener.EXPECT().GenerateToken(refreshClaims.UserID, refreshClaims.Username, "access", 15*time.Minute).
 					Return("accesstoken", accessClaims, nil)
 				testRenewAccessTokenResult = &domain.RenewAccessTokenResult{
 					AccessToken:          "accesstoken",

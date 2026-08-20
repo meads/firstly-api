@@ -1,6 +1,6 @@
 
 CREATE TABLE IF NOT EXISTS sessions (
-    id varchar(255) PRIMARY KEY NOT NULL,
+    id VARCHAR(36) PRIMARY KEY NOT NULL,
     user_id BIGINT NOT NULL,
     refresh_token VARCHAR(512) NOT NULL,
     is_revoked BOOLEAN DEFAULT FALSE NOT NULL,

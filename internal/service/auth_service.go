@@ -160,7 +160,7 @@ func (s *AuthService) RenewAccessToken(ctx context.Context, refreshToken string)
 	}
 
 	accessToken, accessClaims, err := s.tokener.GenerateToken(
-		refreshClaims.ID, refreshClaims.Username, "access", s.accessTokenDuration)
+		refreshClaims.UserID, refreshClaims.Username, "access", s.accessTokenDuration)
 	if err != nil {
 		return nil, domain.ErrTokenGeneration
 	}

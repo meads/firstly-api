@@ -11,21 +11,21 @@ import (
 )
 
 type UserClaims struct {
-	ID       int64  `json:"id"`
+	UserID   int64  `json:"userId"`
 	Username string `json:"username"`
-	Type     string `json:"type"`
+	Usage    string `json:"usage"`
 	*jwt.RegisteredClaims
 }
 
-func NewUserClaims(id int64, username string, usage string, duration time.Duration) (*UserClaims, error) {
+func NewUserClaims(userID int64, username string, usage string, duration time.Duration) (*UserClaims, error) {
 	tokenID, err := uuid.NewRandom()
 	if err != nil {
 		return nil, fmt.Errorf("Error generating token id: %w", err)
 	}
 	return &UserClaims{
-		ID:       id,
+		UserID:   userID,
 		Username: username,
-		Type:     usage,
+		Usage:    usage,
 		RegisteredClaims: &jwt.RegisteredClaims{
 			ID:        tokenID.String(),
 			Subject:   username,
@@ -36,7 +36,7 @@ func NewUserClaims(id int64, username string, usage string, duration time.Durati
 }
 
 type Tokener interface {
-	GenerateToken(id int64, username string, usage string, duration time.Duration) (string, *UserClaims, error)
+	GenerateToken(userID int64, username string, usage string, duration time.Duration) (string, *UserClaims, error)
 	VerifyToken(tokenString string) (*UserClaims, error)
 }
 
@@ -50,8 +50,8 @@ func NewTokenManager(secretKey string) Tokener {
 	}
 }
 
-func (c *TokenManager) GenerateToken(id int64, username string, usage string, duration time.Duration) (string, *UserClaims, error) {
-	claims, err := NewUserClaims(id, username, usage, duration)
+func (c *TokenManager) GenerateToken(userID int64, username string, usage string, duration time.Duration) (string, *UserClaims, error) {
+	claims, err := NewUserClaims(userID, username, usage, duration)
 	if err != nil {
 		return "", nil, err
 	}

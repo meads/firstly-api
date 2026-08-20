@@ -11,7 +11,7 @@ func passClaimsMiddleware(r *http.Request, tokener *security.MockTokener) {
 	tokenString := "mocktoken"
 	r.Header.Add("Authorization", "Bearer mocktoken")
 
-	userClaims := &security.UserClaims{Type: "access"}
+	userClaims := &security.UserClaims{Usage: "access"}
 	tokener.EXPECT().VerifyToken(tokenString).Return(userClaims, nil)
 }
 
