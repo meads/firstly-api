@@ -57,7 +57,7 @@ func (s *AuthService) Register(ctx context.Context, username, password string) (
 		return nil, err
 	}
 
-	accessToken, accessClaims, err := s.tokener.GenerateToken(user.ID, user.Username, "access", s.accessTokenDuration)
+	accessToken, _, err := s.tokener.GenerateToken(user.ID, user.Username, "access", s.accessTokenDuration)
 	if err != nil {
 		return nil, domain.ErrTokenGeneration
 	}
@@ -79,13 +79,10 @@ func (s *AuthService) Register(ctx context.Context, username, password string) (
 	}
 
 	return &domain.RegisterResult{
-		SessionID:             session.ID,
-		AccessToken:           accessToken,
-		RefreshToken:          refreshToken,
-		AccessTokenExpiresAt:  accessClaims.RegisteredClaims.ExpiresAt.Time,
-		RefreshTokenExpiresAt: refreshClaims.RegisteredClaims.ExpiresAt.Time,
-		Username:              user.Username,
-		UserID:                user.ID,
+		RefreshToken: refreshToken,
+		AccessToken:  accessToken,
+		SessionID:    session.ID,
+		UserID:       user.ID,
 	}, nil
 
 }
@@ -104,7 +101,7 @@ func (s *AuthService) Login(ctx context.Context, username, password string) (*do
 		return nil, domain.ErrInvalidCredentials
 	}
 
-	accessToken, accessClaims, err := s.tokener.GenerateToken(user.ID, user.Username, "access", s.accessTokenDuration)
+	accessToken, _, err := s.tokener.GenerateToken(user.ID, user.Username, "access", s.accessTokenDuration)
 	if err != nil {
 		return nil, domain.ErrTokenGeneration
 	}
@@ -126,13 +123,10 @@ func (s *AuthService) Login(ctx context.Context, username, password string) (*do
 	}
 
 	return &domain.LoginResult{
-		SessionID:             session.ID,
-		AccessToken:           accessToken,
-		RefreshToken:          refreshToken,
-		AccessTokenExpiresAt:  accessClaims.RegisteredClaims.ExpiresAt.Time,
-		RefreshTokenExpiresAt: refreshClaims.RegisteredClaims.ExpiresAt.Time,
-		Username:              user.Username,
-		UserID:                user.ID,
+		RefreshToken: refreshToken,
+		AccessToken:  accessToken,
+		SessionID:    session.ID,
+		UserID:       user.ID,
 	}, nil
 }
 
@@ -159,15 +153,14 @@ func (s *AuthService) RenewAccessToken(ctx context.Context, refreshToken string)
 		return nil, domain.ErrSessionRevoked
 	}
 
-	accessToken, accessClaims, err := s.tokener.GenerateToken(
+	accessToken, _, err := s.tokener.GenerateToken(
 		refreshClaims.UserID, refreshClaims.Username, "access", s.accessTokenDuration)
 	if err != nil {
 		return nil, domain.ErrTokenGeneration
 	}
 
 	return &domain.RenewAccessTokenResult{
-		AccessToken:          accessToken,
-		AccessTokenExpiresAt: accessClaims.RegisteredClaims.ExpiresAt.Time,
+		AccessToken: accessToken,
 	}, nil
 }
 

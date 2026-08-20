@@ -1,8 +1,6 @@
 package handler
 
 import (
-	"time"
-
 	"github.com/meads/firstly-api/internal/domain"
 )
 
@@ -14,24 +12,18 @@ type RegisterRequest struct {
 }
 
 type RegisterResponse struct {
-	SessionID             string    `json:"sessionId"`
-	AccessToken           string    `json:"accessToken"`
-	RefreshToken          string    `json:"refreshToken"`
-	AccessTokenExpiresAt  time.Time `json:"accessTokenExpiresAt"`
-	RefreshTokenExpiresAt time.Time `json:"refreshTokenExpiresAt"`
-	Username              string    `json:"username"`
-	UserID                int64     `json:"userId"`
+	RefreshToken string `json:"refreshToken"`
+	AccessToken  string `json:"accessToken"`
+	SessionID    string `json:"sessionId"`
+	UserID       int64  `json:"userId"`
 }
 
 func MapToRegisterResponse(registerResult *domain.RegisterResult) *RegisterResponse {
 	return &RegisterResponse{
-		SessionID:             registerResult.SessionID,
-		AccessToken:           registerResult.AccessToken,
-		RefreshToken:          registerResult.RefreshToken,
-		AccessTokenExpiresAt:  registerResult.AccessTokenExpiresAt,
-		RefreshTokenExpiresAt: registerResult.RefreshTokenExpiresAt,
-		Username:              registerResult.Username,
-		UserID:                registerResult.UserID,
+		RefreshToken: registerResult.RefreshToken,
+		AccessToken:  registerResult.AccessToken,
+		SessionID:    registerResult.SessionID,
+		UserID:       registerResult.UserID,
 	}
 }
 
@@ -41,13 +33,10 @@ type LoginRequest struct {
 }
 
 type LoginResponse struct {
-	SessionID             string    `json:"sessionId"`
-	AccessToken           string    `json:"accessToken"`
-	RefreshToken          string    `json:"refreshToken"`
-	AccessTokenExpiresAt  time.Time `json:"accessTokenExpiresAt"`
-	RefreshTokenExpiresAt time.Time `json:"refreshTokenExpiresAt"`
-	Username              string    `json:"username"`
-	UserID                int64     `json:"userId"`
+	RefreshToken string `json:"refreshToken"`
+	AccessToken  string `json:"accessToken"`
+	SessionID    string `json:"sessionId"`
+	UserID       int64  `json:"userId"`
 }
 
 type RenewAccessTokenRequest struct {
@@ -55,14 +44,12 @@ type RenewAccessTokenRequest struct {
 }
 
 type RenewAccessTokenResponse struct {
-	AccessToken          string    `json:"accessToken"`
-	AccessTokenExpiresAt time.Time `json:"accessTokenExpiresAt"`
+	AccessToken string `json:"accessToken"`
 }
 
 func MapToRenewAccessTokenResponse(result *domain.RenewAccessTokenResult) *RenewAccessTokenResponse {
 	return &RenewAccessTokenResponse{
-		AccessToken:          result.AccessToken,
-		AccessTokenExpiresAt: result.AccessTokenExpiresAt,
+		AccessToken: result.AccessToken,
 	}
 }
 

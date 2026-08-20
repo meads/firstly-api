@@ -62,13 +62,10 @@ func (h *AuthHandler) Login(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, &LoginResponse{
-		SessionID:             loginResult.SessionID,
-		AccessToken:           loginResult.AccessToken,
-		RefreshToken:          loginResult.RefreshToken,
-		AccessTokenExpiresAt:  loginResult.AccessTokenExpiresAt,
-		RefreshTokenExpiresAt: loginResult.RefreshTokenExpiresAt,
-		Username:              loginResult.Username,
-		UserID:                loginResult.UserID,
+		RefreshToken: loginResult.RefreshToken,
+		AccessToken:  loginResult.AccessToken,
+		SessionID:    loginResult.SessionID,
+		UserID:       loginResult.UserID,
 	})
 }
 

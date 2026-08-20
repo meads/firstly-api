@@ -53,24 +53,18 @@ func TestAuthLogin_Post(t *testing.T) {
 			responseCode: http.StatusOK,
 			route:        "/login/",
 			want: LoginResponse{
-				SessionID:             "uuid",
-				AccessToken:           "mockaccesstoken",
-				RefreshToken:          "mockrefreshtoken",
-				AccessTokenExpiresAt:  defaultDate,
-				RefreshTokenExpiresAt: defaultDate,
-				Username:              "newuser",
-				UserID:                1,
+				RefreshToken: "mockrefreshtoken",
+				AccessToken:  "mockaccesstoken",
+				SessionID:    "uuid",
+				UserID:       1,
 			},
 			setupExpectations: func(r *http.Request, authService *MockAuthServicer) {
 				requestUsername, requestPassword := "newuser", "message"
 				result := &domain.LoginResult{
-					SessionID:             "uuid",
-					AccessToken:           "mockaccesstoken",
-					RefreshToken:          "mockrefreshtoken",
-					AccessTokenExpiresAt:  defaultDate,
-					RefreshTokenExpiresAt: defaultDate,
-					Username:              "newuser",
-					UserID:                1,
+					RefreshToken: "mockrefreshtoken",
+					AccessToken:  "mockaccesstoken",
+					SessionID:    "uuid",
+					UserID:       1,
 				}
 				authService.EXPECT().Login(gomock.Any(), requestUsername, requestPassword).
 					Return(result, nil)
@@ -211,14 +205,12 @@ func TestRenewAccessToken_Post(t *testing.T) {
 			responseCode: http.StatusOK,
 			route:        "/refresh/",
 			want: RenewAccessTokenResponse{
-				AccessToken:          "newtoken",
-				AccessTokenExpiresAt: defaultDate,
+				AccessToken: "newtoken",
 			},
 			setupExpectations: func(r *http.Request, authService *MockAuthServicer) {
 				authService.EXPECT().RenewAccessToken(gomock.Any(), "token").
 					Return(&domain.RenewAccessTokenResult{
-						AccessToken:          "newtoken",
-						AccessTokenExpiresAt: defaultDate,
+						AccessToken: "newtoken",
 					}, nil)
 			},
 		},

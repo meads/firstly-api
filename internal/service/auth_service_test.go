@@ -209,13 +209,10 @@ func TestAuthService_Register(t *testing.T) {
 						ExpiresAt:    refreshClaims.RegisteredClaims.ExpiresAt.Time,
 					}, nil)
 				testRegisterResult = &domain.RegisterResult{
-					SessionID:             refreshClaims.RegisteredClaims.ID,
-					AccessToken:           "accesstoken",
-					RefreshToken:          "refreshtoken",
-					AccessTokenExpiresAt:  accessClaims.RegisteredClaims.ExpiresAt.Time,
-					RefreshTokenExpiresAt: refreshClaims.RegisteredClaims.ExpiresAt.Time,
-					Username:              "username",
-					UserID:                int64(1),
+					RefreshToken: "refreshtoken",
+					AccessToken:  "accesstoken",
+					SessionID:    refreshClaims.RegisteredClaims.ID,
+					UserID:       int64(1),
 				}
 			},
 		},
@@ -413,13 +410,10 @@ func TestAuthService_Login(t *testing.T) {
 					}, nil)
 
 				testLoginResult = &domain.LoginResult{
-					SessionID:             refreshClaims.RegisteredClaims.ID,
-					AccessToken:           "accesstoken",
-					RefreshToken:          "refreshtoken",
-					AccessTokenExpiresAt:  accessClaims.RegisteredClaims.ExpiresAt.Time,
-					RefreshTokenExpiresAt: refreshClaims.RegisteredClaims.ExpiresAt.Time,
-					Username:              "username",
-					UserID:                int64(1),
+					RefreshToken: "refreshtoken",
+					AccessToken:  "accesstoken",
+					SessionID:    refreshClaims.RegisteredClaims.ID,
+					UserID:       int64(1),
 				}
 			},
 		},
@@ -576,8 +570,7 @@ func TestAuthService_RenewAccessToken(t *testing.T) {
 				tokener.EXPECT().GenerateToken(refreshClaims.UserID, refreshClaims.Username, "access", 15*time.Minute).
 					Return("accesstoken", accessClaims, nil)
 				testRenewAccessTokenResult = &domain.RenewAccessTokenResult{
-					AccessToken:          "accesstoken",
-					AccessTokenExpiresAt: accessClaims.RegisteredClaims.ExpiresAt.Time,
+					AccessToken: "accesstoken",
 				}
 			},
 		},

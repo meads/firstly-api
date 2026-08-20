@@ -32,24 +32,18 @@ func TestRegisterUserHandler_Post(t *testing.T) {
 			responseCode: http.StatusOK,
 			route:        "/register/",
 			want: RegisterResponse{
-				SessionID:             "uuid",
-				AccessToken:           "mockaccesstoken",
-				RefreshToken:          "mockrefreshtoken",
-				AccessTokenExpiresAt:  defaultDate,
-				RefreshTokenExpiresAt: defaultDate,
-				Username:              "newuser",
-				UserID:                1,
+				RefreshToken: "mockrefreshtoken",
+				AccessToken:  "mockaccesstoken",
+				SessionID:    "uuid",
+				UserID:       1,
 			},
 			setupExpectations: func(r *http.Request, tokener *security.MockTokener, userService *MockUserServicer, authService *MockAuthServicer) {
 				requestUsername, requestPassword := "newuser", "message"
 				result := &domain.RegisterResult{
-					SessionID:             "uuid",
-					AccessToken:           "mockaccesstoken",
-					RefreshToken:          "mockrefreshtoken",
-					AccessTokenExpiresAt:  defaultDate,
-					RefreshTokenExpiresAt: defaultDate,
-					Username:              "newuser",
-					UserID:                1,
+					RefreshToken: "mockrefreshtoken",
+					AccessToken:  "mockaccesstoken",
+					SessionID:    "uuid",
+					UserID:       1,
 				}
 				authService.EXPECT().Register(gomock.Any(), requestUsername, requestPassword).
 					Return(result, nil)
