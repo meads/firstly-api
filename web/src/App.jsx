@@ -5,7 +5,7 @@ import { authEvents, LOGOUT_EVENT } from './auth_event';
 export default function App() {
   const [page, setPage] = useState('login');
   const [user, setUser] = useState(null);
-  const [notes, setNotes] = useState(null);
+  const [notes, setNotes] = useState([]);
   const [currentNote, setCurrentNote] = useState(null);
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
@@ -17,18 +17,17 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    async function fetchNotes() {
-      const result = await getNotes();
-      if (result.success) {
-        setNotes(result.data.notes);
-      }
-    }
-
-    let userId = sessionStorage.getItem("userId")
-    if (userId) {
+    if (page === 'list') {
       fetchNotes();
-    } 
-  }, [])
+    }
+  }, [page]);
+
+  const fetchNotes = async () => {
+    const result = await getNotes();
+    if (result.success) {
+      setNotes(result.data.notes);
+    }
+  };
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -71,19 +70,14 @@ export default function App() {
       const result = await updateNote(currentNote.id, title, content);
       if (result.success) {
         setNotes(notes.map(n => n.id === currentNote.id ? { ...n, title, content } : n));
-        setPage('list');
       }
     } else {
       const result = await createNote(title, content);
       if (result.success){
-        if (!notes) {
-          setNotes([{ id: result.data.id, content: result.data.content, title: result.data.title }]);
-        } else {
-          setNotes([...notes, { id: result.data.id, content: result.data.content, title: result.data.title }]);
-        }
-        setPage('list');
+        setNotes([...notes, { id: result.data.id, content: result.data.content, title: result.data.title }]);
       }
     }
+    setPage('list');
     setTitle('');
     setContent('');
     setCurrentNote(null);
