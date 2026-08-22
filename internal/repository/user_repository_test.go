@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"reflect"
 	"testing"
@@ -169,6 +170,15 @@ func TestGetUser(t *testing.T) {
 		expectedError     error
 		setupExpectations func(querier *MockQuerier)
 	}{
+		{
+			name:          "get user fails given querier get user returns sql no rows error",
+			expectedUser:  nil,
+			expectedError: errors.New("user not found"),
+			setupExpectations: func(querier *MockQuerier) {
+				querier.EXPECT().GetUser(gomock.Any(), int64(1)).
+					Return(sqlc.User{}, sql.ErrNoRows)
+			},
+		},
 		{
 			name:          "get user fails given querier get user returns a server error",
 			expectedUser:  nil,
@@ -378,6 +388,15 @@ func TestGetUserByUsername(t *testing.T) {
 		expectedError     error
 		setupExpectations func(querier *MockQuerier)
 	}{
+		{
+			name:          "get user by username fails given querier get user by username returns sql no rows error",
+			expectedUser:  nil,
+			expectedError: domain.ErrUserNotFound,
+			setupExpectations: func(querier *MockQuerier) {
+				querier.EXPECT().GetUserByUsername(gomock.Any(), "username").
+					Return(sqlc.User{}, sql.ErrNoRows)
+			},
+		},
 		{
 			name:          "get user by username fails given querier get user by username returns a server error",
 			expectedUser:  nil,

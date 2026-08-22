@@ -34,6 +34,19 @@ func TestAuthLogin_Post(t *testing.T) {
 			},
 		},
 		{
+			body:         bytes.NewBufferString("{\"username\":\"newuser\",\"password\":\"invalid\"}"),
+			contentType:  "application/json; charset=utf-8",
+			name:         "login handler responds with Status Code 401 given login service returns invalid creds error",
+			responseCode: http.StatusUnauthorized,
+			route:        "/login/",
+			want:         LoginResponse{},
+			setupExpectations: func(r *http.Request, authService *MockAuthServicer) {
+				requestUsername, requestPassword := "newuser", "invalid"
+				authService.EXPECT().Login(gomock.Any(), requestUsername, requestPassword).
+					Return(&domain.LoginResult{}, domain.ErrInvalidCredentials)
+			},
+		},
+		{
 			body:         bytes.NewBufferString("{\"username\":\"newuser\",\"password\":\"message\"}"),
 			contentType:  "application/json; charset=utf-8",
 			name:         "login handler responds with Status Code 500 given login service returns an error",

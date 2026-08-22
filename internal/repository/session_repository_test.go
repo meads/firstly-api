@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	reflect "reflect"
 	"testing"
@@ -103,6 +104,15 @@ func TestGetSession(t *testing.T) {
 		expectedError     error
 		setupExpectations func(querier *MockQuerier)
 	}{
+		{
+			name:            "get session fails given querier get session returns sql no rows error",
+			expectedSession: nil,
+			expectedError:   errors.New("server error"),
+			setupExpectations: func(querier *MockQuerier) {
+				querier.EXPECT().GetSession(gomock.Any(), "sessionid").
+					Return(sqlc.Session{}, sql.ErrNoRows)
+			},
+		},
 		{
 			name:            "get session fails given querier get session returns a server error",
 			expectedSession: nil,

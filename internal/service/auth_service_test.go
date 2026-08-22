@@ -258,6 +258,21 @@ func TestAuthService_Login(t *testing.T) {
 		)
 	}{
 		{
+			name:          "auth service login fails given error user not found returned from get user by username",
+			username:      "username",
+			password:      "password",
+			expectedError: domain.ErrInvalidCredentials,
+			setupExpectations: func(
+				tokener *security.MockTokener, hasher *security.MockHasher,
+				srepo *MockSessionRepository, urepo *MockUserRepository,
+			) {
+				urepo.EXPECT().GetUserByUsername(gomock.Any(), "username").
+					Return(nil, domain.ErrUserNotFound)
+
+				testLoginResult = nil
+			},
+		},
+		{
 			name:          "auth service login fails given error returned from get user by username",
 			username:      "username",
 			password:      "password",
