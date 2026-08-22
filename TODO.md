@@ -15,7 +15,7 @@
 - [x] Generate mocks for interfaces allowing mocks for unit testing code that modifies database state.
 - [x] Generation of access & refresh tokens for custom claims using JWT library v5.
 - [ ] Config struct to store environment variables in main package, validate and provide ease of use.
-- [ ] Near 100% code coverage for unit testing of all backend code.
+- [x] Near 100% code coverage for unit testing of all backend code.
 - [x] Convert sqlc.yaml to version 2 and convert all TIMESTAMP columns to TIMESTAMPZ to handle NULL types
 - [x] Create an internal api layer that becomes the source to interact with backing data stores.
 - [x] Refactor handlers data calls to api calls.
