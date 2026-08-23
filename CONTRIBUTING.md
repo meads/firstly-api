@@ -1,15 +1,7 @@
 # Contributing Guidelines
 
-### note:
-This repo was originally cloned from the below repo and deployed to the free tier on heroku 
-which ended in 2022. Nearly all references to this have been removed from the code. Some 
-references remain as only a reminder of the previous functionality.
-https://github.com/heroku/go-getting-started.git
 
-*review this page to smooth out the build/tag/push docker images to the registry
-https://devcenter.heroku.com/articles/container-registry-and-runtime#getting-started
-
-## install
+## install for contributors
 
 make sure you have the following in your .bashrc or .bash_profile 
 
@@ -136,7 +128,7 @@ $ docker compose up
 
 ## cleanup local
 
-Remove all containers and start fresh.
+Remove all networks and containers and start fresh.
 ```bash
 $ docker compose down
 ```
@@ -220,3 +212,15 @@ curl -X PUT -v \
 curl -X DELETE -v \
   -H "Authorization: Bearer $bearer_token" \
   http://localhost:8080/users/1/notes/1
+
+```
+
+
+### note:
+This repo was originally cloned from the below repo and deployed to the free tier on heroku 
+which ended in 2022. Nearly all references to this have been removed from the code. Some 
+references remain as only a reminder of the previous functionality.
+https://github.com/heroku/go-getting-started.git
+
+*review this page to smooth out the build/tag/push docker images to the registry
+https://devcenter.heroku.com/articles/container-registry-and-runtime#getting-started

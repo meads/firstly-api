@@ -1,33 +1,10 @@
-## Notes App Authentication Architecture
+# Notes App
+
+This application achieves two primary objectives. One is to serve as a template for horizontally layered architecture written in Go and two is to provide an example of a backend that authenticates web clients as well as potientially mobile clients using a token based architecture which is described in the subsequent sections of this document.
 
 This document describes the stateless-but-revocable JWT authentication system used in this Notes application. The architecture prioritizes simplicity, clean database state, and seamless user experience across browser sessions.
 
-### 🏗️ Architecture Overview
-
-The system uses a dual-token architecture (Access Token + Refresh Token) stored entirely on the client side via sessionStorage. To maintain control over active sessions without checking the database on every single API request, the system introduces a lightweight Sessions table.
-
-```
-+-----------------------------------+
-|          Client Browser           |
-+-----------------------------------+
-                  |
-    1. /login or /register
-                  v
-+-----------------------------------+
-|          Backend Server           |
-+-----------------------------------+
-                  |
-   2. Generates Tokens & Sessions Record
-                  v
-+-----------------------------------+
-|         Database (PostgreSQL)     |
-+-----------------------------------+
-```
-
-### 🗝️ Token Specifications
-
-  * Access Token: Short-lived (15 minutes). Sent in the Authorization: Bearer [token] header. Verified entirely statelessly by backend middleware.
-  * Refresh Token: Long-lived (24 hours). Sent in the JSON body to the /refresh endpoint to request a new access token.
+The application allows a user to register using a username and password. Following the initial signup the user can create, read, update and delete notes. The functionality was intentionally made to be simple so as just to provide the proof of concept.
 
 ## 🛠️ Tech Stack
 
@@ -35,14 +12,13 @@ The system uses a dual-token architecture (Access Token + Refresh Token) stored 
 * **Styling:** [CSS]
 * **HTTP Client:** [Fetch API]
 * **HTTP Server:** [Gin]
-* **Backend:** [Go]
+* **Backend:** [Go] (version 1.26)
 * **Tokens:** [JWT]
 * **Database:** [sqlc/Postgresql]
 
 ## 📦 Getting Started
 
 ### Prerequisites
-* Go (version 1.26)
 * Docker Desktop [typical docker install steps](https://www.docker.com/get-started/)
 * A running instance of the [Notes API](https://github.com/meads/firstly-api)
 
@@ -71,9 +47,17 @@ The system uses a dual-token architecture (Access Token + Refresh Token) stored 
 Open `http://localhost:3000` in your browser to view the UI.
 
 
-### 🗄️ Database Schema
 
-The sessions table tracks active, valid login instances per browser tab/device.
+<hr>
+
+
+# 🏗️ Architecture Overview
+
+The system uses a cookie-less dual-token architecture (Access Token + Refresh Token) stored on the client side via sessionStorage. 
+
+To maintain control over active sessions without checking the database on every single API request, the system uses a Sessions table. The sessions table PRIMARY KEY is a uuid that mirrors the refresh token RegisteredClaims.ID. The user_id is the user the session is for. The refresh_token is the actual JWT refresh token string. The is_revoked column is a boolean that allows revocation of a session/refresh_token. The expires_at is another field that mirrors the JWT refresh token but for the expires timestamp.
+
+### 🗄️ Database Schema
 
 ```sql
 CREATE TABLE sessions (
@@ -93,7 +77,7 @@ CREATE TABLE sessions (
 
   1. The client submits credentials.
 
-  2. The backend verifies credentials (or hashes a new password using bcrypt).
+  2. The backend verifies credentials.
 
   3. The backend generates a 15-minute Access Token and a 24-hour Refresh Token.
 
@@ -113,8 +97,6 @@ CREATE TABLE sessions (
 #### Client-Side Storage
 
 The client stores all returned properties directly in sessionStorage.
- * Isolation Benefit: Because sessionStorage is strictly sandboxed to a single browser tab, multiple open tabs maintain separate tokens and session contexts, eliminating cross-tab token conflicts.
-
 
 #### Transparent Token Refresh (The Interceptor Queue)
 
@@ -131,7 +113,7 @@ Expired Access Token Triggered -> 401 Unauthorized
                                       |
                      Returns NEW 15-min Access Token
                                       |
-              Replay queued requests with updated header
+              Replay queued requests with updated header 
 ```
 
  * Static Refresh Approach: The Refresh Token remains static for its 24-hour lifespan to prevent race conditions during concurrent frontend fetches.
@@ -147,78 +129,27 @@ Expired Access Token Triggered -> 401 Unauthorized
 ### 🧹 Automated Database Cleanup
 
 Because sessionStorage is destroyed when a user closes a browser tab, the server is never notified of "abandoned" sessions. Left unchecked, the sessions table would grow indefinitely.
-To prevent this, a scheduled routine runs once every 24 hours to prune expired sessions from the database.
+To prevent this, create a scheduled routine that runs once every 24 hours to prune expired sessions from the database.
 
 
 SQL Cleanup Query
 
-Any session older than 24 hours is mathematically guaranteed to have an expired Refresh Token and is safe to delete.
+Any session older than 24 hours is guaranteed to have an expired Refresh Token and is safe to delete.
 
 ```sql
 DELETE FROM sessions 
 WHERE created_at < NOW() - INTERVAL '24 hours';
 ```
 
-Production Implementations
-
-Option A: Node.js Scheduled Task (node-cron)
-
-```javascript
-const cron = require('node-cron');
-const db = require('./db');
-
-// Runs every night at midnight (00:00)
-cron.schedule('0 0 * * *', async () => {
-  try {
-    const result = await db.query(
-      "DELETE FROM sessions WHERE created_at < NOW() - INTERVAL '24 hours'"
-    );
-    console.log(`[Cleanup] Purged ${result.affectedRows} expired sessions.`);
-  } catch (err) {
-    console.error('[Cleanup Error]', err);
-  }
-});
-```
-
-Option B: Using pg_cron
-
-The pg_cron extension turns PostgreSQL into a cron-based scheduler, allowing you to run SQL commands directly from inside the database.
-
-1. Enable the extension
-
-You must add pg_cron to your shared_preload_libraries in postgresql.conf and restart the database. Once done, run:
-
-```sql
-CREATE EXTENSION pg_cron;
-```
-
-2. Schedule the DELETE query
-
-Run the cron.schedule function. The first argument is a standard cron expression (0 2 * * * means everyday at 2:00 AM), and the second argument is your SQL query:
-
-```sql
-SELECT cron.schedule(
-    'daily-cleanup-job',      -- Job name
-    '0 2 * * *',              -- Cron schedule (2:00 AM daily)
-    $$DELETE FROM sessions WHERE created_at < NOW() - INTERVAL '24 hours'$$
-);
-```
-
-3. Managing the Job
-
-```sql
--- View active jobs
-SELECT * FROM cron.job;
-
--- Unschedule/delete the job
-SELECT cron.unschedule('daily-cleanup-job');
-```
 
 ### ⚠️ Security Notes
 
 1. XSS Protection: Storing tokens in sessionStorage makes them accessible via JavaScript. Ensure strict Content Security Policies (CSP) are active and input sanitization is strictly applied on all user-submitted notes to mitigate Cross-Site Scripting risks.
 2. HTTPS Only: All token exchanges must occur over TLS/HTTPS to protect credentials and JWTs from interception.
 
+
+
 ### 📄 License
 
 This project is open-source and available under the **MIT License**.
+
