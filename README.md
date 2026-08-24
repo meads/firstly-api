@@ -98,9 +98,31 @@ CREATE TABLE sessions (
 
 The client stores all returned properties directly in sessionStorage.
 
+```javascript
+const data = await response.json()
+sessionStorage.setItem("sessionId", data.sessionId)
+sessionStorage.setItem("userId", data.userId)
+sessionStorage.setItem("accessToken", data.accessToken)
+sessionStorage.setItem("refreshToken", data.refreshToken)
+```
+
+#### Requests to protected routes
+
+1. The client makes a request to create, save, delete or fetch some note(s) from the api. The
+  request headers contain the access token.
+  ```javascript
+  Authorization': `Bearer ${accessToken}`
+  ```
+
+2. The access token specified in the Authorization header is seen to be invalid by the backend
+  JWT middleware and a 401 response is returned to the client before completing the api request.
+
+3. The client queues the original request and any subsequent requests, then begins the transparent 
+  token refresh. See below...
+
 #### Transparent Token Refresh (The Interceptor Queue)
 
-To keep the user logged in seamlessly, the client wraps the native browser fetch function (fetchClient).
+To keep the user logged in seamlessly, the client wraps the native browser fetch function by a function named (fetchClient). The fetchClient function intercepts all 401 responses and performs this refresh/retry logic.
 
 ```
 Expired Access Token Triggered -> 401 Unauthorized
@@ -116,7 +138,6 @@ Expired Access Token Triggered -> 401 Unauthorized
               Replay queued requests with updated header 
 ```
 
- * Static Refresh Approach: The Refresh Token remains static for its 24-hour lifespan to prevent race conditions during concurrent frontend fetches.
  * Failure Catch: If the /refresh call fails (e.g., token expired or deleted from DB), the queue is rejected, sessionStorage is wiped, and the user is redirected to the login screen.
 
 #### Explicit Logout (/logout)
