@@ -48,9 +48,6 @@ Open `http://localhost:3000` in your browser to view the UI.
 
 
 
-<hr>
-
-
 # 🏗️ Architecture Overview
 
 The system uses a cookie-less dual-token architecture (Access Token + Refresh Token) stored on the client side via sessionStorage. 
